@@ -24,7 +24,7 @@
   <ItemGroup>
     <!-- <PackageReference Include="CoreCompat.System.Drawing.v2" Version="5.2.0-preview1-r131" /> -->
     <!-- <PackageReference Include="Handy.DotNETCore-Compatibility.ColorTranslations" Version="0.2.1" /> -->
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.2" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.6.0" />
     <PackageReference Include="System.Security.AccessControl" Version="4.6.0" />
     <PackageReference Include="OsLibCore" Version="2.1.2" />
