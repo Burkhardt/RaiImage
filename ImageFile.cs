@@ -76,8 +76,8 @@ namespace RaiImage
             get
             {
                 string n = "";
-                if (!string.IsNullOrEmpty(Sku))
-                    n += Sku;
+                if (!string.IsNullOrEmpty(ItemId))
+                    n += ItemId;
                 if (imageNumber >= 0)
                     n += "_" + ImageNumber.ToString("D2");
                 return n.Length > 0 ? n : base.Name;
@@ -91,8 +91,8 @@ namespace RaiImage
             get
             {
                 string n = "";
-                if (!string.IsNullOrEmpty(Sku))
-                    n += Sku;
+                if (!string.IsNullOrEmpty(ItemId))
+                    n += ItemId;
                 if (Color != null)
                     n += "_" + Color.Code.Substring(1);
                 if (imageNumber >= 0)
@@ -114,12 +114,17 @@ namespace RaiImage
             get { return string.IsNullOrEmpty(Name) ? string.Empty : Name + (string.IsNullOrEmpty(Ext) ? string.Empty : "." + Ext); }
         }
         public System.Drawing.Image Image { get; set; }
+        public virtual string ItemId
+        {
+            get { return itemId; }
+            set { itemId = string.IsNullOrEmpty(value) ? string.Empty : value; }
+        }
+        private string itemId;
         public virtual string Sku
         {
-            get { return sku; }
-            set { sku = string.IsNullOrEmpty(value) ? string.Empty : value; }
+            get { return ItemId; }
+            set { ItemId = value; }
         }
-        private string sku;
         public virtual string NameExt
         {
             get { return nameExt; }
@@ -226,31 +231,31 @@ namespace RaiImage
                 imgFile.ImageNumber = 1;
             if (string.IsNullOrEmpty(imgFile.Ext))
                 imgFile.Ext = "jpg";
-            if (imgFile.Sku.Length < 4)
+            if (imgFile.ItemId.Length < 4)
             {
-                if (imgFile.Sku.ToLower() == "img")
+                if (imgFile.ItemId.ToLower() == "img")
                 {
                     if (imgFile.ImageNumber > 100000)
                     {
-                        imgFile.Sku = (imgFile.ImageNumber / 100000).ToString();
+                        imgFile.ItemId = (imgFile.ImageNumber / 100000).ToString();
                         imgFile.ImageNumber = imgFile.ImageNumber % 100000;
                     }
                     else if (imgFile.ImageNumber > 10)
                     {
-                        imgFile.Sku += (imgFile.ImageNumber / 10).ToString();
+                        imgFile.ItemId += (imgFile.ImageNumber / 10).ToString();
                         imgFile.ImageNumber = imgFile.ImageNumber % 10;
                     }
-                    else imgFile.Sku = nameof(Image); // "Image";
+                    else imgFile.ItemId = nameof(Image); // "Image";
                 }
-                else if (string.IsNullOrWhiteSpace(imgFile.Sku))
-                    imgFile.Sku = "0";
-                if (System.Text.RegularExpressions.Regex.IsMatch(imgFile.Sku, "^[0-9]+$")) // numerical only => extend in the front
-                    while (imgFile.Sku.Length < 4)
-                        imgFile.Sku = "0" + imgFile.Sku;
+                else if (string.IsNullOrWhiteSpace(imgFile.ItemId))
+                    imgFile.ItemId = "0";
+                if (System.Text.RegularExpressions.Regex.IsMatch(imgFile.ItemId, "^[0-9]+$")) // numerical only => extend in the front
+                    while (imgFile.ItemId.Length < 4)
+                        imgFile.ItemId = "0" + imgFile.ItemId;
                 else
                 {   // extend in the back
-                    while (imgFile.Sku.Length < 4)
-                        imgFile.Sku += "0";
+                    while (imgFile.ItemId.Length < 4)
+                        imgFile.ItemId += "0";
                 }
             }
             if (renameFile)
@@ -338,7 +343,7 @@ namespace RaiImage
                     NameExt = BlankToCamelCase(parts[2]); ;
                 }
             }
-            Sku = parts[0]; // also sets topdir and subdir if called for a ImageTreeFile since property Sku is virtual
+            ItemId = parts[0]; // also sets topdir and subdir if called for an ImageTreeFile since property ItemId is virtual
             #endregion
             #region TileTemplate
             if (csvValues.Length > 1)
@@ -375,13 +380,14 @@ namespace RaiImage
         }
         /// <summary>get first file that is a match in the filesystem</summary>
         /// <param name="extensions">comma seperated string with extensions</param>
+        /// <param name="splitMode">explicit split mode to use for ImageTreeFile probing</param>
         /// <param name="colorInfo">null by default; will be wildcarded if null</param>
         /// <returns>false if no file exists for any passed-in extensions - extends the ImageTreeFile accordingly otherwise and returns true</returns>
-        public bool ExtendToFirstExistingFile(string extensions, ColorInfo colorInfo = null)
+        public bool ExtendToFirstExistingFile(string extensions, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, ColorInfo colorInfo = null)
         {
             //try
             //{
-            var itf = new ImageTreeFile(FullName);
+            var itf = new ImageTreeFile(FullName, splitMode);
             itf.Color = colorInfo ?? new ColorInfo("#0DEAD0");
             itf.Ext = "*";
             var searchPattern = colorInfo == null ? itf.NameWithExtension.Replace("_0DEAD0", "*") : itf.NameWithExtension;
@@ -390,7 +396,7 @@ namespace RaiImage
             if (extArray.Length > 0)
                 foreach (var dirEntry in dirEntries)
                 {
-                    itf = new ImageTreeFile(dirEntry);
+                    itf = new ImageTreeFile(dirEntry, splitMode);
                     foreach (string extension in extArray)
                     {
                         if (extension == itf.Ext)
@@ -398,7 +404,7 @@ namespace RaiImage
                             Ext = extension;
                             Color = itf.Color;
                             if (ImageNumber == NoImageNumber)   // BildInArbeit.tiff requested; BildInArbeit_01.tiff exists => take it
-                                ImageNumber = new ImageTreeFile(dirEntry).ImageNumber;
+                                ImageNumber = new ImageTreeFile(dirEntry, splitMode).ImageNumber;
                             return true;
                         }
                     }
@@ -417,7 +423,7 @@ namespace RaiImage
             : base(filename)
         {
             Image = null;
-            Sku = null;
+            ItemId = null;
             NameExt = null;
             TileTemplate = null;
             Parse();
@@ -426,7 +432,7 @@ namespace RaiImage
             : base($"{path}{name}_{nameExt}.{ext}")
         {
             Image = null;
-            Sku = null;
+            ItemId = null;
             NameExt = null;
             TileTemplate = null;
             Parse();
@@ -443,10 +449,44 @@ namespace RaiImage
         }
         */
     }
-    public class ImageTreeFile : ImageFile
+    public class ImageTreeFile : ImageFile, IPathConventionFile
     {
+        private readonly PathConventionType splitMode;
+        private readonly int topdirLen;
+        private readonly int subdirLen;
+
+        public PathConventionType ConventionName
+        {
+            get { return splitMode; }
+        }
+
+        private static PathConventionType ValidateSplitMode(PathConventionType mode)
+        {
+            if (mode != PathConventionType.ItemIdTree8x2 && mode != PathConventionType.ItemIdTree3x3)
+                throw new ArgumentException("ImageTreeFile requires ItemIdTree8x2 or ItemIdTree3x3 split mode.", nameof(mode));
+            return mode;
+        }
+
+        private static void GetSplitLengths(PathConventionType mode, out int topLen, out int subLen)
+        {
+            if (mode == PathConventionType.ItemIdTree3x3)
+            {
+                topLen = 3;
+                subLen = 3;
+                return;
+            }
+
+            topLen = 8;
+            subLen = 2;
+        }
+
+        public void ApplyPathConvention()
+        {
+            ItemId = ItemId;
+        }
+
         /// <summary>
-        /// readonly - set components to change, ie Sku, NameExt, ...
+        /// readonly - set components to change, ie ItemId, NameExt, ...
         /// </summary>
         public override string FullName
         {
@@ -459,13 +499,11 @@ namespace RaiImage
             }
         }
         #region topdir and subdir, i.e, "20190919/2019091914/20190919145258_244.jpg"
-        private const int topdirLen = 8; //was 3
         private string topdir;      // without seperators
         public string Topdir
         {
             get { return topdir; }
         }
-        private const int subdirLen = 2; //was 3
         private string subdir;      // without seperators
         public string Subdir
         {
@@ -528,12 +566,12 @@ namespace RaiImage
             set // set new path but make sure that topdir and subdir are not duplicated
             {
                 // set topdir and subdir
-                topdir = string.IsNullOrEmpty(value) ? string.Empty : Sku.Substring(0, Math.Min(Sku.Length, topdirLen));
+                topdir = string.IsNullOrEmpty(value) ? string.Empty : ItemId.Substring(0, Math.Min(ItemId.Length, topdirLen));
                 #region special treatment for dos device name con
                 if (topdir.Length == 3 && topdir.ToLower() == "con")
                     topdir = "C0N";
                 #endregion
-                subdir = string.IsNullOrEmpty(value) ? string.Empty : Sku.Substring(0, Math.Min(Sku.Length, topdirLen + subdirLen));
+                subdir = string.IsNullOrEmpty(value) ? string.Empty : ItemId.Substring(0, Math.Min(ItemId.Length, topdirLen + subdirLen));
                 // remove subdir and topdir of new path if necessary
                 string s = Os.DIRSEPERATOR + topdir + Os.DIRSEPERATOR + subdir;
                 int pos = value.IndexOf(s);
@@ -542,10 +580,10 @@ namespace RaiImage
                 else base.Path = value;
             }
         }
-        public override string Sku
+        public override string ItemId
         {
-            get { return base.Sku; }
-            set // set new sku and redefine Path
+            get { return base.ItemId; }
+            set // set new itemId and redefine Path
             {
                 // remove subdir and topdir of old sku from path if necessary
                 string s = (Os.DIRSEPERATOR + topdir + Os.DIRSEPERATOR + subdir).ToLower(); ;
@@ -558,8 +596,13 @@ namespace RaiImage
                     topdir = "C0N";
                 #endregion
                 subdir = string.IsNullOrEmpty(value) ? string.Empty : value.Substring(0, Math.Min(value.Length, topdirLen + subdirLen));
-                base.Sku = value;
+                base.ItemId = value;
             }
+        }
+        public override string Sku
+        {
+            get { return ItemId; }
+            set { ItemId = value; }
         }
         public new void mkdir()
         {
@@ -599,17 +642,18 @@ namespace RaiImage
         /// </summary>
         /// <param name="fromDir">original directory</param>
         /// <param name="toDirRoot">root of the new directory structure </param>
+        /// <param name="splitMode">explicit split mode for destination tree calculation</param>
         /// <param name="filter"></param>
         /// <param name="remove"></param>
         /// <returns></returns>
-        public static int MoveToTree(string fromDir, string toDirRoot, string filter = "*.jpg", string remove = "")
+        public static int MoveToTree(string fromDir, string toDirRoot, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, string filter = "*.jpg", string remove = "")
         {
             ImageTreeFile dest;
             RaiFile source;
             int count = 0;
             foreach (var file in Directory.EnumerateFiles(new RaiFile(fromDir).FullName, filter))
             {
-                dest = new ImageTreeFile(file.Replace(remove, ""));
+            dest = new ImageTreeFile(file.Replace(remove, ""), splitMode);
                 dest.Path = new RaiFile(toDirRoot).FullName;
                 source = new RaiFile(file);
                 dest.mv(source);
@@ -632,20 +676,25 @@ namespace RaiImage
         /// <param name="path">any path including Os.DIRSEPERATOR; topdir/subdir will be inserted</param>
         /// <param name="nameExt">i.e. _01</param>
         /// <param name="ext">i.e. xml</param>
+        /// <param name="splitMode">legacy 8/10 split or itemId 3/6 split</param>
         /// <remarks>special treatment for topdir CON (Windows restriction)</remarks>
-        public ImageTreeFile(string name, string path, string nameExt, string ext)
+        public ImageTreeFile(string name, string path, string nameExt, string ext, PathConventionType splitMode = PathConventionType.ItemIdTree8x2)
             : base(name)
         {
+            this.splitMode = ValidateSplitMode(splitMode);
+            GetSplitLengths(this.splitMode, out topdirLen, out subdirLen);
             Path = string.IsNullOrEmpty(path) ? null : path;
             NameExt = string.IsNullOrEmpty(nameExt) ? null : nameExt;
             Ext = string.IsNullOrEmpty(ext) ? null : ext;
-            Sku = Sku;  // removes potential duplicates of Os.DIRSEPERATOR + topdir + Os.DIRSEPERATOR + subdir 
+            ItemId = ItemId;  // removes potential duplicates of Os.DIRSEPERATOR + topdir + Os.DIRSEPERATOR + subdir
         }
-        public ImageTreeFile(string file)
+        public ImageTreeFile(string file, PathConventionType splitMode = PathConventionType.ItemIdTree8x2)
             : base(file)
         {
+            this.splitMode = ValidateSplitMode(splitMode);
+            GetSplitLengths(this.splitMode, out topdirLen, out subdirLen);
             //size = Size.nosize;
-            Sku = Sku;  // removes potential duplicates of Os.DIRSEPERATOR + topdir + Os.DIRSEPERATOR + subdir 
+            ItemId = ItemId;  // removes potential duplicates of Os.DIRSEPERATOR + topdir + Os.DIRSEPERATOR + subdir
         }
     }
     public class ImageMagick
@@ -1020,7 +1069,7 @@ namespace RaiImage
                 options = options + " -unsharp " + unsharp;
             if (strip)
                 options = "-strip " + options;
-            ImageTreeFile total = new ImageTreeFile(destFiles.FullName);
+            ImageTreeFile total = new ImageTreeFile(destFiles.FullName, destFiles.ConventionName);
             total.Ext = "png";  // important decision: tiles go via png (png is under suspicion to have a problem with some red levels)
             total.TileNumber = "all";
             int rc = Convert(options, master.FullName, total.FullName, true);

@@ -1,0 +1,186 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+
+title RaiImage Type Overview
+
+package "RaiImage" {
+  class StringHelper {
+    +ToTitle(anyCase : string) : string
+    +CamelSplit(anyCase : string) : string[]
+  }
+
+  class CamelCase {
+    +Array : string[]
+    +String : string
+  }
+
+  class ColorInfo {
+    +ColorNamesFile : string
+    +Color : System.Drawing.Color
+    +Count : int
+    +Code : string
+    +Name : string
+    +Get(nameOrHexCode : string) : ColorInfo
+    +NamedColors : Dictionary<string, string>
+  }
+
+  class DyeDelta {
+    +DeltaB : int
+    +DeltaS : int
+    +Phi : int
+  }
+
+  class Dye {
+    +Color : System.Drawing.Color
+    +Hue : float
+    +Phi(otherColor : Dye) : int
+    +DeltaB(other : Dye) : int
+    +DeltaS(other : Dye) : int
+  }
+
+  class Extensions {
+    +Parse(str : string) : Size
+  }
+
+  class Size {
+    +Width : int
+    +Height : int
+    +ToString() : string
+    +noSize : Size
+    +nosize : System.Drawing.Size
+    +HSEmidsize : System.Drawing.Size
+    +HSEfullsize : System.Drawing.Size
+  }
+
+  class ImageFile {
+    +NoImageNumber : int
+    +Image : System.Drawing.Image
+    +Sku : string
+    +NameExt : string
+    +ImageNumber : int
+    +TileTemplate : string
+    +TileNumber : string
+    +Color : ColorInfo
+    +ShortName : string
+    +FromFile(clone : bool) : System.Drawing.Image
+    +SetImageNumber(s : string)
+    +ExtendToFirstExistingFile(extensions : string, colorInfo : ColorInfo = null) : bool
+    +EasyFileName(pic : string, renameFile : bool = false) : string
+  }
+
+  class ImageTreeFile {
+    +Topdir : string
+    +Subdir : string
+    +TopdirRoot : string
+    +SubdirRoot : string
+    +MoveToTree(fromDir : string, toDirRoot : string, filter : string = "*.jpg", remove : string = "") : int
+    +CopyTo(destDirs : string[]) : bool
+  }
+
+  class ImageMagick {
+    +ImPath : string
+    +ConvertCommand : string
+    +CompositeCommand : string
+    +IdentifyCommand : string
+    +MogrifyCommand : string
+    +Message : string
+    +Convert(...) : int
+    +Mogrify(...) : int
+    +Composite(...) : int
+    +Identify(...) : int
+    +GetSize(imageFileName : string) : System.Drawing.Size
+    +CreateTiles(...) : int
+  }
+
+  class ImageTypes {
+    +Array : string[]
+    +String : string
+    +Default : ImageTypes
+  }
+
+  class Pane {
+    +DefaultPane : Pane
+    +String : string
+    +Size : System.Drawing.Size
+  }
+
+  class Panes {
+    +Count : int
+    +String : string
+    +ZoomPort : Pane
+    +ControlPort : Pane
+  }
+
+  class Src {
+    +HasMultipleSkus : bool
+    +Skus : string[]
+    +Sku : string
+    +Subscriber : string
+    +ImageNumber : int
+    +Image : string
+    +String : string
+    +Param() : string
+  }
+
+  class Tmp {
+    +Template : string
+    +Overlays : List<string>
+    +String : string
+    +Param() : string
+  }
+
+  class IservUrl {
+    +Subscriber : string
+    +Protocol : string
+    +Host : string
+    +Port : int
+    +Path : string
+    +App : string
+    +Page : string
+    +Uri : Uri
+  }
+
+  class ServiceUrl
+
+  class ImageUrl {
+    +Src : Src
+    +Tmp : Tmp
+    +isHDitemLink() : bool
+  }
+
+  class TwoSizes {
+    +Rating : float
+    +SmallRect : System.Drawing.Size
+    +LargeRect : System.Drawing.Size
+    +CompareTo(other : TwoSizes) : int
+    +Equals(other : TwoSizes) : bool
+  }
+}
+
+class RaiFile <<external OsLibCore>>
+interface "IComparable<T>" as IComparableT <<external>>
+
+StringHelper ..> CamelCase : creates
+Extensions ..> Size : parse
+ImageFile --|> RaiFile
+ImageTreeFile --|> ImageFile
+ImageMagick ..> ImageFile : uses
+ImageFile ..> ColorInfo : uses
+ImageFile ..> ImageTreeFile : probes
+DyeDelta ..> Dye : compares
+Panes *-- Pane
+Src ..> ImageFile : parses
+ImageUrl --|> IservUrl
+ServiceUrl --|> IservUrl
+ImageUrl ..> Src
+ImageUrl ..> Tmp
+TwoSizes ..|> IComparableT
+
+note right of ImageTreeFile
+  Tree convention in RaiImage:
+  Topdir = first 8 chars of Sku
+  Subdir = first 10 chars of Sku
+end note
+
+@enduml
