@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Title>RaiImage</Title>
     <PackageId>RaiImage</PackageId>
-    <Version>3.1.0</Version>
+    <Version>3.2.0</Version>
     <Authors>Rainer Burkhardt</Authors>
     <Description>Managing image files with meaningful elements in the image name and path.</Description>
     <!--<PackageDescription>Handling of files and system calls</PackageDescription>-->
@@ -24,12 +24,26 @@
   <ItemGroup>
     <!-- <PackageReference Include="CoreCompat.System.Drawing.v2" Version="5.2.0-preview1-r131" /> -->
     <!-- <PackageReference Include="Handy.DotNETCore-Compatibility.ColorTranslations" Version="0.2.1" /> -->
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.6.0" />
-    <PackageReference Include="System.Security.AccessControl" Version="4.6.0" />
-    <PackageReference Include="OsLibCore" Version="2.1.2" />
-    <PackageReference Include="RaiUtilsCore" Version="2.1.0" />
     <None Include="hardcastle.png" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="RaiImage.Tests/**/*.cs" />
+    <None Remove="RaiImage.Tests/**/*.cs" />
+    <EmbeddedResource Remove="RaiImage.Tests/**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('../JsonPitSolution/OsLib/OsLib.csproj') and Exists('../JsonPitSolution/RaiUtils/RaiUtils.csproj')">
+    <ProjectReference Include="../JsonPitSolution/OsLib/OsLib.csproj" />
+    <ProjectReference Include="../JsonPitSolution/RaiUtils/RaiUtils.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!Exists('../JsonPitSolution/OsLib/OsLib.csproj') or !Exists('../JsonPitSolution/RaiUtils/RaiUtils.csproj')">
+    <PackageReference Include="OsLibCore" Version="3.2.0" />
+    <PackageReference Include="RaiUtilsCore" Version="3.2.0" />
   </ItemGroup>
 
 </Project>

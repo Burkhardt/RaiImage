@@ -1,5 +1,5 @@
 using System;
-using OsLibCore;
+using OsLib;
 
 namespace RaiImage
 {

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.IO.Compression;
-using OsLibCore;
+using OsLib;
 using RaiImage;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -158,6 +158,9 @@ namespace RaiImage
 		public System.Drawing.Image FromFile(bool clone)
 		{   // no thread safe version of this method necessary; 
 			// does not prevent various ImageFiles to reference the same file on disk
+			if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
+				return null;
+
 			string fileName = FullName;
 			if (!File.Exists(fileName))
 				return null;
@@ -661,16 +664,12 @@ namespace RaiImage
 			try
 			{
 				ImageFile dest;
-				string destName;
 				foreach (var destDir in destDirs)
 				{
 					dest = new ImageFile(FullName);
 					dest.Path = destDir;
 					dest.mkdir();
-					destName = dest.FullName;
-					if (File.Exists(destName))
-						File.Delete(destName);
-					File.Copy(FullName, destName);
+					dest.cp(this);
 				}
 			}
 			catch (Exception)
@@ -742,15 +741,13 @@ namespace RaiImage
 	}
 	public class ImageMagick
 	{
-		// Note: use ssd drive if available otherwise use c:\bin and c:\temp; change this intra-library paths when external settings are loaded
-		public static string ImPath = @"C:\bin\IM\";
-		public static string ConvertCommand = "Convert.exe";
-		public static string CompositeCommand = "Composite.exe";
-		public static string IdentifyCommand = "Identify.exe";
-		public static string MogrifyCommand = "Mogrify.exe";
-		public static string ZipCommand = @"C:\Program Files\7-Zip\7z.exe";
-		public static string OptiPngCommand = @"C:\bin\optipng.exe";
-		public static string JpegTranCommand = @"C:\bin\jpegtran.exe -optimize -progressive";
+		// Hard break: use ImageMagick 7+ unified CLI (magick) with subcommands.
+		public static string ImPath = string.Empty;
+		public static string MagickCommand = "magick";
+		// External tools are executed through RaiSystem with path-agnostic command names.
+		public static string OptiPngCommand = "optipng";
+		public static string JpegTranCommand = "jpegtran";
+		public static string JpegTranOptions = "-optimize -progressive";
 		private string callString;
 		private RaiSystem call;
 		private string message;
@@ -758,17 +755,36 @@ namespace RaiImage
 		{
 			get { return message; }
 		}
+
+		private static string ResolveMagickExecutable()
+		{
+			if (string.IsNullOrWhiteSpace(ImPath))
+				return MagickCommand;
+
+			var cmd = new RaiFile(MagickCommand) { Path = ImPath };
+			return cmd.FullName;
+		}
+
+		private static string BuildMagickCommand(string subcommand, string args)
+		{
+			return $"{ResolveMagickExecutable()} {subcommand} {args}".Trim();
+		}
+
 		public ImageMagick()
 		{
-			if (!File.Exists(ImPath + "Convert.exe"))
-				throw new FileNotFoundException("ImageMagick must be installed in the path indicated by ImageSettings; ", ImPath + ConvertCommand);
+			if (!string.IsNullOrWhiteSpace(ImPath))
+			{
+				var exe = ResolveMagickExecutable();
+				if (!File.Exists(exe))
+					throw new FileNotFoundException("ImageMagick (magick CLI) must be installed in ImPath.", exe);
+			}
 			callString = "";
 			call = null;
 		}
 		// todo RSB use Exec option that logs to windows log file
 		public int Convert(string commandline)
 		{
-			call = new RaiSystem(ImPath + ConvertCommand, commandline);
+			call = new RaiSystem(BuildMagickCommand("convert", commandline));
 			call.Exec(out message); // why does call.Exec(ref message) not get the stdout result?
 			return call.ExitCode;
 		}
@@ -779,11 +795,11 @@ namespace RaiImage
 			bool zip = to.EndsWith(".zip");
 			if (zip)
 				to = to.Substring(0, to.Length - 4);
-			callString = ImPath + ConvertCommand + " " + options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to);
+			callString = BuildMagickCommand("convert", options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to));
 			call = new RaiSystem(callString);
 			call.Exec(out message);
 			exitCode = call.ExitCode;
-			if (exitCode != 0 && message.Contains("Permission denied"))
+			if (exitCode != 0 && message.Contains("Permission denied") && OperatingSystem.IsWindows())
 			{
 				try
 				{
@@ -804,18 +820,9 @@ namespace RaiImage
 			}
 			if (zip)
 			{
-				var inFolder = new RaiFile(to);
-				inFolder.Path = inFolder.Path + inFolder.Name;
-				inFolder.mkdir();
-				inFolder.mv(new RaiFile(to));
-				File.Delete(inFolder.FullName + ".zip");
-				try
-				{
-					ZipFile.CreateFromDirectory(inFolder.Path, to + ".zip");
-				}
-				catch (Exception)
-				{
-				}
+				var zipFile = new RaiFile(to).Zip();
+				if (zipFile == null)
+					exitCode += 1;
 			}
 			return exitCode;
 		}
@@ -824,28 +831,28 @@ namespace RaiImage
 			message = "";
 			if (!OptionsInTheMiddle)
 				return Convert(options, from, to);
-			callString = ImPath + ConvertCommand + " " + Os.escapeParam(from) + " " + options + " " + Os.escapeParam(to);
+			callString = BuildMagickCommand("convert", Os.escapeParam(from) + " " + options + " " + Os.escapeParam(to));
 			call = new RaiSystem(callString);
 			call.Exec(out message);
 			return call.ExitCode;
 		}
 		public int Mogrify(string commandline)
 		{
-			call = new RaiSystem(ImPath + MogrifyCommand, commandline);
+			call = new RaiSystem(BuildMagickCommand("mogrify", commandline));
 			call.Exec();
 			return call.ExitCode;
 		}
 		public int Mogrify(string options, string file)
 		{
 			message = "";
-			callString = ImPath + MogrifyCommand + " " + options + " " + Os.escapeParam(file);
+			callString = BuildMagickCommand("mogrify", options + " " + Os.escapeParam(file));
 			call = new RaiSystem(callString);
 			call.Exec(out message);
 			return call.ExitCode;
 		}
 		public int Composite(string commandline)
 		{
-			call = new RaiSystem(ImPath + CompositeCommand, commandline);
+			call = new RaiSystem(BuildMagickCommand("composite", commandline));
 			call.Exec();
 			return call.ExitCode;
 		}
@@ -854,7 +861,7 @@ namespace RaiImage
 		{
 			message = "";
 			string dest = Os.escapeParam(to);
-			callString = ImPath + CompositeCommand + " " + options + " " + Os.escapeParam(overlay) + " " + dest + " -matte " + dest;
+			callString = BuildMagickCommand("composite", options + " " + Os.escapeParam(overlay) + " " + dest + " -matte " + dest);
 			call = new RaiSystem(callString);
 			call.Exec(out message);
 			return call.ExitCode;
@@ -863,14 +870,14 @@ namespace RaiImage
 		public int Composite(string options, string overlay, string image, string target)
 		{
 			message = "";
-			callString = ImPath + CompositeCommand + " " + options + " " + Os.escapeParam(overlay) + " " + Os.escapeParam(image) + " -matte " + Os.escapeParam(target);
+			callString = BuildMagickCommand("composite", options + " " + Os.escapeParam(overlay) + " " + Os.escapeParam(image) + " -matte " + Os.escapeParam(target));
 			call = new RaiSystem(callString);
 			call.Exec();
 			return call.ExitCode;
 		}
 		public int Identify(string options, string image, ref string result)
 		{
-			RaiSystem identify = new RaiSystem(ImPath + IdentifyCommand, options + " " + Os.escapeParam(image));
+			RaiSystem identify = new RaiSystem(BuildMagickCommand("identify", options + " " + Os.escapeParam(image)));
 			return identify.Exec(out result);
 		}
 		public bool EmptyForm(ImageFile imgFile, int imageWidth, int imageHeight, string drawString)
@@ -878,15 +885,15 @@ namespace RaiImage
 			//ImageFile imgFile = new ImageFile(imageFileName);
 			ImageFile tempFile = new ImageFile(Path.GetTempPath() + "i" + DateTimeOffset.UtcNow.UtcTicks.ToString("x") + ".png");
 			// example: convert -size 180x225 xc:white -fill 292990_01_Gallery.png -draw "circle 30,110 32,82" -fuzz 5% -trim CircleW.png 
-			callString = ImPath + ConvertCommand + " -size " + imageWidth + "x" + imageHeight +
+			callString = BuildMagickCommand("convert", "-size " + imageWidth + "x" + imageHeight +
 				" xc:white -fill " + Os.Escape(imgFile.FullName, EscapeMode.paramEsc) +
-				" -draw \"" + drawString + "\" -fuzz 50% -trim " + Os.Escape(tempFile.FullName, EscapeMode.paramEsc);
+				" -draw \"" + drawString + "\" -fuzz 50% -trim " + Os.Escape(tempFile.FullName, EscapeMode.paramEsc));
 			call = new RaiSystem(callString);
 			string msg = new string(' ', 200); ;
 			call.Exec(out msg);
 			try
 			{
-				File.Delete(tempFile.FullName);
+				tempFile.rm();
 			}
 			catch (Exception)
 			{
@@ -906,7 +913,7 @@ namespace RaiImage
 		public int CreateHistogram(string colorTableFile, string fromName, string coreName, string destName)
 		{
 			int ret = (new ImageMagick()).Convert("-gravity Center -crop 32x40+0+0 +repage +dither -map " + colorTableFile, fromName, coreName);
-			string callString = ImPath + ConvertCommand + " -format %c " + coreName + " -colors 32 -depth 8 histogram:info:" + destName;
+			string callString = BuildMagickCommand("convert", "-format %c " + coreName + " -colors 32 -depth 8 histogram:info:" + destName);
 			call = new RaiSystem(callString);
 			call.Exec();
 			ret += call.ExitCode;
@@ -920,7 +927,7 @@ namespace RaiImage
 		public int Histogram(string imageFile, string histogramFileName)
 		{
 			string commandline = " -format %c " + Os.Escape(imageFile, EscapeMode.paramEsc) + " -colors 32 -depth 8 histogram:info:" + Os.Escape(histogramFileName, EscapeMode.paramEsc);
-			call = new RaiSystem(ImPath + ConvertCommand, commandline);
+			call = new RaiSystem(BuildMagickCommand("convert", commandline));
 			call.Exec();
 			return call.ExitCode;
 		}
@@ -966,7 +973,8 @@ namespace RaiImage
 			}
 			var tempFile = new ImageFile(GetTempFileName(image.FullName));
 			tempFile.mv(image);
-			var jpegTran = new RaiSystem(JpegTranCommand + " " + Os.escapeParam(tempFile.FullName) + " " + Os.escapeParam(image.FullName));
+			var jpegTranArgs = JpegTranOptions + " " + Os.escapeParam(tempFile.FullName) + " " + Os.escapeParam(image.FullName);
+			var jpegTran = new RaiSystem(JpegTranCommand, jpegTranArgs);
 			result = jpegTran.Exec(out message);
 			tempFile.rm();
 			return result;
@@ -1046,10 +1054,11 @@ namespace RaiImage
 				string[] oldFiles = Directory.GetFiles(destFiles.Path, destFiles.NameWithExtension.Replace("%d", "*"));
 				foreach (string oldFile in oldFiles)
 				{
+					var oldRaiFile = new RaiFile(oldFile);
 					#region robust delete
 					try
 					{
-						File.Delete(oldFile);
+						oldRaiFile.rm();
 					}
 #pragma warning disable 0168
 					catch (Exception fileInUse)
@@ -1057,14 +1066,14 @@ namespace RaiImage
 						try
 						{
 							Thread.Sleep(100);
-							File.Delete(oldFile);
+							oldRaiFile.rm();
 						}
 						catch (Exception fileStillInUse)
 						{
 							try
 							{
 								Thread.Sleep(300);
-								File.Delete(oldFile);
+								oldRaiFile.rm();
 							}
 							catch (Exception giveItUp)
 							{
