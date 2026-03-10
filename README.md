@@ -22,7 +22,7 @@ RaiImage is designed to work well with OsLib cloud-root discovery and can operat
 
 For cloud-root configuration and environment/setup details, see:
 
-- `../JsonPitSolution/OsLib/CLOUD_STORAGE_DISCOVERY.md` (workspace path)
+- [OsLib cloud storage discovery guide](https://github.com/Burkhardt/OsLib/blob/main/CLOUD_STORAGE_DISCOVERY.md)
 
 ## namespace
 
