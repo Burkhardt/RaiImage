@@ -80,17 +80,24 @@ package "RaiImage" {
 
 	class ImageMagick {
 		+ImPath : string
-		+ConvertCommand : string
-		+CompositeCommand : string
-		+IdentifyCommand : string
-		+MogrifyCommand : string
+		+MagickCommand : string
+		+OptiPngCommand : string
+		+JpegTranCommand : string
+		+JpegTranOptions : string
 		+Message : string
 		+Convert(...) : int
 		+Mogrify(...) : int
 		+Composite(...) : int
 		+Identify(...) : int
-		+GetSize(imageFileName : string) : System.Drawing.Size
+		+OptiPng(imgFileName : string) : int
+		+JpegTran(imgFileName : string) : int
 		+CreateTiles(...) : int
+	}
+
+	class ImageMagickCommand {
+		+BuildArguments(subcommand : string, args : string = "") : string
+		+RunSubcommand(subcommand : string, args : string = "") : RaiSystemResult
+		+RunSubcommandAsync(subcommand : string, args : string = "") : Task<RaiSystemResult>
 	}
 
 	class ImageTypes {
@@ -149,6 +156,28 @@ package "RaiImage" {
 		+isHDitemLink() : bool
 	}
 
+	class ItemTreePath {
+		+RootPath : string
+		+ItemId : string
+		+TopdirLength : int
+		+SubdirLength : int
+		+Topdir : string
+		+Subdir : string
+		+Path : string
+		+Apply() : void
+	}
+
+	enum PathConventionType {
+		CanonicalByName
+		ItemIdTree3x3
+		ItemIdTree8x2
+	}
+
+	interface IPathConventionFile {
+		+ConventionName : PathConventionType
+		+ApplyPathConvention() : void
+	}
+
 	class TwoSizes {
 		+Rating : float
 		+SmallRect : System.Drawing.Size
@@ -159,15 +188,22 @@ package "RaiImage" {
 }
 
 class RaiFile <<external OsLibCore>>
+abstract class CliCommand <<external OsLib>>
+class RaiSystemResult <<external OsLib>>
 interface "IComparable<T>" as IComparableT <<external>>
 
 StringHelper ..> CamelCase : creates
 Extensions ..> Size : parse
 ImageFile --|> RaiFile
 ImageTreeFile --|> ImageFile
+ImageTreeFile ..|> IPathConventionFile
 ImageMagick ..> ImageFile : uses
+ImageMagick --> ImageMagickCommand : delegates CLI calls
+ImageMagickCommand --|> CliCommand
+ImageMagickCommand ..> RaiSystemResult : returns
 ImageFile ..> ColorInfo : uses
 ImageFile ..> ImageTreeFile : probes
+ImageFile ..> ItemTreePath : path rules
 DyeDelta ..> Dye : compares
 Panes *-- Pane
 Src ..> ImageFile : parses
@@ -190,6 +226,13 @@ note right of ImageTreeFile
 	Subdir = null
 	SubdirRoot = TopdirRoot
 	- Caller explicitly selects PathConventionType
+	- ItemTreePath centralizes derived folder segments
+end note
+
+note right of ImageMagick
+	Legacy image-processing facade retained for callers.
+	External process execution now flows through:
+	ImageMagick -> ImageMagickCommand -> CliCommand.
 end note
 
 @enduml
