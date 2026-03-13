@@ -1,4 +1,4 @@
-@startuml
+@startuml RaiImage-Type-Overview
 !theme plain
 skinparam classAttributeIconSize 0
 
