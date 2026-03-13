@@ -1,0 +1,71 @@
+@startuml RaiImageOperationsUseCases
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+
+title RaiImage Supported Image Operations
+
+actor "Application / Service" as App
+actor "Batch / Automation" as Batch
+
+rectangle "RaiImage" {
+	usecase "Convert image\n(format / resize / transform)" as UCConvert
+	usecase "Mogrify image\n(in-place transform)" as UCMogrify
+	usecase "Composite overlay\nonto image" as UCComposite
+	usecase "Identify metadata\nand pixel information" as UCIdentify
+	usecase "Get image size" as UCGetSize
+	usecase "Create histogram" as UCHistogram
+	usecase "Export histogram info" as UCHistogramInfo
+	usecase "Optimize PNG" as UCOptiPng
+	usecase "Optimize JPEG" as UCJpegTran
+	usecase "Create image tiles" as UCTiles
+	usecase "Check empty form\ninside a drawn region" as UCEmptyForm
+	usecase "Remove portrait background\nand export transparency" as UCBackgroundRemoval
+	usecase "Export transparent PNG" as UCPng
+	usecase "Export transparent WEBP" as UCWebp
+	usecase "Zip converted output" as UCZip
+	usecase "Resolve ImageMagick CLI\nand execute off-thread" as UCCliExecution
+}
+
+App --> UCConvert
+App --> UCMogrify
+App --> UCComposite
+App --> UCIdentify
+App --> UCGetSize
+App --> UCHistogram
+App --> UCHistogramInfo
+App --> UCOptiPng
+App --> UCJpegTran
+App --> UCTiles
+App --> UCEmptyForm
+App --> UCBackgroundRemoval
+
+Batch --> UCConvert
+Batch --> UCComposite
+Batch --> UCOptiPng
+Batch --> UCJpegTran
+Batch --> UCTiles
+
+UCGetSize ..> UCIdentify : <<include>>
+UCHistogram ..> UCConvert : <<include>>
+UCTiles ..> UCConvert : <<include>>
+UCBackgroundRemoval ..> UCConvert : <<include>>
+UCBackgroundRemoval ..> UCComposite : <<include>>
+UCBackgroundRemoval ..> UCPng : <<include>>
+UCBackgroundRemoval ..> UCWebp : <<include>>
+UCConvert ..> UCZip : <<extend>>
+
+UCConvert ..> UCCliExecution : <<include>>
+UCMogrify ..> UCCliExecution : <<include>>
+UCComposite ..> UCCliExecution : <<include>>
+UCIdentify ..> UCCliExecution : <<include>>
+UCOptiPng ..> UCCliExecution : <<include>>
+UCJpegTran ..> UCCliExecution : <<include>>
+
+note right of UCCliExecution
+	Backed by:
+	ImageMagick -> ImageMagickCommand -> CliCommand -> RaiSystem
+	with external process execution dispatched off the caller thread.
+end note
+
+@enduml

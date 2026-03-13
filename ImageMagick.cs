@@ -17,7 +17,6 @@ namespace RaiImage
 		public static string JpegTranCommand = "jpegtran";
 		public static string JpegTranOptions = "-optimize -progressive";
 		private string callString;
-		private RaiSystem call;
 		private string message;
 		public string Message
 		{
@@ -38,6 +37,19 @@ namespace RaiImage
 			return $"{subcommand} {args}".Trim();
 		}
 
+		private static ImageMagickCommand CreateCommand()
+		{
+			return new ImageMagickCommand(ImPath, MagickCommand);
+		}
+
+		private RaiSystemResult RunMagickSubcommand(string subcommand, string args)
+		{
+			var result = CreateCommand().RunSubcommand(subcommand, args);
+			callString = result.CommandLine;
+			message = result.Output;
+			return result;
+		}
+
 		private RaiSystem CreateMagickCall(string subcommand, string args)
 		{
 			var executable = ResolveMagickExecutable();
@@ -55,14 +67,11 @@ namespace RaiImage
 					throw new FileNotFoundException("ImageMagick (magick CLI) must be installed in ImPath.", exe);
 			}
 			callString = "";
-			call = null;
 		}
 		// todo RSB use Exec option that logs to windows log file
 		public int Convert(string commandline)
 		{
-			call = CreateMagickCall("convert", commandline);
-			call.Exec(out message); // why does call.Exec(ref message) not get the stdout result?
-			return call.ExitCode;
+			return RunMagickSubcommand("convert", commandline).ExitCode;
 		}
 		public int Convert(string options, string from, string to)
 		{
@@ -71,9 +80,7 @@ namespace RaiImage
 			bool zip = to.EndsWith(".zip");
 			if (zip)
 				to = to.Substring(0, to.Length - 4);
-			call = CreateMagickCall("convert", options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to));
-			call.Exec(out message);
-			exitCode = call.ExitCode;
+			exitCode = RunMagickSubcommand("convert", options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to)).ExitCode;
 			if (exitCode != 0 && message.Contains("Permission denied") && OperatingSystem.IsWindows())
 			{
 				try
@@ -86,8 +93,7 @@ namespace RaiImage
 					fsec.AddAccessRule(permissions);
 					fiIntern.SetAccessControl(fsec);
 					// try it again
-					call.Exec(out message);
-					exitCode = call.ExitCode;
+					exitCode = RunMagickSubcommand("convert", options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to)).ExitCode;
 				}
 				catch (Exception)
 				{
@@ -106,61 +112,48 @@ namespace RaiImage
 			message = "";
 			if (!OptionsInTheMiddle)
 				return Convert(options, from, to);
-			call = CreateMagickCall("convert", Os.escapeParam(from) + " " + options + " " + Os.escapeParam(to));
-			call.Exec(out message);
-			return call.ExitCode;
+			return RunMagickSubcommand("convert", Os.escapeParam(from) + " " + options + " " + Os.escapeParam(to)).ExitCode;
 		}
 		public int Mogrify(string commandline)
 		{
-			call = CreateMagickCall("mogrify", commandline);
-			call.Exec();
-			return call.ExitCode;
+			return RunMagickSubcommand("mogrify", commandline).ExitCode;
 		}
 		public int Mogrify(string options, string file)
 		{
 			message = "";
-			call = CreateMagickCall("mogrify", options + " " + Os.escapeParam(file));
-			call.Exec(out message);
-			return call.ExitCode;
+			return RunMagickSubcommand("mogrify", options + " " + Os.escapeParam(file)).ExitCode;
 		}
 		public int Composite(string commandline)
 		{
-			call = CreateMagickCall("composite", commandline);
-			call.Exec();
-			return call.ExitCode;
+			return RunMagickSubcommand("composite", commandline).ExitCode;
 		}
 		// e.g.: Composite("-gravity SouthWest", from.FullName, EscapeMode.paramEsc), to.FullName, EscapeMode.paramEsc));
 		public int Composite(string options, string overlay, string to)
 		{
 			message = "";
 			string dest = Os.escapeParam(to);
-			call = CreateMagickCall("composite", options + " " + Os.escapeParam(overlay) + " " + dest + " -matte " + dest);
-			call.Exec(out message);
-			return call.ExitCode;
+			return RunMagickSubcommand("composite", options + " " + Os.escapeParam(overlay) + " " + dest + " -matte " + dest).ExitCode;
 		}
 		// e.g.: composite -dissolve 75 minus04percent60x60.png -gravity South rect.png -matte minus04percent60x60.jpg
 		public int Composite(string options, string overlay, string image, string target)
 		{
 			message = "";
-			call = CreateMagickCall("composite", options + " " + Os.escapeParam(overlay) + " " + Os.escapeParam(image) + " -matte " + Os.escapeParam(target));
-			call.Exec();
-			return call.ExitCode;
+			return RunMagickSubcommand("composite", options + " " + Os.escapeParam(overlay) + " " + Os.escapeParam(image) + " -matte " + Os.escapeParam(target)).ExitCode;
 		}
 		public int Identify(string options, string image, ref string result)
 		{
-			var identify = new RaiSystem(ResolveMagickExecutable(), BuildMagickArguments("identify", options + " " + Os.escapeParam(image)));
-			return identify.Exec(out result);
+			var identify = CreateCommand().RunSubcommand("identify", options + " " + Os.escapeParam(image));
+			result = identify.Output;
+			return identify.ExitCode;
 		}
 		public bool EmptyForm(ImageFile imgFile, int imageWidth, int imageHeight, string drawString)
 		{
 			//ImageFile imgFile = new ImageFile(imageFileName);
 			var tempFile = new ImageFile(Path.GetTempPath() + "i" + DateTimeOffset.UtcNow.UtcTicks.ToString("x") + ".png");
 			// example: convert -size 180x225 xc:white -fill 292990_01_Gallery.png -draw "circle 30,110 32,82" -fuzz 5% -trim CircleW.png 
-			call = CreateMagickCall("convert", "-size " + imageWidth + "x" + imageHeight +
+			string msg = RunMagickSubcommand("convert", "-size " + imageWidth + "x" + imageHeight +
 				" xc:white -fill " + Os.Escape(imgFile.FullName, EscapeMode.paramEsc) +
-				" -draw \"" + drawString + "\" -fuzz 50% -trim " + Os.Escape(tempFile.FullName, EscapeMode.paramEsc));
-			string msg = new string(' ', 200);
-			call.Exec(out msg);
+				" -draw \"" + drawString + "\" -fuzz 50% -trim " + Os.Escape(tempFile.FullName, EscapeMode.paramEsc)).Output;
 			try
 			{
 				tempFile.rm();
@@ -183,9 +176,7 @@ namespace RaiImage
 		public int CreateHistogram(string colorTableFile, string fromName, string coreName, string destName)
 		{
 			int ret = (new ImageMagick()).Convert("-gravity Center -crop 32x40+0+0 +repage +dither -map " + colorTableFile, fromName, coreName);
-			call = CreateMagickCall("convert", "-format %c " + coreName + " -colors 32 -depth 8 histogram:info:" + destName);
-			call.Exec();
-			ret += call.ExitCode;
+			ret += RunMagickSubcommand("convert", "-format %c " + coreName + " -colors 32 -depth 8 histogram:info:" + destName).ExitCode;
 			#region sort resulting file
 			// cannot use Histogram here because of module dependency - use it to read it and sort it in memory after reading
 			//TextFile tf = new TextFile(destName);	// not helping - wrong order: 14, 1258, 4, 2, 2; use HistogramFile from HDitem.Image.Histogram to read the file when using the histogram
@@ -196,9 +187,7 @@ namespace RaiImage
 		public int Histogram(string imageFile, string histogramFileName)
 		{
 			string commandline = " -format %c " + Os.Escape(imageFile, EscapeMode.paramEsc) + " -colors 32 -depth 8 histogram:info:" + Os.Escape(histogramFileName, EscapeMode.paramEsc);
-			call = CreateMagickCall("convert", commandline);
-			call.Exec();
-			return call.ExitCode;
+			return RunMagickSubcommand("convert", commandline).ExitCode;
 		}
 		/// <summary>
 		/// Optipng is an external program but included here as if it were a part of Imagemagick
@@ -211,11 +200,15 @@ namespace RaiImage
 		{
 			int result = 0;
 			var image = new ImageFile(imgFileName);
+			var originalFile = new RaiFile(imgFileName);
 			if (image.Ext != "png")
 			{
 				result = Mogrify("-format png", image.FullName);
-				image.rm(); // mogrify -format creates a copy and leaves the original file there => remove it
-				image.Ext = "png";
+				if (result == 0)
+				{
+					originalFile.rm(); // mogrify -format creates a copy and leaves the original file there => remove it
+					image.Ext = "png";
+				}
 			}
 			if (result == 0)
 			{
@@ -233,18 +226,32 @@ namespace RaiImage
 		{
 			int result = 0;
 			var image = new ImageFile(imgFileName);
+			var originalFile = new RaiFile(imgFileName);
 			if (image.Ext != "jpg")
 			{
 				result = Mogrify("-format jpg", image.FullName);
-				image.rm(); // mogrify -format creates a copy and leaves the original file there => remove it
-				image.Ext = "jpg";
+				if (result == 0)
+				{
+					originalFile.rm(); // mogrify -format creates a copy and leaves the original file there => remove it
+					image.Ext = "jpg";
+				}
 			}
+			if (result != 0)
+				return result;
 			var tempFile = new ImageFile(GetTempFileName(image.FullName));
 			tempFile.mv(image);
 			var jpegTranArgs = JpegTranOptions + " " + Os.escapeParam(tempFile.FullName) + " " + Os.escapeParam(image.FullName);
 			var jpegTran = new RaiSystem(JpegTranCommand, jpegTranArgs);
 			result = jpegTran.Exec(out message);
-			tempFile.rm();
+			if (result != 0 || !File.Exists(image.FullName))
+			{
+				if (File.Exists(image.FullName))
+					image.rm();
+				if (File.Exists(tempFile.FullName))
+					image.mv(tempFile, replace: true, keepBackup: false);
+			}
+			if (File.Exists(tempFile.FullName))
+				tempFile.rm();
 			return result;
 		}
 		/// <summary>

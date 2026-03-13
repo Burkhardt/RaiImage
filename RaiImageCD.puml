@@ -1,0 +1,117 @@
+@startuml RaiImageCD
+!theme plain
+skinparam classAttributeIconSize 0
+hide empty members
+
+title RaiImage Core Class Diagram
+
+package "RaiImage" {
+	class ImageFile {
+		+NoImageNumber : int
+		+Image : System.Drawing.Image
+		+Sku : string
+		+NameExt : string
+		+ImageNumber : int
+		+TileTemplate : string
+		+TileNumber : string
+		+Color : ColorInfo
+		+ShortName : string
+		+FromFile(clone : bool) : System.Drawing.Image
+		+EasyFileName(pic : string, renameFile : bool = false) : string
+		+ExtendToFirstExistingFile(extensions : string, splitMode : PathConventionType, colorInfo : ColorInfo) : bool
+	}
+
+	class ImageTreeFile {
+		+Topdir : string
+		+Subdir : string
+		+TopdirRoot : string
+		+SubdirRoot : string
+		+MoveToTree(fromDir : string, toDirRoot : string, splitMode : PathConventionType, filter : string, remove : string) : int
+		+CopyTo(destDirs : string[]) : bool
+	}
+
+	class ImageMagick {
+		+ImPath : string
+		+MagickCommand : string
+		+OptiPngCommand : string
+		+JpegTranCommand : string
+		+JpegTranOptions : string
+		+Message : string
+		+Convert(...) : int
+		+Mogrify(...) : int
+		+Composite(...) : int
+		+Identify(...) : int
+		+OptiPng(imgFileName : string) : int
+		+JpegTran(imgFileName : string) : int
+		+CreateTiles(...) : int
+	}
+
+	class ImageMagickCommand {
+		+BuildArguments(subcommand : string, args : string = "") : string
+		+RunSubcommand(subcommand : string, args : string = "") : RaiSystemResult
+		+RunSubcommandAsync(subcommand : string, args : string = "") : Task<RaiSystemResult>
+	}
+
+	class ColorInfo {
+		+ColorNamesFile : string
+		+Color : System.Drawing.Color
+		+Count : int
+		+Code : string
+		+Name : string
+		+Get(nameOrHexCode : string) : ColorInfo
+	}
+
+	class ImageTypes {
+		+Default : ImageTypes
+	}
+
+	class Pane
+	class Panes
+	class Src
+	class Tmp
+	class ImageUrl
+	class ItemTreePath
+	interface IPathConventionFile
+}
+
+package "OsLib" {
+	class RaiFile <<external>>
+	abstract class CliCommand <<external>>
+	class RaiSystemResult <<external>>
+}
+
+ImageFile --|> RaiFile
+ImageTreeFile --|> ImageFile
+ImageTreeFile ..|> IPathConventionFile
+
+ImageFile --> ColorInfo : uses
+ImageFile ..> ImageTreeFile : probes
+ImageFile ..> ItemTreePath : path rules
+
+ImageMagick ..> ImageFile : transforms
+ImageMagick --> ImageMagickCommand : delegates CLI calls
+ImageMagickCommand --|> CliCommand
+ImageMagickCommand ..> RaiSystemResult : returns
+
+ImageUrl ..> Src
+ImageUrl ..> Tmp
+Panes *-- Pane
+
+note top of ImageFile
+	There is no concrete top-level "RaiImage" class in code.
+	This diagram centers the RaiImage package around its main image model,
+	path-aware file types, and ImageMagick integration.
+end note
+
+note right of ImageMagick
+	Legacy image-processing facade retained for callers.
+	External process execution now flows through:
+	ImageMagick -> ImageMagickCommand -> CliCommand.
+end note
+
+note right of ImageTreeFile
+	ImageTreeFile adds path-convention semantics
+	on top of the core ImageFile naming model.
+end note
+
+@enduml

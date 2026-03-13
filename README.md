@@ -128,8 +128,13 @@ https://www.nuget.org/packages/RaiImage/
 
 ## diagram
 
-- Source options: [RaiImage-Hierarchy.puml](RaiImage-Hierarchy.puml) | [RaiImage-Hierarchy.svg](RaiImage-Hierarchy.svg)
-- CLI render (if PlantUML is installed): `plantuml RaiImage-Hierarchy.puml`
+- Class hierarchy: [RaiImage-Hierarchy.puml](RaiImage-Hierarchy.puml) | [RaiImage-Hierarchy.svg](RaiImage-Hierarchy.svg)
+- Focused class diagram: [RaiImageCD.puml](RaiImageCD.puml) | [RaiImageCD.svg](RaiImageCD.svg)
+- Supported operations use cases: [RaiImage-Operations-UseCases.puml](RaiImage-Operations-UseCases.puml) | [RaiImage-Operations-UseCases.svg](RaiImage-Operations-UseCases.svg)
+- Background removal activity: [RaiImage-BackgroundRemoval-Activity.puml](RaiImage-BackgroundRemoval-Activity.puml) | [RaiImage-BackgroundRemoval-Activity.svg](RaiImage-BackgroundRemoval-Activity.svg)
+- Tiling activity: [RaiImage-Tiling-Activity.puml](RaiImage-Tiling-Activity.puml) | [RaiImage-Tiling-Activity.svg](RaiImage-Tiling-Activity.svg)
+- Optimization and recovery activity: [RaiImage-Optimization-Activity.puml](RaiImage-Optimization-Activity.puml) | [RaiImage-Optimization-Activity.svg](RaiImage-Optimization-Activity.svg)
+- CLI render (if PlantUML is installed): `plantuml RaiImage-Hierarchy.puml RaiImageCD.puml RaiImage-Operations-UseCases.puml RaiImage-BackgroundRemoval-Activity.puml RaiImage-Tiling-Activity.puml RaiImage-Optimization-Activity.puml`
 - VS Code: open the `.puml` file and use a PlantUML preview/render extension.
 
 ## detailed api

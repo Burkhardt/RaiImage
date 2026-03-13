@@ -1,0 +1,37 @@
+@startuml RaiImageBackgroundRemovalActivity
+!theme plain
+
+title RaiImage Background Removal and Transparent Export
+
+start
+
+:Receive portrait image input;
+:Create ImageMagick facade;
+:Load or reference source image;
+
+if (Need raster source first?) then (yes)
+	:Convert source into working raster image;
+else (no)
+	:Use input as working raster image;
+endif
+
+:Run background-removal convert command\n(alpha set, fuzz, transparent color or similar);
+
+if (Transparent result created?) then (yes)
+	:Save transparent PNG;
+	:Save transparent WEBP;
+	:Optionally composite onto test backgrounds\n(Nomsa red, black, white);
+	:Identify corner and foreground pixels\nfor verification;
+	if (Verification passes?) then (yes)
+		:Return transparent outputs;
+	else (no)
+		:Return validation failure details;
+	endif
+else (no)
+	:Capture stderr / command output;
+	:Return image-processing failure;
+endif
+
+stop
+
+@enduml

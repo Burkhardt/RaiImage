@@ -1,0 +1,70 @@
+@startuml RaiImageOptimizationActivity
+!theme plain
+
+title RaiImage Optimization and Failure Recovery
+
+start
+
+:Receive image file path;
+
+if (Optimize as PNG?) then (yes)
+	:Create ImageMagick facade;
+	if (Input already PNG?) then (yes)
+		:Keep original PNG path;
+	else (no)
+		:Run mogrify to create PNG copy;
+		if (Conversion succeeded?) then (yes)
+			:Remove original non-PNG file;
+			:Continue with PNG copy;
+		else (no)
+			:Keep original file unchanged;
+			:Capture stderr / message;
+			stop
+		endif
+	endif
+
+	:Run OptiPng external tool through CLI command layer;
+	if (OptiPng succeeded?) then (yes)
+		:Return optimized PNG;
+	else (no)
+		:Capture stderr / message;
+		:Return optimization failure;
+	endif
+
+else (JPEG path)
+	:Create ImageMagick facade;
+	if (Input already JPG?) then (yes)
+		:Keep original JPG path;
+	else (no)
+		:Run mogrify to create JPG copy;
+		if (Conversion succeeded?) then (yes)
+			:Remove original non-JPG file;
+			:Continue with JPG copy;
+		else (no)
+			:Keep original file unchanged;
+			:Capture stderr / message;
+			stop
+		endif
+	endif
+
+	:Move current JPG to temp file;
+	:Run JpegTran with temp input and target output;
+
+	if (JpegTran succeeded and output exists?) then (yes)
+		:Delete temp file;
+		:Return optimized JPG;
+	else (no)
+		if (Partial output exists?) then (yes)
+			:Delete partial output;
+		endif
+		if (Temp file still exists?) then (yes)
+			:Restore original image from temp file;
+		endif
+		:Capture stderr / message;
+		:Return optimization failure with original restored;
+	endif
+endif
+
+stop
+
+@enduml

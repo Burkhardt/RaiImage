@@ -1,0 +1,61 @@
+@startuml RaiImageTilingActivity
+!theme plain
+
+title RaiImage Tile Creation Workflow
+
+start
+
+:Receive master image and tile settings;
+
+if (Delete existing tiles first?) then (yes)
+	:Find existing tile files matching pattern;
+	:Delete existing tiles;
+else (no)
+	if (First tile already exists?) then (yes)
+		:Return success without new work;
+		stop
+	else (no)
+	endif
+endif
+
+:Identify master image size;
+
+if (Resize dimensions missing?) then (yes)
+	:Calculate resize width / height\nfrom tile proportions and image size;
+else (no)
+	:Use provided resize width / height;
+endif
+
+:Determine total output canvas size;
+
+if (Canvas size differs from master?) then (yes)
+	:Build resize / adaptive-resize options;
+else (no)
+	:Keep original size;
+endif
+
+if (Sharpening requested?) then (yes)
+	:Add sharpen / adaptive-sharpen / unsharp options;
+else (no)
+	:Continue without sharpen options;
+endif
+
+if (Strip metadata requested?) then (yes)
+	:Add strip option;
+else (no)
+	:Keep metadata behavior unchanged;
+endif
+
+:Convert master image into temporary total image;
+
+if (Temporary total image created?) then (yes)
+	:Crop temporary total image into numbered tiles;
+	:Delete temporary total image;
+	:Return tile creation result;
+else (no)
+	:Capture convert failure and stop;
+endif
+
+stop
+
+@enduml
