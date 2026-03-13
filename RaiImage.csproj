@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Title>RaiImage</Title>
     <PackageId>RaiImage</PackageId>
-    <Version>3.2.0</Version>
+    <Version>3.2.1</Version>
     <Authors>Rainer Burkhardt</Authors>
     <Description>Managing image files with meaningful elements in the image name and path.</Description>
     <!--<PackageDescription>Handling of files and system calls</PackageDescription>-->
@@ -17,7 +17,7 @@
     <Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
     <RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
     <RepositoryType>github</RepositoryType>
-    <PackageReleaseNotes>Version for net10.0</PackageReleaseNotes>
+    <PackageReleaseNotes>3.2.1 aligns RaiImage with the shared 3.2.1 package set and extracts ImageMagick into its own source file.</PackageReleaseNotes>
     <PackageIcon>hardcastle.png</PackageIcon>
   </PropertyGroup>
 
@@ -49,8 +49,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
-    <PackageReference Include="OsLibCore" Version="3.2.0" />
-    <PackageReference Include="RaiUtilsCore" Version="3.2.0" />
+    <PackageReference Include="OsLibCore" Version="3.2.1" />
+    <PackageReference Include="RaiUtilsCore" Version="3.2.1" />
   </ItemGroup>
 
 </Project>
