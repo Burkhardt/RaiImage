@@ -1,4 +1,6 @@
 using OsLib;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace RaiImage.Tests;
@@ -8,9 +10,11 @@ public class ImageMagickTests
 {
     private const string NomsaRed = "#d32f2f";
 
-    private static RaiPath NewTestRoot()
+    private static RaiPath NewTestRoot([CallerMemberName] string testName = "")
     {
-        return new RaiPath(Os.TempDir) / "RAIkeep" / "raiimage-tests" / "imagemagick" / Guid.NewGuid().ToString("N");
+        var root = new RaiPath(Os.TempDir) / "RAIkeep" / "raiimage-tests" / "imagemagick" / SanitizeSegment(testName);
+        Cleanup(root.Path);
+        return root;
     }
 
     private static string FilePath(string root, string fileName)
@@ -55,18 +59,23 @@ public class ImageMagickTests
         }
     }
 
+    private static string SanitizeSegment(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "test";
+
+        var invalid = Path.GetInvalidFileNameChars();
+        var cleaned = new string(value
+            .Select(ch => invalid.Contains(ch) || char.IsWhiteSpace(ch) ? '-' : ch)
+            .ToArray())
+            .Trim('-');
+
+        return string.IsNullOrWhiteSpace(cleaned) ? "test" : cleaned;
+    }
+
     private static string CreateExecutableScript(string root, string scriptName, string content)
     {
-        var scriptPath = FilePath(root, scriptName);
-        File.WriteAllText(scriptPath, content);
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(scriptPath,
-                UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
-                UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
-                UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
-        }
-        return scriptPath;
+        return RaiSystem.CreateScript(new RaiPath(root), scriptName, content).FullName;
     }
 
     private static string CreateFakeMagickScript(string root, string logPath)
@@ -283,7 +292,7 @@ public class ImageMagickTests
             var scriptPath = CreateFakeMagickScript(tools, log);
             var from = FilePath(root, "from file.png");
             var to = FilePath(root, "to file.png");
-            File.WriteAllText(from, "source");
+            new TextFile(from, "source");
 
             using var scope = new ImageMagickStateScope();
             ImageMagick.ImPath = tools + Path.DirectorySeparatorChar;
@@ -318,7 +327,7 @@ public class ImageMagickTests
             var log = FilePath(root, "magick.log");
             var scriptPath = CreateFakeMagickScript(tools, log);
             var image = FilePath(root, "source image.png");
-            File.WriteAllText(image, "source");
+            new TextFile(image, "source");
             string result = string.Empty;
 
             using var scope = new ImageMagickStateScope();
@@ -351,7 +360,7 @@ public class ImageMagickTests
             var log = FilePath(root, "optipng.log");
             var scriptPath = CreateFakeArgumentLogger(tools, OperatingSystem.IsWindows() ? "fake optipng.cmd" : "fake optipng.sh", log);
             var image = new ImageFile(FilePath(root, "image file.png")).FullName;
-            File.WriteAllText(image, "pngdata");
+            new TextFile(image, "pngdata");
 
             using var scope = new ImageMagickStateScope();
             ImageMagick.OptiPngCommand = scriptPath;
@@ -379,7 +388,7 @@ public class ImageMagickTests
             var log = FilePath(root, "jpegtran.log");
             var scriptPath = CreateFakeCopyScript(tools, OperatingSystem.IsWindows() ? "fake jpegtran.cmd" : "fake jpegtran.sh", log);
             var image = new ImageFile(FilePath(root, "image file.jpg")).FullName;
-            File.WriteAllText(image, "jpgdata");
+            new TextFile(image, "jpgdata");
 
             using var scope = new ImageMagickStateScope();
             ImageMagick.JpegTranCommand = scriptPath;
@@ -409,7 +418,7 @@ public class ImageMagickTests
             var scriptPath = CreateFailingScript(tools, OperatingSystem.IsWindows() ? "fake magick.cmd" : "fake magick.sh", "convert failed on purpose", 17);
             var from = FilePath(root, "source.png");
             var to = FilePath(root, "dest.png");
-            File.WriteAllText(from, "src");
+            new TextFile(from, "src");
 
             using var scope = new ImageMagickStateScope();
             ImageMagick.MagickCommand = scriptPath;
@@ -440,7 +449,7 @@ public class ImageMagickTests
             var magickPath = CreateFailingScript(tools, OperatingSystem.IsWindows() ? "fake magick.cmd" : "fake magick.sh", "mogrify failed on purpose", 8);
             var optimizerPath = CreateFakeArgumentLogger(tools, OperatingSystem.IsWindows() ? "fake optipng.cmd" : "fake optipng.sh", optimizerLog);
             var original = FilePath(root, "profile source.jpg");
-            File.WriteAllText(original, "jpgdata");
+            new TextFile(original, "jpgdata");
 
             using var scope = new ImageMagickStateScope();
             ImageMagick.MagickCommand = magickPath;
@@ -453,7 +462,7 @@ public class ImageMagickTests
             Assert.Equal(8, exitCode);
             Assert.Contains("mogrify failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
             Assert.True(File.Exists(original));
-            Assert.Equal("jpgdata", File.ReadAllText(original));
+            Assert.Equal("jpgdata", File.ReadAllText(original).Trim());
             Assert.False(File.Exists(optimizerLog));
         }
         finally
@@ -473,7 +482,7 @@ public class ImageMagickTests
             var log = FilePath(root, "jpegtran.log");
             var scriptPath = CreateFailingScript(tools, OperatingSystem.IsWindows() ? "fake jpegtran.cmd" : "fake jpegtran.sh", "jpegtran failed on purpose", 9, log);
             var image = new ImageFile(FilePath(root, "image file.jpg")).FullName;
-            File.WriteAllText(image, "jpgdata");
+            new TextFile(image, "jpgdata");
 
             using var scope = new ImageMagickStateScope();
             ImageMagick.JpegTranCommand = scriptPath;
@@ -484,7 +493,7 @@ public class ImageMagickTests
             Assert.Equal(9, exitCode);
             Assert.Contains("jpegtran failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
             Assert.True(File.Exists(image));
-            Assert.Equal("jpgdata", File.ReadAllText(image));
+            Assert.Equal("jpgdata", File.ReadAllText(image).Trim());
             Assert.Contains(Path.GetFileName(image), File.ReadAllText(log));
         }
         finally
@@ -521,14 +530,14 @@ public class ImageMagickTests
             var transparentPng = FilePath(root, "portrait-transparent.png");
             var transparentWebp = FilePath(root, "portrait-transparent.webp");
 
-            File.WriteAllText(svg,
+            new TextFile(svg).Append(
                 "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"240\" height=\"320\" viewBox=\"0 0 240 320\">" +
                 "<rect width=\"240\" height=\"320\" fill=\"#18d86b\"/>" +
                 "<ellipse cx=\"120\" cy=\"104\" rx=\"44\" ry=\"54\" fill=\"#f1c7a6\"/>" +
                 "<path d=\"M76 114 C84 50,156 50,164 114 L164 136 C152 120,88 120,76 136 Z\" fill=\"#24160f\"/>" +
                 "<rect x=\"78\" y=\"156\" width=\"84\" height=\"118\" rx=\"24\" fill=\"#202938\"/>" +
                 "<rect x=\"104\" y=\"148\" width=\"32\" height=\"24\" rx=\"8\" fill=\"#f1c7a6\"/>" +
-                "</svg>");
+                "</svg>").Save();
 
             var sut = new ImageMagick();
             Assert.Equal(0, sut.Convert(string.Empty, svg, source));
