@@ -12,7 +12,7 @@ namespace RaiImage.Tests
 	{
 		private static string CreateTempRoot([CallerMemberName] string testName = "")
 		{
-			var root = new RaiPath(Os.TempDir) / "RAIkeep" / "raiimage-tests" / "command" / SanitizeSegment(testName);
+			var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "command" / SanitizeSegment(testName);
 			Cleanup(root.Path);
 			root.mkdir();
 			return root.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);

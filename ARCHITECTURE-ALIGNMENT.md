@@ -2,6 +2,12 @@
 
 This repository aligns with private internal architecture decisions maintained outside this public repository.
 
+## 3.5.0 release alignment
+
+- RaiImage documentation now aligns with the `3.5.0` `RAIkeep` package line.
+- The packaged support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, and `Dropbox`.
+- Cross-package wording now reflects JsonPit's `Id`-based identifier contract.
+
 ## intent for RaiImage
 
 - Continue with a merge-based re-architecture.

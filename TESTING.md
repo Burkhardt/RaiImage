@@ -1,5 +1,10 @@
 # Testing RaiImage
 
+## 3.5.0 scope note
+
+- The packaged `RAIkeep` support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, and `Dropbox`.
+- RaiImage test expectations should stay aligned with the same OsLib/JsonPit package line and configuration contract.
+
 ## Test projects
 
 - `RaiImage.Tests` (xUnit)

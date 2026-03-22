@@ -261,7 +261,7 @@ namespace RaiImage
 		private string GetTempFileName(string fromFile)
 		{
 			var tempFile = new ImageFile(fromFile);
-			tempFile.Path = Os.TempDir;
+			tempFile.Path = Os.TempDir.Path;
 			while (tempFile.Exists())
 				tempFile.NameExt = DateTimeOffset.UtcNow.UtcTicks.ToString("x");
 			return tempFile.FullName;

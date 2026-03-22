@@ -4,22 +4,21 @@ Classes to manage image files in directory trees
 across local and cloud-backed folders 
 on Windows, macOS, and Linux.
 
-## 3.3.0
+## 3.5.0
 
 - Provides image-focused file models (`ImageFile`, `ImageTreeFile`) with naming and tree-path conventions.
 - Includes URL/query helper classes (`Src`, `Tmp`, `ImageUrl`) used in HDitem-style scenarios.
 - Uses a modern ImageMagick 7+ CLI invocation model (`magick` subcommands).
 - Adds baseline xUnit tests in `RaiImage.Tests`.
-- Extracts `ImageMagick` into its own source file and aligns package versions with the 3.3.0 library set.
+- Aligns package documentation with the `3.5.0` library set used across `RAIkeep`.
 
 ## cloud storage compatibility
 
-RaiImage is designed to work well with OsLib cloud-root discovery and can operate in paths backed by all four major providers:
+RaiImage is designed to work well with OsLib cloud-root discovery and the current packaged support claim covers:
 
 - Dropbox
 - OneDrive
 - Google Drive
-- iCloud Drive
 
 For cloud-root configuration and environment/setup details, see:
 
@@ -145,4 +144,4 @@ https://www.nuget.org/packages/RaiImage/
 
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.3.0.md](RELEASE_NOTES_3.3.0.md)
+- Release notes: [RELEASE_NOTES_3.5.0.md](RELEASE_NOTES_3.5.0.md)
