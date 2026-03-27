@@ -2,9 +2,9 @@
 
 This repository aligns with private internal architecture decisions maintained outside this public repository.
 
-## 3.6.0 release alignment
+## 3.6.1 release alignment
 
-- RaiImage documentation now aligns with the `3.6.0` `RAIkeep` package line.
+- Patch: aligns RaiImage with the `3.6.1` `RAIkeep` package line in correct publish order.
 - The packaged support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, and `Dropbox`.
 - Cross-package wording now reflects JsonPit's `Id`-based identifier contract.
 - The NuGet fallback dependency now moves from `RaiUtilsCore` to `RaiUtils` in the aligned package line.

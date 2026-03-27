@@ -4,11 +4,9 @@ Classes to manage image files in directory trees
 across local and cloud-backed folders 
 on Windows, macOS, and Linux.
 
-## 3.6.0
+## 3.6.1
 
-- Provides image-focused file models (`ImageFile`, `ImageTreeFile`) with naming and tree-path conventions.
-- Aligns package documentation with the `3.6.0` library set used across `RAIkeep`.
-- Aligns fallback package references with `OsLibCore 3.6.0` and `RaiUtils 3.6.0`.
+- Patch: aligns fallback package references with `OsLibCore 3.6.1` and `RaiUtils 3.6.1` in the correct NuGet publish order.
 
 ## cloud storage compatibility
 
