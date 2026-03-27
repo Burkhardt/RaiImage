@@ -2,12 +2,12 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.5.2 scope note
+## 3.6.0 scope note
 
-- RaiImage aligns with the `3.5.2` `RAIkeep` package line.
+- RaiImage aligns with the `3.6.0` `RAIkeep` package line.
 - The documented supported cloud-backed provider claim for the stack is `OneDrive`, `GoogleDrive`, and `Dropbox`.
-- JsonPit's cross-package identifier contract now treats `Id` as the canonical item identifier.
-- Fallback package references now target `OsLibCore 3.5.2` and `RaiUtils 3.5.2`.
+- JsonPit's cross-package identifier contract treats `Id` as the canonical item identifier.
+- Fallback package references now target `OsLibCore 3.6.0` and `RaiUtils 3.6.0`.
 
 ## naming and parsing helpers
 

@@ -4,14 +4,11 @@ Classes to manage image files in directory trees
 across local and cloud-backed folders 
 on Windows, macOS, and Linux.
 
-## 3.5.2
+## 3.6.0
 
 - Provides image-focused file models (`ImageFile`, `ImageTreeFile`) with naming and tree-path conventions.
-- Includes URL/query helper classes (`Src`, `Tmp`, `ImageUrl`) used in HDitem-style scenarios.
-- Uses a modern ImageMagick 7+ CLI invocation model (`magick` subcommands).
-- Adds baseline xUnit tests in `RaiImage.Tests`.
-- Aligns package documentation with the `3.5.2` library set used across `RAIkeep`.
-- Aligns fallback package references with `OsLibCore 3.5.2` and `RaiUtils 3.5.2`.
+- Aligns package documentation with the `3.6.0` library set used across `RAIkeep`.
+- Aligns fallback package references with `OsLibCore 3.6.0` and `RaiUtils 3.6.0`.
 
 ## cloud storage compatibility
 
