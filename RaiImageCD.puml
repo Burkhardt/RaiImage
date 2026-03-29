@@ -1,5 +1,5 @@
 @startuml RaiImageCD
-' Release: 3.7.0
+' Release: 3.7.1
 !theme plain
 skinparam classAttributeIconSize 0
 hide empty members

@@ -1,10 +1,10 @@
 # Testing RaiImage
 
-## 3.7.0 scope note
+## 3.7.1 scope note
 
 - The packaged `RAIkeep` support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, and `Dropbox`.
 - RaiImage test expectations should stay aligned with the same OsLib/JsonPit package line and configuration contract.
-- Fallback package validation for release builds now assumes `OsLibCore 3.7.0` and `RaiUtils 3.7.0`.
+- Fallback package validation for release builds now assumes `OsLibCore 3.7.1` and `RaiUtils 3.7.1`.
 
 ## Test projects
 

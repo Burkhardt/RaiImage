@@ -1,5 +1,5 @@
 @startuml RaiImageOptimizationActivity
-' Release: 3.7.0
+' Release: 3.7.1
 !theme plain
 
 title RaiImage Optimization and Failure Recovery

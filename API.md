@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.7.0 scope note
+## 3.7.1 scope note
 
-- RaiImage aligns with the `3.7.0` `RAIkeep` package line.
-- Patch release: fallback package references updated to `OsLibCore 3.7.0` and `RaiUtils 3.7.0`.
+- RaiImage aligns with the `3.7.1` `RAIkeep` package line.
+- Patch release: fallback package references updated to `OsLibCore 3.7.1` and `RaiUtils 3.7.1`.
 
 ## naming and parsing helpers
 

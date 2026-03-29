@@ -1,5 +1,5 @@
 @startuml RaiImageTilingActivity
-' Release: 3.7.0
+' Release: 3.7.1
 !theme plain
 
 title RaiImage Tile Creation Workflow
