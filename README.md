@@ -4,9 +4,9 @@ Classes to manage image files in directory trees
 across local and cloud-backed folders 
 on Windows, macOS, and Linux.
 
-## 3.6.1
+## 3.7.0
 
-- Patch: aligns fallback package references with `OsLibCore 3.6.1` and `RaiUtils 3.6.1` in the correct NuGet publish order.
+- Patch: aligns fallback package references with `OsLibCore 3.7.0` and `RaiUtils 3.7.0` in the correct NuGet publish order.
 
 ## cloud storage compatibility
 

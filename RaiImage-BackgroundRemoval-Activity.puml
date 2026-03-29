@@ -1,5 +1,5 @@
 @startuml RaiImageBackgroundRemovalActivity
-' Release: 3.6.1
+' Release: 3.7.0
 !theme plain
 
 title RaiImage Background Removal and Transparent Export

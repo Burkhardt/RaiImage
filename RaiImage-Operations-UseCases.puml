@@ -1,5 +1,5 @@
 @startuml RaiImageOperationsUseCases
-' Release: 3.6.1
+' Release: 3.7.0
 !theme plain
 left to right direction
 skinparam packageStyle rectangle
