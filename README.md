@@ -4,6 +4,10 @@ Classes to manage image files in directory trees
 across local and cloud-backed folders 
 on Windows, macOS, and Linux.
 
+## 3.7.2
+
+- Patch: aligns fallback package references with `OsLibCore 3.7.2` and `RaiUtils 3.7.2` in the correct NuGet publish order.
+
 ## 3.7.1
 
 - Patch: aligns fallback package references with `OsLibCore 3.7.1` and `RaiUtils 3.7.1` in the correct NuGet publish order.
@@ -140,4 +144,4 @@ https://www.nuget.org/packages/RaiImage/
 
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.5.2.md](RELEASE_NOTES_3.5.2.md)
+- Release notes: [RELEASE_NOTES_3.7.2.md](RELEASE_NOTES_3.7.2.md)
