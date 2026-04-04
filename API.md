@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.7.1 scope note
+## 3.7.3 scope note
 
-- RaiImage aligns with the `3.7.1` `RAIkeep` package line.
-- Patch release: fallback package references updated to `OsLibCore 3.7.1` and `RaiUtils 3.7.1`.
+- RaiImage aligns with the `3.7.3` `RAIkeep` package line.
+- Patch release: fallback package references updated to `OsLibCore 3.7.3` and `RaiUtils 3.7.3`.
 
 ## naming and parsing helpers
 
@@ -124,7 +124,8 @@ This document provides a detailed, foldable API overview.
 	- <details>
 		<summary>Topdir / Subdir / TopdirRoot / SubdirRoot: partition path components.</summary>
 
-		- Derives directory segments from `Sku` (Topdir length 8, Subdir length 10).
+		- Derives directory segments from `ItemId` or `Sku` via `PathConventionType`; `Subdir` is cumulative, not a separate slice (`3x3 => 123/123456`, `8x2 => 12345678/1234567890`).
+		- Examples and rationale: [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md).
 		</details>
 	- <details>
 		<summary>Path and Sku overrides: keep path and partition segments synchronized.</summary>

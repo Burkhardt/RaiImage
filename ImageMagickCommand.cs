@@ -8,10 +8,10 @@ namespace RaiImage
 {
 	public class ImageMagickCommand : CliCommand
 	{
-		private readonly string imPath;
+		private readonly RaiPath imPath;
 		private readonly string commandName;
 
-		public ImageMagickCommand(string imPath = null, string commandName = null)
+		public ImageMagickCommand(RaiPath imPath = null, string commandName = null)
 			: base(commandName ?? ImageMagick.MagickCommand, packageName: "imagemagick")
 		{
 			this.imPath = imPath ?? ImageMagick.ImPath;
@@ -22,13 +22,11 @@ namespace RaiImage
 		{
 			get
 			{
-				if (!string.IsNullOrWhiteSpace(imPath))
-				{
-					var cmd = new RaiFile(commandName) { Path = imPath };
-					yield return cmd.FullName;
-				}
-
-				yield return commandName;
+				if (imPath == null || string.IsNullOrWhiteSpace(imPath.Path))
+					yield return commandName; // no path is fine as long as the command is in the system PATH
+				var cmd = new RaiFile(commandName);
+				cmd.Path = imPath;
+				yield return cmd.FullName;
 			}
 		}
 

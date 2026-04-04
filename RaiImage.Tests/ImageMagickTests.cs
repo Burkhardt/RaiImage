@@ -13,18 +13,18 @@ public class ImageMagickTests
 	private static RaiPath NewTestRoot([CallerMemberName] string testName = "")
 	{
 		var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "imagemagick" / SanitizeSegment(testName);
-		Cleanup(root.Path);
+		Cleanup(root);
 		return root;
 	}
 
-	private static string FilePath(string root, string fileName)
+	private static string FilePath(RaiPath root, string fileName)
 	{
 		return new RaiFile(fileName) { Path = root }.FullName;
 	}
 
 	private sealed class ImageMagickStateScope : IDisposable
 	{
-		private readonly string _imPath = ImageMagick.ImPath;
+		private readonly RaiPath _imPath = ImageMagick.ImPath;
 		private readonly string _magickCommand = ImageMagick.MagickCommand;
 		private readonly string _optiPngCommand = ImageMagick.OptiPngCommand;
 		private readonly string _jpegTranCommand = ImageMagick.JpegTranCommand;
@@ -40,23 +40,17 @@ public class ImageMagickTests
 		}
 	}
 
-	private static string CreateTempRoot()
+	private static RaiPath CreateTempRoot()
 	{
 		var root = NewTestRoot();
 		root.mkdir();
-		return root.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		return root;
 	}
 
-	private static void Cleanup(string root)
+	private static void Cleanup(RaiPath root)
 	{
-		try
-		{
-			if (Directory.Exists(root))
-				Directory.Delete(root, recursive: true);
-		}
-		catch
-		{
-		}
+		if (root?.Exists() == true)
+			root.rmdir(depth: 3, deleteFiles: true);
 	}
 
 	private static string SanitizeSegment(string? value)
@@ -64,7 +58,7 @@ public class ImageMagickTests
 		if (string.IsNullOrWhiteSpace(value))
 			return "test";
 
-		var invalid = Path.GetInvalidFileNameChars();
+		var invalid = RaiPath.InvalidFileNameChars;
 		var cleaned = new string(value
 			.Select(ch => invalid.Contains(ch) || char.IsWhiteSpace(ch) ? '-' : ch)
 			.ToArray())
@@ -73,16 +67,16 @@ public class ImageMagickTests
 		return string.IsNullOrWhiteSpace(cleaned) ? "test" : cleaned;
 	}
 
-	private static string CreateExecutableScript(string root, string scriptName, string content)
+	private static string CreateExecutableScript(RaiPath root, string scriptName, string content)
 	{
-		return RaiSystem.CreateScript(new RaiPath(root), scriptName, content).FullName;
+		return RaiSystem.CreateScript(root, scriptName, content).FullName;
 	}
 
-	private static string CreateFakeMagickScript(string root, string logPath)
+	private static string CreateFakeMagickScript(RaiPath toolsDir, string logPath)
 	{
 		if (OperatingSystem.IsWindows())
 		{
-			return CreateExecutableScript(root, "fake magick.cmd",
+			return CreateExecutableScript(toolsDir, "fake magick.cmd",
 				$"@echo off\r\n" +
 				"setlocal EnableExtensions EnableDelayedExpansion\r\n" +
 				$"> \"{logPath}\" echo %~1\r\n" +
@@ -105,7 +99,7 @@ public class ImageMagickTests
 				"exit /b 0\r\n");
 		}
 
-		return CreateExecutableScript(root, "fake magick.sh",
+		return CreateExecutableScript(toolsDir, "fake magick.sh",
 			$"#!/bin/sh\n" +
 			$": > \"{logPath}\"\n" +
 			"sub=\"$1\"\n" +
@@ -129,11 +123,11 @@ public class ImageMagickTests
 			"exit 0\n");
 	}
 
-	private static string CreateFakeCopyScript(string root, string scriptName, string logPath)
+	private static string CreateFakeCopyScript(RaiPath toolsDir, string scriptName, string logPath)
 	{
 		if (OperatingSystem.IsWindows())
 		{
-			return CreateExecutableScript(root, scriptName,
+			return CreateExecutableScript(toolsDir, scriptName,
 				$"@echo off\r\n" +
 				"setlocal EnableExtensions\r\n" +
 				$"> \"{logPath}\" echo %*\r\n" +
@@ -141,35 +135,35 @@ public class ImageMagickTests
 				"exit /b 0\r\n");
 		}
 
-		return CreateExecutableScript(root, scriptName,
+		return CreateExecutableScript(toolsDir, scriptName,
 			$"#!/bin/sh\n" +
 			$"printf '%s\\n' \"$*\" > \"{logPath}\"\n" +
 			"cp \"$3\" \"$4\"\n" +
 			"exit 0\n");
 	}
 
-	private static string CreateFakeArgumentLogger(string root, string scriptName, string logPath)
+	private static string CreateFakeArgumentLogger(RaiPath toolsDir, string scriptName, string logPath)
 	{
 		if (OperatingSystem.IsWindows())
 		{
-			return CreateExecutableScript(root, scriptName,
+			return CreateExecutableScript(toolsDir, scriptName,
 				$"@echo off\r\n" +
 				$"> \"{logPath}\" echo %1\r\n" +
 				"exit /b 0\r\n");
 		}
 
-		return CreateExecutableScript(root, scriptName,
+		return CreateExecutableScript(toolsDir, scriptName,
 			$"#!/bin/sh\n" +
 			$"printf '%s\\n' \"$1\" > \"{logPath}\"\n" +
 			"exit 0\n");
 	}
 
-	private static string CreateFailingScript(string root, string scriptName, string stderrText, int exitCode, string? logPath = null)
+	private static string CreateFailingScript(RaiPath toolsDir, string scriptName, string stderrText, int exitCode, string? logPath = null)
 	{
 		if (OperatingSystem.IsWindows())
 		{
 			var logLine = string.IsNullOrWhiteSpace(logPath) ? string.Empty : $"> \"{logPath}\" echo %*\r\n";
-			return CreateExecutableScript(root, scriptName,
+			return CreateExecutableScript(toolsDir, scriptName,
 				$"@echo off\r\n" +
 				"setlocal EnableExtensions\r\n" +
 				logLine +
@@ -178,7 +172,7 @@ public class ImageMagickTests
 		}
 
 		var unixLog = string.IsNullOrWhiteSpace(logPath) ? string.Empty : $"printf '%s\\n' \"$*\" > \"{logPath}\"\n";
-		return CreateExecutableScript(root, scriptName,
+		return CreateExecutableScript(toolsDir, scriptName,
 			$"#!/bin/sh\n" +
 			unixLog +
 			$"printf '%s\\n' '{stderrText}' >&2\n" +
@@ -243,7 +237,7 @@ public class ImageMagickTests
 	public void Constructor_DoesNotRequireFixedInstallPath_WhenImPathEmpty()
 	{
 		using var scope = new ImageMagickStateScope();
-		ImageMagick.ImPath = string.Empty;
+		ImageMagick.ImPath = null;
 		var sut = new ImageMagick();
 		Assert.NotNull(sut);
 	}
@@ -252,7 +246,7 @@ public class ImageMagickTests
 	public void Constructor_Throws_WhenImPathSetButMagickNotFound()
 	{
 		using var scope = new ImageMagickStateScope();
-		ImageMagick.ImPath = "/tmp/raimage-missing-magick";
+		ImageMagick.ImPath = new RaiPath("/tmp/raimage-missing-magick");
 		Assert.Throws<FileNotFoundException>(() => new ImageMagick());
 	}
 
@@ -262,14 +256,14 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools with spaces").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools with spaces";
+			tools.mkdir();
 			var log = FilePath(root, "magick.log");
 			var scriptPath = CreateFakeMagickScript(tools, log);
 
 			using var scope = new ImageMagickStateScope();
-			ImageMagick.ImPath = tools + Path.DirectorySeparatorChar;
-			ImageMagick.MagickCommand = Path.GetFileName(scriptPath);
+			ImageMagick.ImPath = tools;
+			ImageMagick.MagickCommand = new RaiFile(scriptPath).NameWithExtension;
 
 			var sut = new ImageMagick();
 			Assert.NotNull(sut);
@@ -286,8 +280,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools with spaces").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools with spaces";
+			tools.mkdir();
 			var log = FilePath(root, "magick.log");
 			var scriptPath = CreateFakeMagickScript(tools, log);
 			var from = FilePath(root, "from file.png");
@@ -295,15 +289,15 @@ public class ImageMagickTests
 			new TextFile(from, "source");
 
 			using var scope = new ImageMagickStateScope();
-			ImageMagick.ImPath = tools + Path.DirectorySeparatorChar;
-			ImageMagick.MagickCommand = Path.GetFileName(scriptPath);
+			ImageMagick.ImPath = tools;
+			ImageMagick.MagickCommand = new RaiFile(scriptPath).NameWithExtension;
 
 			var sut = new ImageMagick();
 			var exitCode = sut.Convert("-resize 10x10", from, to);
 
 			Assert.Equal(0, exitCode);
-			Assert.True(File.Exists(to));
-			var lines = File.ReadAllLines(log);
+			Assert.True(new RaiFile(to).Exists());
+			var lines = new TextFile(log).Lines;
 			Assert.Equal("convert", lines[0]);
 			Assert.Contains("-resize", lines);
 			Assert.Contains("10x10", lines);
@@ -322,8 +316,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools with spaces").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools with spaces";
+			tools.mkdir();
 			var log = FilePath(root, "magick.log");
 			var scriptPath = CreateFakeMagickScript(tools, log);
 			var image = FilePath(root, "source image.png");
@@ -331,15 +325,15 @@ public class ImageMagickTests
 			string result = string.Empty;
 
 			using var scope = new ImageMagickStateScope();
-			ImageMagick.ImPath = tools + Path.DirectorySeparatorChar;
-			ImageMagick.MagickCommand = Path.GetFileName(scriptPath);
+			ImageMagick.ImPath = tools;
+			ImageMagick.MagickCommand = new RaiFile(scriptPath).NameWithExtension;
 
 			var sut = new ImageMagick();
 			var exitCode = sut.Identify("-ping -format \"%[fx:w] %[fx:h]\"", image, ref result);
 
 			Assert.Equal(0, exitCode);
 			Assert.Equal("123 456", result);
-			var lines = File.ReadAllLines(log);
+			var lines = new TextFile(log).Lines;
 			Assert.Equal("identify", lines[0]);
 			Assert.Contains(image, lines);
 		}
@@ -355,8 +349,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools with spaces").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools with spaces";
+			tools.mkdir();
 			var log = FilePath(root, "optipng.log");
 			var scriptPath = CreateFakeArgumentLogger(tools, OperatingSystem.IsWindows() ? "fake optipng.cmd" : "fake optipng.sh", log);
 			var image = new ImageFile(FilePath(root, "image file.png")).FullName;
@@ -369,7 +363,7 @@ public class ImageMagickTests
 			var exitCode = sut.OptiPng(image);
 
 			Assert.Equal(0, exitCode);
-			Assert.Equal(image, File.ReadAllText(log).Trim());
+			Assert.Equal(image, new TextFile(log).ReadAllText().Trim());
 		}
 		finally
 		{
@@ -383,8 +377,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools with spaces").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools with spaces";
+			tools.mkdir();
 			var log = FilePath(root, "jpegtran.log");
 			var scriptPath = CreateFakeCopyScript(tools, OperatingSystem.IsWindows() ? "fake jpegtran.cmd" : "fake jpegtran.sh", log);
 			var image = new ImageFile(FilePath(root, "image file.jpg")).FullName;
@@ -397,9 +391,9 @@ public class ImageMagickTests
 			var exitCode = sut.JpegTran(image);
 
 			Assert.Equal(0, exitCode);
-			Assert.True(File.Exists(image));
-			Assert.Equal("jpgdata", File.ReadAllText(image).Trim());
-			Assert.Contains(Path.GetFileName(image), File.ReadAllText(log));
+			Assert.True(new RaiFile(image).Exists());
+			Assert.Equal("jpgdata", new TextFile(image).ReadAllText().Trim());
+			Assert.Contains(new RaiFile(image).NameWithExtension, new TextFile(log).ReadAllText());
 		}
 		finally
 		{
@@ -413,8 +407,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools";
+			tools.mkdir();
 			var scriptPath = CreateFailingScript(tools, OperatingSystem.IsWindows() ? "fake magick.cmd" : "fake magick.sh", "convert failed on purpose", 17);
 			var from = FilePath(root, "source.png");
 			var to = FilePath(root, "dest.png");
@@ -422,14 +416,14 @@ public class ImageMagickTests
 
 			using var scope = new ImageMagickStateScope();
 			ImageMagick.MagickCommand = scriptPath;
-			ImageMagick.ImPath = string.Empty;
+			ImageMagick.ImPath = null;
 
 			var sut = new ImageMagick();
 			var exitCode = sut.Convert("-resize 10x10", from, to);
 
 			Assert.Equal(17, exitCode);
 			Assert.Contains("convert failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
-			Assert.False(File.Exists(to));
+			Assert.False(new RaiFile(to).Exists());
 		}
 		finally
 		{
@@ -443,8 +437,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools";
+			tools.mkdir();
 			var optimizerLog = FilePath(root, "optipng.log");
 			var magickPath = CreateFailingScript(tools, OperatingSystem.IsWindows() ? "fake magick.cmd" : "fake magick.sh", "mogrify failed on purpose", 8);
 			var optimizerPath = CreateFakeArgumentLogger(tools, OperatingSystem.IsWindows() ? "fake optipng.cmd" : "fake optipng.sh", optimizerLog);
@@ -453,7 +447,7 @@ public class ImageMagickTests
 
 			using var scope = new ImageMagickStateScope();
 			ImageMagick.MagickCommand = magickPath;
-			ImageMagick.ImPath = string.Empty;
+			ImageMagick.ImPath = null;
 			ImageMagick.OptiPngCommand = optimizerPath;
 
 			var sut = new ImageMagick();
@@ -461,9 +455,9 @@ public class ImageMagickTests
 
 			Assert.Equal(8, exitCode);
 			Assert.Contains("mogrify failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
-			Assert.True(File.Exists(original));
-			Assert.Equal("jpgdata", File.ReadAllText(original).Trim());
-			Assert.False(File.Exists(optimizerLog));
+			Assert.True(new RaiFile(original).Exists());
+			Assert.Equal("jpgdata", new TextFile(original).ReadAllText().Trim());
+			Assert.False(new RaiFile(optimizerLog).Exists());
 		}
 		finally
 		{
@@ -477,8 +471,8 @@ public class ImageMagickTests
 		var root = CreateTempRoot();
 		try
 		{
-			var tools = (new RaiPath(root) / "tools").Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			new RaiPath(tools).mkdir();
+			var tools = root / "tools";
+			tools.mkdir();
 			var log = FilePath(root, "jpegtran.log");
 			var scriptPath = CreateFailingScript(tools, OperatingSystem.IsWindows() ? "fake jpegtran.cmd" : "fake jpegtran.sh", "jpegtran failed on purpose", 9, log);
 			var image = new ImageFile(FilePath(root, "image file.jpg")).FullName;
@@ -492,9 +486,9 @@ public class ImageMagickTests
 
 			Assert.Equal(9, exitCode);
 			Assert.Contains("jpegtran failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
-			Assert.True(File.Exists(image));
-			Assert.Equal("jpgdata", File.ReadAllText(image).Trim());
-			Assert.Contains(Path.GetFileName(image), File.ReadAllText(log));
+			Assert.True(new RaiFile(image).Exists());
+			Assert.Equal("jpgdata", new TextFile(image).ReadAllText().Trim());
+			Assert.Contains(new RaiFile(image).NameWithExtension, new TextFile(log).ReadAllText());
 		}
 		finally
 		{
@@ -506,7 +500,7 @@ public class ImageMagickTests
 	public void BackgroundRemoval_CreatesTransparentPngAndWebp_ThatCompositeOntoNomsaRedBlackAndWhite()
 	{
 		using var scope = new ImageMagickStateScope();
-		ImageMagick.ImPath = string.Empty;
+		ImageMagick.ImPath = null;
 
 		if (!TryGetInstalledMagick(out var magickExecutable, out var versionInfo))
 		{
@@ -543,8 +537,8 @@ public class ImageMagickTests
 			Assert.Equal(0, sut.Convert(string.Empty, svg, source));
 			Assert.Equal(0, sut.Convert("-alpha set -fuzz 5% -transparent #18d86b", source, transparentPng));
 			Assert.Equal(0, sut.Convert(string.Empty, transparentPng, transparentWebp));
-			Assert.True(File.Exists(transparentPng));
-			Assert.True(File.Exists(transparentWebp));
+			Assert.True(new RaiFile(transparentPng).Exists());
+			Assert.True(new RaiFile(transparentWebp).Exists());
 			AssertLooksTransparent(IdentifyPixel(sut, transparentPng, 0, 0));
 			AssertLooksTransparent(IdentifyPixel(sut, transparentWebp, 0, 0));
 
@@ -561,7 +555,7 @@ public class ImageMagickTests
 				var compositePng = FilePath(root, $"{background.Name}-png.png");
 				var compositeWebp = FilePath(root, $"{background.Name}-webp.png");
 
-				Assert.Equal(0, sut.Convert($"-size 240x320 xc:{background.Color} {Os.escapeParam(backgroundFile)}"));
+				Assert.Equal(0, sut.Convert($"-size 240x320 xc:{background.Color} {Os.EscapeParam(backgroundFile)}"));
 				Assert.Equal(0, sut.Composite("-gravity center", transparentPng, backgroundFile, compositePng));
 				Assert.Equal(0, sut.Composite("-gravity center", transparentWebp, backgroundFile, compositeWebp));
 

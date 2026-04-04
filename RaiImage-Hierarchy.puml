@@ -1,7 +1,32 @@
 @startuml RaiImage-Type-Overview
-' Release: 3.7.1
-!theme plain
-skinparam classAttributeIconSize 0
+' Release: 3.7.3
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+skinparam DiagramFontName "Casual"
+skinparam DiagramFontSize 36
+skinparam ClassFontName "Casual"
+skinparam ClassFontSize 28
+skinparam ClassAttributeIconSize 10
+skinparam ClassAttributeFontName Casual
+skinparam ClassAttributeFontColor #053583
+skinparam ClassAttributeFontWeight normal
+skinparam ClassAttributeFontSize 12
+skinparam ClassMethodFontName "Casual"
+skinparam ClassMethodFontSize 12
+skinparam ClassMethodFontWeight 500
+skinparam ClassAttributeFontStyle normal
+skinparam ClassBorderColor #0f766e
+skinparam ClassBackgroundColor #ccfbf1
+skinparam ClassFontColor #111827
+skinparam EnumBorderColor #b45309
+skinparam EnumBackgroundColor #fef3c7
+skinparam EnumFontColor #7c2d12
+skinparam NoteBackgroundColor #fff7d6
+skinparam NoteBorderColor #d4b106
+skinparam ArrowColor #9b2c2c
+skinparam ArrowFontColor #374151
+skinparam ArrowFontName "Casual"
 
 title RaiImage Type Overview
 
@@ -160,12 +185,13 @@ package "RaiImage" {
 	class ItemTreePath {
 		+RootPath : string
 		+ItemId : string
-		+TopdirLength : int
-		+SubdirLength : int
 		+Topdir : string
 		+Subdir : string
-		+Path : string
-		+Apply() : void
+		+TopdirRoot : RaiPath
+		+SubdirRoot : RaiPath
+		+Path : RaiPath
+		+GetSplit(convention : PathConventionType, itemId : string = null)
+		+ApplyPathConvention() : void
 	}
 
 	enum PathConventionType {
@@ -174,8 +200,8 @@ package "RaiImage" {
 		ItemIdTree8x2
 	}
 
-	interface IPathConventionFile {
-		+ConventionName : PathConventionType
+	interface IPathConvention {
+		+Convention : PathConventionType
 		+ApplyPathConvention() : void
 	}
 
@@ -197,7 +223,8 @@ StringHelper ..> CamelCase : creates
 Extensions ..> Size : parse
 ImageFile --|> RaiFile
 ImageTreeFile --|> ImageFile
-ImageTreeFile ..|> IPathConventionFile
+ImageTreeFile ..|> IPathConvention
+ItemTreePath ..|> IPathConvention
 ImageMagick ..> ImageFile : uses
 ImageMagick --> ImageMagickCommand : delegates CLI calls
 ImageMagickCommand --|> CliCommand

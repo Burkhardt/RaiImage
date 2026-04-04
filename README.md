@@ -4,13 +4,13 @@ Classes to manage image files in directory trees
 across local and cloud-backed folders 
 on Windows, macOS, and Linux.
 
-## 3.7.2
+## 3.7.3
 
-- Patch: aligns fallback package references with `OsLibCore 3.7.2` and `RaiUtils 3.7.2` in the correct NuGet publish order.
+- Patch: aligns fallback package references with `OsLibCore 3.7.3` and `RaiUtils 3.7.3` in the correct NuGet publish order.
 
-## 3.7.1
+## 3.7.3
 
-- Patch: aligns fallback package references with `OsLibCore 3.7.1` and `RaiUtils 3.7.1` in the correct NuGet publish order.
+- Patch: aligns fallback package references with `OsLibCore 3.7.3` and `RaiUtils 3.7.3` in the correct NuGet publish order.
 
 ## cloud storage compatibility
 
@@ -72,6 +72,7 @@ RaiImage
 <summary>ImageTreeFile: ImageFile variant with tree-based path partitioning.</summary>
 
 - ImageTreeFile: `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`, `MoveToTree`, `CopyTo`
+- Split behavior is driven by `PathConventionType`; `Subdir` is cumulative, for example `3x3 => 123/123456` and `8x2 => 12345678/1234567890`. See [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md).
 </details>
 
 <details>
@@ -138,10 +139,12 @@ https://www.nuget.org/packages/RaiImage/
 
 ## detailed api
 
+- Path-convention splitting note: [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md)
+
 - Foldable class and method-level documentation: [API.md](API.md)
 
 ## migration and release docs
 
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.7.2.md](RELEASE_NOTES_3.7.2.md)
+- Release notes: [RELEASE_NOTES_3.7.3.md](RELEASE_NOTES_3.7.3.md)

@@ -1,7 +1,32 @@
 @startuml RaiImageCD
-' Release: 3.7.1
-!theme plain
-skinparam classAttributeIconSize 0
+' Release: 3.7.3
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+skinparam DiagramFontName "Casual"
+skinparam DiagramFontSize 36
+skinparam ClassFontName "Casual"
+skinparam ClassFontSize 28
+skinparam ClassAttributeIconSize 10
+skinparam ClassAttributeFontName Casual
+skinparam ClassAttributeFontColor #053583
+skinparam ClassAttributeFontWeight normal
+skinparam ClassAttributeFontSize 12
+skinparam ClassMethodFontName "Casual"
+skinparam ClassMethodFontSize 12
+skinparam ClassMethodFontWeight 500
+skinparam ClassAttributeFontStyle normal
+skinparam ClassBorderColor #0f766e
+skinparam ClassBackgroundColor #ccfbf1
+skinparam ClassFontColor #111827
+skinparam EnumBorderColor #b45309
+skinparam EnumBackgroundColor #fef3c7
+skinparam EnumFontColor #7c2d12
+skinparam NoteBackgroundColor #fff7d6
+skinparam NoteBorderColor #d4b106
+skinparam ArrowColor #9b2c2c
+skinparam ArrowFontColor #374151
+skinparam ArrowFontName "Casual"
 hide empty members
 
 title RaiImage Core Class Diagram
@@ -72,7 +97,7 @@ package "RaiImage" {
 	class Tmp
 	class ImageUrl
 	class ItemTreePath
-	interface IPathConventionFile
+	interface IPathConvention
 }
 
 package "OsLib" {
@@ -83,7 +108,7 @@ package "OsLib" {
 
 ImageFile --|> RaiFile
 ImageTreeFile --|> ImageFile
-ImageTreeFile ..|> IPathConventionFile
+ImageTreeFile ..|> IPathConvention
 
 ImageFile --> ColorInfo : uses
 ImageFile ..> ImageTreeFile : probes

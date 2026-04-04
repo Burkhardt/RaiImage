@@ -10,7 +10,7 @@ namespace RaiImage
 	public class ImageMagick
 	{
 		// Hard break: use ImageMagick 7+ unified CLI (magick) with subcommands.
-		public static string ImPath = string.Empty;
+		public static RaiPath ImPath = null;
 		public static string MagickCommand = "magick";
 		// External tools are executed through RaiSystem with path-agnostic command names.
 		public static string OptiPngCommand = "optipng";
@@ -25,10 +25,9 @@ namespace RaiImage
 
 		private static string ResolveMagickExecutable()
 		{
-			if (string.IsNullOrWhiteSpace(ImPath))
+			if (ImPath == null || string.IsNullOrWhiteSpace(ImPath.Path))
 				return MagickCommand;
-
-			var cmd = new RaiFile(MagickCommand) { Path = ImPath };
+			var cmd = new RaiFile(ImPath, MagickCommand);
 			return cmd.FullName;
 		}
 
@@ -60,11 +59,11 @@ namespace RaiImage
 
 		public ImageMagick()
 		{
-			if (!string.IsNullOrWhiteSpace(ImPath))
+			if (ImPath != null && !string.IsNullOrWhiteSpace(ImPath.Path))
 			{
-				var exe = ResolveMagickExecutable();
-				if (!File.Exists(exe))
-					throw new FileNotFoundException("ImageMagick (magick CLI) must be installed in ImPath.", exe);
+				var exe = new RaiFile(ResolveMagickExecutable());
+				if (!exe.Exists())
+					throw new FileNotFoundException("ImageMagick (magick CLI) must be installed in ImPath.", exe.FullName);
 			}
 			callString = "";
 		}
@@ -80,7 +79,7 @@ namespace RaiImage
 			bool zip = to.EndsWith(".zip");
 			if (zip)
 				to = to.Substring(0, to.Length - 4);
-			exitCode = RunMagickSubcommand("convert", options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to)).ExitCode;
+			exitCode = RunMagickSubcommand("convert", options + " " + Os.EscapeParam(from) + " " + Os.EscapeParam(to)).ExitCode;
 			if (exitCode != 0 && message.Contains("Permission denied") && OperatingSystem.IsWindows())
 			{
 				try
@@ -93,7 +92,7 @@ namespace RaiImage
 					fsec.AddAccessRule(permissions);
 					fiIntern.SetAccessControl(fsec);
 					// try it again
-					exitCode = RunMagickSubcommand("convert", options + " " + Os.escapeParam(from) + " " + Os.escapeParam(to)).ExitCode;
+					exitCode = RunMagickSubcommand("convert", options + " " + Os.EscapeParam(from) + " " + Os.EscapeParam(to)).ExitCode;
 				}
 				catch (Exception)
 				{
@@ -112,7 +111,7 @@ namespace RaiImage
 			message = "";
 			if (!OptionsInTheMiddle)
 				return Convert(options, from, to);
-			return RunMagickSubcommand("convert", Os.escapeParam(from) + " " + options + " " + Os.escapeParam(to)).ExitCode;
+			return RunMagickSubcommand("convert", Os.EscapeParam(from) + " " + options + " " + Os.EscapeParam(to)).ExitCode;
 		}
 		public int Mogrify(string commandline)
 		{
@@ -121,7 +120,7 @@ namespace RaiImage
 		public int Mogrify(string options, string file)
 		{
 			message = "";
-			return RunMagickSubcommand("mogrify", options + " " + Os.escapeParam(file)).ExitCode;
+			return RunMagickSubcommand("mogrify", options + " " + Os.EscapeParam(file)).ExitCode;
 		}
 		public int Composite(string commandline)
 		{
@@ -131,18 +130,18 @@ namespace RaiImage
 		public int Composite(string options, string overlay, string to)
 		{
 			message = "";
-			string dest = Os.escapeParam(to);
-			return RunMagickSubcommand("composite", options + " " + Os.escapeParam(overlay) + " " + dest + " -matte " + dest).ExitCode;
+			string dest = Os.EscapeParam(to);
+			return RunMagickSubcommand("composite", options + " " + Os.EscapeParam(overlay) + " " + dest + " -matte " + dest).ExitCode;
 		}
 		// e.g.: composite -dissolve 75 minus04percent60x60.png -gravity South rect.png -matte minus04percent60x60.jpg
 		public int Composite(string options, string overlay, string image, string target)
 		{
 			message = "";
-			return RunMagickSubcommand("composite", options + " " + Os.escapeParam(overlay) + " " + Os.escapeParam(image) + " -matte " + Os.escapeParam(target)).ExitCode;
+			return RunMagickSubcommand("composite", options + " " + Os.EscapeParam(overlay) + " " + Os.EscapeParam(image) + " -matte " + Os.EscapeParam(target)).ExitCode;
 		}
 		public int Identify(string options, string image, ref string result)
 		{
-			var identify = CreateCommand().RunSubcommand("identify", options + " " + Os.escapeParam(image));
+			var identify = CreateCommand().RunSubcommand("identify", options + " " + Os.EscapeParam(image));
 			result = identify.Output;
 			return identify.ExitCode;
 		}
@@ -212,7 +211,7 @@ namespace RaiImage
 			}
 			if (result == 0)
 			{
-				var optiPng = new RaiSystem(OptiPngCommand, Os.escapeParam(image.FullName));
+				var optiPng = new RaiSystem(OptiPngCommand, Os.EscapeParam(image.FullName));
 				result = optiPng.Exec(out message);
 			}
 			return result;
@@ -240,17 +239,17 @@ namespace RaiImage
 				return result;
 			var tempFile = new ImageFile(GetTempFileName(image.FullName));
 			tempFile.mv(image);
-			var jpegTranArgs = JpegTranOptions + " " + Os.escapeParam(tempFile.FullName) + " " + Os.escapeParam(image.FullName);
+			var jpegTranArgs = JpegTranOptions + " " + Os.EscapeParam(tempFile.FullName) + " " + Os.EscapeParam(image.FullName);
 			var jpegTran = new RaiSystem(JpegTranCommand, jpegTranArgs);
 			result = jpegTran.Exec(out message);
-			if (result != 0 || !File.Exists(image.FullName))
+			if (result != 0 || !image.Exists()) // TODO Rainer — File.Exists → RaiFile.Exists; verify rollback logic uses OsLib throughout
 			{
-				if (File.Exists(image.FullName))
+				if (image.Exists())
 					image.rm();
-				if (File.Exists(tempFile.FullName))
+				if (tempFile.Exists())
 					image.mv(tempFile, replace: true, keepBackup: false);
 			}
-			if (File.Exists(tempFile.FullName))
+			if (tempFile.Exists())
 				tempFile.rm();
 			return result;
 		}
@@ -261,7 +260,7 @@ namespace RaiImage
 		private string GetTempFileName(string fromFile)
 		{
 			var tempFile = new ImageFile(fromFile);
-			tempFile.Path = Os.TempDir.Path;
+			tempFile.Path = Os.TempDir;
 			while (tempFile.Exists())
 				tempFile.NameExt = DateTimeOffset.UtcNow.UtcTicks.ToString("x");
 			return tempFile.FullName;
@@ -320,10 +319,9 @@ namespace RaiImage
 					#endregion
 				}
 				#endregion
-				string[] oldFiles = Directory.GetFiles(destFiles.Path, destFiles.NameWithExtension.Replace("%d", "*"));
-				foreach (string oldFile in oldFiles)
+				var oldFiles = destFiles.Path.GetFiles(destFiles.NameWithExtension.Replace("%d", "*"));
+				foreach (var oldRaiFile in oldFiles)
 				{
-					var oldRaiFile = new RaiFile(oldFile);
 					#region robust delete
 					try
 					{
@@ -355,7 +353,7 @@ namespace RaiImage
 				}
 			}
 			#endregion
-			else if (File.Exists(destFiles.FullName.Replace("%d", "0")))
+			else if (File.Exists(destFiles.FullName.Replace("%d", "0"))) // TODO Rainer — File.Exists with string manipulation; needs RaiFile abstraction
 				return 0;
 			if (size.IsEmpty)
 			{
@@ -386,7 +384,7 @@ namespace RaiImage
 				options = options + " -unsharp " + unsharp;
 			if (strip)
 				options = "-strip " + options;
-			ImageTreeFile total = new ImageTreeFile(destFiles.FullName, destFiles.ConventionName);
+			ImageTreeFile total = new ImageTreeFile(destFiles.FullName, destFiles.Convention);
 			total.Ext = "png";
 			total.TileNumber = "all";
 			int rc = Convert(options, master.FullName, total.FullName, true);

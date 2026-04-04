@@ -1,6 +1,15 @@
 @startuml RaiImageOptimizationActivity
-' Release: 3.7.1
-!theme plain
+' Release: 3.7.3
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+skinparam DiagramFontName "Casual"
+skinparam DiagramFontSize 36
+skinparam NoteBackgroundColor #fff7d6
+skinparam NoteBorderColor #d4b106
+skinparam ArrowColor #9b2c2c
+skinparam ArrowFontColor #374151
+skinparam ArrowFontName "Casual"
 
 title RaiImage Optimization and Failure Recovery
 

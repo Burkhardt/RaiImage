@@ -3,18 +3,21 @@ using OsLib;
 
 namespace RaiImage
 {
-	public class ItemTreePath
+	public class ItemTreePath : RaiPath, IPathConvention
 	{
-		public string RootPath
+		public override string ToString() => Path.ToString();
+
+		public PathConventionType Convention { get; }
+
+		public RaiPath RootPath
 		{
-			get => rootPath;
+			get => new(base.Path);
 			set
 			{
-				rootPath = NormalizeRootPath(value, ItemId, TopdirLength, SubdirLength);
-				Apply();
+				base.Path = NormalizeRootPath(value?.ToString(), ItemId, Split.tLen, Split.sLen);
+				ApplyPathConvention();
 			}
 		}
-		private string rootPath = string.Empty;
 
 		public string ItemId
 		{
@@ -22,66 +25,99 @@ namespace RaiImage
 			set
 			{
 				itemId = string.IsNullOrEmpty(value) ? string.Empty : value;
-				rootPath = NormalizeRootPath(rootPath, itemId, TopdirLength, SubdirLength);
-				Apply();
+				ApplyPathConvention();
 			}
 		}
 		private string itemId = string.Empty;
 
-		public int TopdirLength { get; }
-		public int SubdirLength { get; }
-
 		public string Topdir { get; private set; } = string.Empty;
 		public string Subdir { get; private set; } = string.Empty;
-		public string Path { get; private set; } = string.Empty;
 
-		private static string NormalizeRootPath(string rootCandidate, string itemId, int topdirLength, int subdirLength)
+		public RaiPath TopdirRoot => string.IsNullOrEmpty(Topdir) ? RootPath : RootPath / Topdir;
+		public RaiPath SubdirRoot => string.IsNullOrEmpty(Subdir) ? TopdirRoot : RootPath / Topdir / Subdir;
+
+		public new RaiPath Path
+		{
+			get
+			{
+				ApplyPathConvention();
+				return SubdirRoot;
+			}
+			set => RootPath = value;
+		}
+
+		private (int tLen, int sLen) Split { get; }
+
+		/// <summary>
+		/// Single source of truth for mapping PathConventionType → (topdirLen, subdirLen).
+		/// CanonicalByName uses the full ItemId as topdir, no subdir.
+		/// </summary>
+		public static (int tLen, int sLen) GetSplit(PathConventionType convention, string itemId = null) => convention switch
+		{
+			PathConventionType.ItemIdTree3x3  => (3, 3),
+			PathConventionType.ItemIdTree8x2  => (8, 2),
+			PathConventionType.CanonicalByName => (string.IsNullOrEmpty(itemId) ? 0 : itemId.Length, 0),
+			_ => throw new ArgumentOutOfRangeException(nameof(convention), convention, "Unknown path convention")
+		};
+
+		public void ApplyPathConvention()
+		{
+			var (tLen, sLen) = Convention == PathConventionType.CanonicalByName
+				? GetSplit(Convention, ItemId)
+				: Split;
+
+			base.Path = NormalizeRootPath(base.Path, ItemId, tLen, sLen);
+
+			Topdir = string.IsNullOrEmpty(ItemId) || tLen <= 0
+				? string.Empty
+				: SanitizeSegment(ItemId[..Math.Min(ItemId.Length, tLen)]);
+
+			// subdir is cumulative: first (tLen + sLen) chars of ItemId, so it always starts with topdir
+			Subdir = string.IsNullOrEmpty(ItemId) || sLen <= 0
+				? string.Empty
+				: SanitizeSegment(ItemId[..Math.Min(ItemId.Length, tLen + sLen)]);
+		}
+
+		private static string NormalizeRootPath(string rootCandidate, string itemId, int tLen, int sLen)
 		{
 			var normalized = string.IsNullOrEmpty(rootCandidate)
 				? string.Empty
-				: new RaiFile(rootCandidate).Path;
+				: new RaiFile(rootCandidate).Path.ToString();
 
 			if (string.IsNullOrEmpty(normalized) || string.IsNullOrEmpty(itemId))
 				return normalized;
 
-			var top = itemId.Substring(0, Math.Min(itemId.Length, topdirLength));
-			if (top.Length == 3 && top.Equals("con", StringComparison.OrdinalIgnoreCase))
-				top = "C0N";
-			var sub = itemId.Substring(0, Math.Min(itemId.Length, topdirLength + subdirLength));
+			var top = SanitizeSegment(itemId[..Math.Min(itemId.Length, tLen)]);
+			var sub = sLen > 0
+				? SanitizeSegment(itemId[..Math.Min(itemId.Length, tLen + sLen)])
+				: string.Empty;
 
-			var marker = Os.DIRSEPERATOR + top + Os.DIRSEPERATOR + sub;
+			var marker = string.IsNullOrEmpty(sub)
+				? Os.DIR + top
+				: Os.DIR + top + Os.DIR + sub;
 			var pos = normalized.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
 			return pos >= 0 ? normalized.Remove(pos + 1) : normalized;
 		}
 
-		public void Apply()
+		/// <summary>
+		/// DOS reserved device name — "con" as a directory kills Windows; replace 'o' with '0'.
+		/// </summary>
+		internal static string SanitizeSegment(string segment) =>
+			segment.Length == 3 && segment.Equals("con", StringComparison.OrdinalIgnoreCase) ? "C0N" : segment;
+
+		public ItemTreePath(RaiPath rootPath, string itemId, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			: base(rootPath?.ToString() ?? string.Empty)
 		{
-			Topdir = string.IsNullOrEmpty(ItemId)
-				? string.Empty
-				: ItemId.Substring(0, Math.Min(ItemId.Length, TopdirLength));
-
-			if (Topdir.Length == 3 && Topdir.Equals("con", StringComparison.OrdinalIgnoreCase))
-				Topdir = "C0N";
-
-			Subdir = string.IsNullOrEmpty(ItemId)
-				? string.Empty
-				: ItemId.Substring(0, Math.Min(ItemId.Length, TopdirLength + SubdirLength));
-
-			var p = RootPath;
-			if (!string.IsNullOrEmpty(Topdir))
-				p += Topdir + Os.DIRSEPERATOR;
-			if (!string.IsNullOrEmpty(Subdir))
-				p += Subdir + Os.DIRSEPERATOR;
-			Path = p;
+			Convention = convention;
+			Split = GetSplit(convention, itemId);
+			this.itemId = string.IsNullOrEmpty(itemId) ? string.Empty : itemId;
+			base.Path = NormalizeRootPath(rootPath?.ToString(), this.itemId, Split.tLen, Split.sLen);
+			ApplyPathConvention();
 		}
 
-		public ItemTreePath(string rootPath, string itemId, int topdirLength, int subdirLength)
+		public ItemTreePath(string rootPath, string itemId, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			: this(new RaiPath(rootPath), itemId, convention)
 		{
-			TopdirLength = topdirLength;
-			SubdirLength = subdirLength;
-			this.itemId = string.IsNullOrEmpty(itemId) ? string.Empty : itemId;
-			this.rootPath = NormalizeRootPath(rootPath, this.itemId, topdirLength, subdirLength);
-			Apply();
 		}
 	}
 }
