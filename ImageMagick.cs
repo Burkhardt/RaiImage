@@ -148,7 +148,7 @@ namespace RaiImage
 		public bool EmptyForm(ImageFile imgFile, int imageWidth, int imageHeight, string drawString)
 		{
 			//ImageFile imgFile = new ImageFile(imageFileName);
-			var tempFile = new ImageFile(Path.GetTempPath() + "i" + DateTimeOffset.UtcNow.UtcTicks.ToString("x") + ".png");
+			var tempFile = new ImageFile(Os.TempDir.Path + "i" + DateTimeOffset.UtcNow.UtcTicks.ToString("x") + ".png");
 			// example: convert -size 180x225 xc:white -fill 292990_01_Gallery.png -draw "circle 30,110 32,82" -fuzz 5% -trim CircleW.png 
 			string msg = RunMagickSubcommand("convert", "-size " + imageWidth + "x" + imageHeight +
 				" xc:white -fill " + Os.Escape(imgFile.FullName, EscapeMode.paramEsc) +
@@ -319,8 +319,7 @@ namespace RaiImage
 					#endregion
 				}
 				#endregion
-				var oldFiles = destFiles.Path.GetFiles(destFiles.NameWithExtension.Replace("%d", "*"));
-				foreach (var oldRaiFile in oldFiles)
+				foreach (var oldRaiFile in destFiles.Path.EnumerateFiles(destFiles.NameWithExtension.Replace("%d", "*")))
 				{
 					#region robust delete
 					try

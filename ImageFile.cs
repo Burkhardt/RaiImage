@@ -3,12 +3,10 @@ using System.IO;
 using System.Threading;
 using OsLib;
 using System.Collections.Generic;
-
 // release notes:
 // new min length = 1 for an ImageTreeFile, i.e.:
 // 1.jpg => /1/1/1.jpg
 // 12345678 => /123/123456/12345678.jpg
-
 namespace RaiImage
 {
 	public static class Extensions
@@ -24,26 +22,22 @@ namespace RaiImage
 			return Size.noSize;
 		}
 	}
-
 	public class Size
 	{
 		public int Width { get; set; }
 		public int Height { get; set; }
 		public override string ToString() => $"{Width}x{Height}";
-
 		public Size(System.Drawing.Size from)
 		{
 			Width = from.Width;
 			Height = from.Height;
 		}
 		public Size() { }
-
 		public static System.Drawing.Size nosize = new(0, 0);
 		public static Size noSize = new(nosize);
 		public static System.Drawing.Size HSEmidsize = new(1040, 1300);
 		public static System.Drawing.Size HSEfullsize = new(2080, 2600);
 	}
-
 	/// <summary>
 	/// ImageFile class
 	/// </summary>
@@ -51,7 +45,6 @@ namespace RaiImage
 	public class ImageFile : RaiFile
 	{
 		public const int NoImageNumber = -1;
-
 		/// <summary>
 		/// readonly - set components to change, ie Sku, NameExt, ...
 		/// </summary>
@@ -65,7 +58,6 @@ namespace RaiImage
 				return n;
 			}
 		}
-
 		/// <summary>
 		/// Just Sku and Image number
 		/// </summary>
@@ -81,7 +73,6 @@ namespace RaiImage
 				return n.Length > 0 ? n : base.Name;
 			}
 		}
-
 		/// <summary>
 		/// readonly - set components to change, ie Sku, NameExt, ...
 		/// </summary>
@@ -110,58 +101,48 @@ namespace RaiImage
 				return n.Length > 0 ? n : base.Name;
 			}
 		}
-
 		/// <summary>
 		/// without dir structure but with "." and with extension, ie 123456.png
 		/// </summary>
 		public override string NameWithExtension =>
 			string.IsNullOrEmpty(Name) ? string.Empty : Name + (string.IsNullOrEmpty(Ext) ? string.Empty : "." + Ext);
-
 		public System.Drawing.Image Image { get; set; }
-
 		public virtual string ItemId
 		{
 			get => itemId;
 			set => itemId = string.IsNullOrEmpty(value) ? string.Empty : value;
 		}
 		private string itemId;
-
 		public virtual string Sku
 		{
 			get => ItemId;
 			set => ItemId = value;
 		}
-
 		public virtual string NameExt
 		{
 			get => nameExt;
 			set => nameExt = string.IsNullOrEmpty(value) ? string.Empty : value;
 		}
 		private string nameExt;
-
 		public int ImageNumber
 		{
 			get => imageNumber;
 			set => imageNumber = value < 0 ? NoImageNumber : value;
 		}
 		protected int imageNumber = NoImageNumber;
-
 		public string TileTemplate
 		{
 			get => string.IsNullOrEmpty(tileTemplate) ? string.Empty : tileTemplate;
 			set => tileTemplate = value;
 		}
 		private string tileTemplate;
-
 		public string TileNumber
 		{
 			get => tileNumber;
 			set => tileNumber = string.IsNullOrEmpty(value) ? string.Empty : value;
 		}
 		protected string tileNumber = string.Empty;
-
 		public ColorInfo Color { get; set; }
-
 		/// <summary>load Image from file into a System.Drawing.Bitmap object</summary>
 		/// <param name="clone"></param>
 		/// <remarks>closes the file handle asap</remarks>
@@ -171,11 +152,9 @@ namespace RaiImage
 		{
 			if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
 				return null;
-
 			string fileName = FullName;
 			if (!File.Exists(fileName))
 				return null;
-
 			int retry = 10;
 			while (retry > 0)
 			{
@@ -184,7 +163,6 @@ namespace RaiImage
 					var ms = new MemoryStream();
 					using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read))
 						fs.CopyTo(ms);
-
 					var img = System.Drawing.Image.FromStream(ms);
 					if (clone)
 					{
@@ -209,7 +187,6 @@ namespace RaiImage
 			}
 			return Image;
 		}
-
 		public static string BlankToCamelCase(string filename)
 		{
 			if (filename.Length == 0)
@@ -223,7 +200,6 @@ namespace RaiImage
 			}
 			return string.Join("", array);
 		}
-
 		public static string EasyFileName(string pic, bool renameFile = false)
 		{
 			while (pic.EndsWith('_'))
@@ -255,7 +231,6 @@ namespace RaiImage
 				}
 				else if (string.IsNullOrWhiteSpace(imgFile.ItemId))
 					imgFile.ItemId = "0";
-
 				if (System.Text.RegularExpressions.Regex.IsMatch(imgFile.ItemId, "^[0-9]+$"))
 					while (imgFile.ItemId.Length < 4)
 						imgFile.ItemId = "0" + imgFile.ItemId;
@@ -271,7 +246,6 @@ namespace RaiImage
 			}
 			return imgFile.FullName;
 		}
-
 		/// <summary>
 		/// convert string representation into ImageFile representation
 		/// </summary>
@@ -299,16 +273,13 @@ namespace RaiImage
 				Name = (int.Parse(fields[0]) - 2000).ToString("D2") + fields[1] + fields[2] + fields[3] + "_" + fields[4] + fields[5];
 			}
 			#endregion
-
 			var csvValues = base.Name.Split(',');
-
 			#region Sku, Color, ImageNumber and NameExt
 			var parts = csvValues[0].Split('_');
 			int j = parts.Length;
 			imageNumber = NoImageNumber;
 			Color = null;
 			NameExt = string.Empty;
-
 			if (j == 2) // Sku_Number or Sku_NameExt => Sku_Dye without Number is not allowed
 			{
 				if (char.IsLetter(parts[1][0]))
@@ -351,7 +322,6 @@ namespace RaiImage
 			}
 			ItemId = parts[0]; // also sets topdir and subdir if called for an ImageTreeFile since property ItemId is virtual
 			#endregion
-
 			#region TileTemplate
 			if (csvValues.Length > 1)
 			{
@@ -375,12 +345,10 @@ namespace RaiImage
 			}
 			#endregion
 		}
-
 		public void SetImageNumber(string s)
 		{
 			ImageNumber = int.TryParse(s, out int number) ? number : NoImageNumber;
 		}
-
 		/// <summary>get first file that is a match in the filesystem</summary>
 		/// <param name="extensions">comma separated string with extensions</param>
 		/// <param name="splitMode">explicit split mode to use for ImageTreeFile probing</param>
@@ -413,7 +381,6 @@ namespace RaiImage
 				}
 			return false;
 		}
-
 		/// <summary>
 		/// Constructor that identifies what it knows and throws out the rest
 		/// </summary>
@@ -426,9 +393,12 @@ namespace RaiImage
 			TileTemplate = null;
 			Parse();
 		}
-
 		public ImageFile(string name, string path, string nameExt, string ext)
-			: base($"{path}{name}_{nameExt}.{ext}")
+			: this(new RaiPath(path), name, nameExt, ext)
+		{
+		}
+		public ImageFile(RaiPath path, string name, string nameExt, string ext) :
+			base(path, $"{name}_{nameExt}", ext)
 		{
 			Image = null;
 			ItemId = null;
@@ -437,7 +407,6 @@ namespace RaiImage
 			Parse();
 		}
 	}
-
 	public class ImageTreeFile : ImageFile, IPathConvention
 	{
 		public PathConventionType Convention {
@@ -448,11 +417,9 @@ namespace RaiImage
 				ApplyPathConvention();
 			}
 		} = PathConventionType.ItemIdTree8x2;
-
 		public void ApplyPathConvention()
 		{
 			var (tLen, sLen) = ItemTreePath.GetSplit(Convention, ItemId);
-
 			// strip any old topdir/subdir segments from Path
 			if (!string.IsNullOrEmpty(topdir))
 			{
@@ -462,18 +429,14 @@ namespace RaiImage
 				if (pos >= 0)
 					base.Path = new RaiPath(path.Remove(pos + 1));
 			}
-
 			var id = ItemId ?? string.Empty;
-
 			topdir = id.Length > 0 ? id[..Math.Min(id.Length, tLen)] : string.Empty;
 			// subdir is cumulative: first (tLen + sLen) chars of ItemId, so it always starts with topdir
 			subdir = sLen > 0 && id.Length > 0 ? id[..Math.Min(id.Length, tLen + sLen)] : string.Empty;
-
 			// DOS reserved device name — "con" as a directory kills Windows
 			topdir = ItemTreePath.SanitizeSegment(topdir);
 			subdir = ItemTreePath.SanitizeSegment(subdir);
 		}
-
 		/// <summary>
 		/// FullName uses SubdirRoot (Path + topdir + subdir) to build the complete file path
 		/// </summary>
@@ -487,20 +450,16 @@ namespace RaiImage
 				return n;
 			}
 		}
-
 		#region topdir and subdir, i.e. "20190919/2019091914/20190919145258_244.jpg"
 		private string topdir;
 		public string Topdir => topdir;
 		private string subdir;
 		public string Subdir => subdir;
 		#endregion
-
 		/// <summary>Path + topdir/</summary>
 		public RaiPath TopdirRoot => base.Path / topdir;
-
 		/// <summary>Path + topdir/ + subdir/</summary>
 		public RaiPath SubdirRoot => string.IsNullOrEmpty(subdir) ? TopdirRoot : base.Path / topdir / subdir;
-
 		/// <summary>
 		/// Path is the root without topdir/subdir — use TopdirRoot or SubdirRoot for the full tree path.
 		/// The getter ensures ApplyPathConvention has run; the setter strips any embedded topdir/subdir.
@@ -518,10 +477,8 @@ namespace RaiImage
 				ApplyPathConvention();
 			}
 		}
-
 		#region zoom — resize via ImageMagick
 		protected System.Drawing.Size size;
-
 		protected int zoomHseMedium(ref ImageFile from)
 		{
 			string fromName = Os.Escape(from.FullName, EscapeMode.paramEsc);
@@ -530,7 +487,6 @@ namespace RaiImage
 				size = Size.HSEmidsize;
 			return rc;
 		}
-
 		protected int zoomHse(ref ImageFile from)
 		{
 			string fromName = Os.Escape(from.FullName, EscapeMode.paramEsc);
@@ -539,7 +495,6 @@ namespace RaiImage
 				size = Size.HSEfullsize;
 			return rc;
 		}
-
 		protected int dontZoom(ref ImageFile from)
 		{
 			string fromName = Os.Escape(from.FullName, EscapeMode.paramEsc);
@@ -549,7 +504,6 @@ namespace RaiImage
 			return rc;
 		}
 		#endregion
-
 		public override string ItemId
 		{
 			get => base.ItemId;
@@ -559,15 +513,12 @@ namespace RaiImage
 				ApplyPathConvention();
 			}
 		}
-
 		public override string Sku
 		{
 			get => ItemId;
 			set => ItemId = value;
 		}
-
 		public new void mkdir() => SubdirRoot.mkdir();
-
 		/// <summary>
 		/// copies the file on disk to multiple destinations, preserving the tree structure
 		/// </summary>
@@ -586,16 +537,14 @@ namespace RaiImage
 			catch (Exception) { return false; }
 			return true;
 		}
-
 		/// <summary>
 		/// MoveToTree moves files in fromDir to a directory structure created in toDirRoot
 		/// using the file's name as names for the folders in the directory structure
 		/// </summary>
-		// TODO Rainer — Directory.EnumerateFiles; consider RaiPath.GetFiles
 		public static int MoveToTree(string fromDir, string toDirRoot, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, string filter = "*.jpg", string remove = "")
 		{
 			int count = 0;
-			foreach (var source in new RaiPath(fromDir).GetFiles(filter))
+			foreach (var source in new RaiPath(fromDir).EnumerateFiles(filter))
 			{
 				var dest = new ImageTreeFile(source.FullName.Replace(remove, ""), splitMode);
 				dest.Path = new RaiPath(toDirRoot);
@@ -605,12 +554,10 @@ namespace RaiImage
 			}
 			return count;
 		}
-
 		/// <summary>
 		/// Deletes the directory tree (depth 2) for this file
 		/// </summary>
 		public void rmdir() => SubdirRoot.rmdir(2, true);
-
 		/// <summary>
 		/// Create an ImageTreeFile with its basic components as parameters
 		/// </summary>
@@ -627,7 +574,6 @@ namespace RaiImage
 			Ext = string.IsNullOrEmpty(ext) ? null : ext;
 			Convention = splitMode; // sets Split, calls ApplyPathConvention
 		}
-
 		public ImageTreeFile(string file, PathConventionType splitMode = PathConventionType.ItemIdTree8x2)
 			: base(file)
 		{

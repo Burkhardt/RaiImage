@@ -1,12 +1,14 @@
 @startuml RaiImage-Type-Overview
 ' Release: 3.7.3
+
+title RaiImage Type Overview
+
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam linetype ortho
 skinparam DiagramFontName "Casual"
 skinparam DiagramFontSize 36
 skinparam ClassFontName "Casual"
-skinparam ClassFontSize 28
+skinparam ClassFontSize 36
 skinparam ClassAttributeIconSize 10
 skinparam ClassAttributeFontName Casual
 skinparam ClassAttributeFontColor #053583
@@ -28,50 +30,58 @@ skinparam ArrowColor #9b2c2c
 skinparam ArrowFontColor #374151
 skinparam ArrowFontName "Casual"
 
-title RaiImage Type Overview
+show fields
+show methods
 
 package "RaiImage" {
-	class StringHelper {
+	class "<size:18>StringHelper</size>" as StringHelper {
 		+ToTitle(anyCase : string) : string
 		+CamelSplit(anyCase : string) : string[]
 	}
 
-	class CamelCase {
+	class "<size:18>CamelCase</size>" as CamelCase {
 		+Array : string[]
 		+String : string
+		+CamelCase(listToConvertToCamelCase : string[])
+		+CamelCase(alreadyInCamelCase : string)
 	}
 
-	class ColorInfo {
+	class "<size:18>ColorInfo</size>" as ColorInfo {
 		+ColorNamesFile : string
 		+Color : System.Drawing.Color
 		+Count : int
 		+Code : string
 		+Name : string
+		+ColorInfo(colorCode : string, colorName : string = null, pixelsInThisColor : int = 0)
 		+Get(nameOrHexCode : string) : ColorInfo
 		+NamedColors : Dictionary<string, string>
 	}
 
-	class DyeDelta {
+	class "<size:18>DyeDelta</size>" as DyeDelta {
 		+DeltaB : int
 		+DeltaS : int
 		+Phi : int
+		+DyeDelta(color1 : Dye, color2 : Dye)
 	}
 
-	class Dye {
+	class "<size:18>Dye</size>" as Dye {
 		+Color : System.Drawing.Color
 		+Hue : float
+		+Dye(red : byte, blue : byte, green : byte)
 		+Phi(otherColor : Dye) : int
 		+DeltaB(other : Dye) : int
 		+DeltaS(other : Dye) : int
 	}
 
-	class Extensions {
-		+Parse(str : string) : Size
+	class "<size:18>Extensions</size> Ⓢ" as Extensions {
+		+{static} Parse(str : string) : Size
 	}
 
-	class Size {
+	class "<size:18>Size</size>" as Size {
 		+Width : int
 		+Height : int
+		+Size()
+		+Size(from : System.Drawing.Size)
 		+ToString() : string
 		+noSize : Size
 		+nosize : System.Drawing.Size
@@ -79,7 +89,7 @@ package "RaiImage" {
 		+HSEfullsize : System.Drawing.Size
 	}
 
-	class ImageFile {
+	class "<size:18>ImageFile</size>" as ImageFile {
 		+NoImageNumber : int
 		+Image : System.Drawing.Image
 		+Sku : string
@@ -89,28 +99,36 @@ package "RaiImage" {
 		+TileNumber : string
 		+Color : ColorInfo
 		+ShortName : string
+		+ImageFile(filename : string)
+		+ImageFile(name : string, path : string, nameExt : string, ext : string)
+		+ImageFile(path : RaiPath, name : string, nameExt : string, ext : string)
 		+FromFile(clone : bool) : System.Drawing.Image
-		+SetImageNumber(s : string)
+		+SetImageNumber(s : string) : void
 		+ExtendToFirstExistingFile(extensions : string, colorInfo : ColorInfo = null) : bool
 		+EasyFileName(pic : string, renameFile : bool = false) : string
 	}
 
-	class ImageTreeFile {
+	class "<size:18>ImageTreeFile</size>" as ImageTreeFile {
+		+Convention : PathConventionType
 		+Topdir : string
 		+Subdir : string
 		+TopdirRoot : string
 		+SubdirRoot : string
+		+ImageTreeFile(name : string, path : RaiPath, nameExt : string, ext : string, splitMode : PathConventionType = ItemIdTree8x2)
+		+ImageTreeFile(file : string, splitMode : PathConventionType = ItemIdTree8x2)
 		+MoveToTree(fromDir : string, toDirRoot : string, filter : string = "*.jpg", remove : string = "") : int
 		+CopyTo(destDirs : string[]) : bool
+		+ApplyPathConvention() : void
 	}
 
-	class ImageMagick {
+	class "<size:18>ImageMagick</size>" as ImageMagick {
 		+ImPath : string
 		+MagickCommand : string
 		+OptiPngCommand : string
 		+JpegTranCommand : string
 		+JpegTranOptions : string
 		+Message : string
+		+ImageMagick()
 		+Convert(...) : int
 		+Mogrify(...) : int
 		+Composite(...) : int
@@ -118,34 +136,42 @@ package "RaiImage" {
 		+OptiPng(imgFileName : string) : int
 		+JpegTran(imgFileName : string) : int
 		+CreateTiles(...) : int
+		+EmptyForm(imgFile : ImageFile, imageWidth : int, imageHeight : int, drawString : string) : bool
 	}
 
-	class ImageMagickCommand {
+	class "<size:18>ImageMagickCommand</size>" as ImageMagickCommand {
+		+ImageMagickCommand(imPath : RaiPath = null, commandName : string = null)
 		+BuildArguments(subcommand : string, args : string = "") : string
 		+RunSubcommand(subcommand : string, args : string = "") : RaiSystemResult
 		+RunSubcommandAsync(subcommand : string, args : string = "") : Task<RaiSystemResult>
 	}
 
-	class ImageTypes {
+	class "<size:18>ImageTypes</size>" as ImageTypes {
 		+Array : string[]
 		+String : string
 		+Default : ImageTypes
+		+ImageTypes(extensions : string)
+		+ImageTypes(extensions : string[])
 	}
 
-	class Pane {
+	class "<size:18>Pane</size>" as Pane {
 		+DefaultPane : Pane
 		+String : string
 		+Size : System.Drawing.Size
+		+Pane(WxH : string)
+		+Pane(width : int, height : int)
 	}
 
-	class Panes {
+	class "<size:18>Panes</size>" as Panes {
 		+Count : int
 		+String : string
 		+ZoomPort : Pane
 		+ControlPort : Pane
+		+Panes(panes : string)
+		+Panes(zoomWidth : int, zoomHeight : int, controlWidth : int, controlHeight : int)
 	}
 
-	class Src {
+	class "<size:18>Src</size>" as Src {
 		+HasMultipleSkus : bool
 		+Skus : string[]
 		+Sku : string
@@ -153,17 +179,19 @@ package "RaiImage" {
 		+ImageNumber : int
 		+Image : string
 		+String : string
+		+Src(src : string)
 		+Param() : string
 	}
 
-	class Tmp {
+	class "<size:18>Tmp</size>" as Tmp {
 		+Template : string
 		+Overlays : List<string>
 		+String : string
+		+Tmp(tmpString : string)
 		+Param() : string
 	}
 
-	class IservUrl {
+	class "<size:18>IservUrl</size>" as IservUrl {
 		+Subscriber : string
 		+Protocol : string
 		+Host : string
@@ -172,17 +200,23 @@ package "RaiImage" {
 		+App : string
 		+Page : string
 		+Uri : Uri
+		+IservUrl(uri : string)
+		+IservUrl(uri : Uri)
 	}
 
-	class ServiceUrl
+	class "<size:18>ServiceUrl</size>" as ServiceUrl {
+		+ServiceUrl(uri : Uri)
+	}
 
-	class ImageUrl {
+	class "<size:18>ImageUrl</size>" as ImageUrl {
 		+Src : Src
 		+Tmp : Tmp
+		+ImageUrl(imageUrl : string)
+		+ImageUrl(uri : Uri)
 		+isHDitemLink() : bool
 	}
 
-	class ItemTreePath {
+	class "<size:18>ItemTreePath</size>" as ItemTreePath {
 		+RootPath : string
 		+ItemId : string
 		+Topdir : string
@@ -190,34 +224,38 @@ package "RaiImage" {
 		+TopdirRoot : RaiPath
 		+SubdirRoot : RaiPath
 		+Path : RaiPath
-		+GetSplit(convention : PathConventionType, itemId : string = null)
+		+ItemTreePath(rootPath : RaiPath, itemId : string, convention : PathConventionType = ItemIdTree8x2)
+		+ItemTreePath(rootPath : string, itemId : string, convention : PathConventionType = ItemIdTree8x2)
+		+GetSplit(convention : PathConventionType, itemId : string = null) : void
 		+ApplyPathConvention() : void
 	}
 
-	enum PathConventionType {
+	enum "<size:18>PathConventionType</size>" as PathConventionType << (E,#f59e0b) >> {
 		CanonicalByName
 		ItemIdTree3x3
 		ItemIdTree8x2
 	}
 
-	interface IPathConvention {
+	interface "<size:18>IPathConvention</size>" as IPathConvention {
 		+Convention : PathConventionType
 		+ApplyPathConvention() : void
 	}
 
-	class TwoSizes {
+	class "<size:18>TwoSizes</size>" as TwoSizes {
 		+Rating : float
 		+SmallRect : System.Drawing.Size
 		+LargeRect : System.Drawing.Size
+		+TwoSizes(smallW : int = 0, smallH : int = 0, largeW : int = 0, largeH : int = 0, rating : float = 0F)
 		+CompareTo(other : TwoSizes) : int
 		+Equals(other : TwoSizes) : bool
 	}
 }
 
-class RaiFile <<external OsLibCore>>
-abstract class CliCommand <<external OsLib>>
-class RaiSystemResult <<external OsLib>>
+class "RaiFile" as RaiFile <<external OsLib>>
+abstract class "CliCommand" as CliCommand <<external OsLib>>
+class "RaiSystemResult" as RaiSystemResult <<external OsLib>>
 interface "IComparable<T>" as IComparableT <<external>>
+class "RaiPath" as RaiPath <<external OsLib>>
 
 StringHelper ..> CamelCase : creates
 Extensions ..> Size : parse
@@ -241,25 +279,38 @@ ImageUrl ..> Src
 ImageUrl ..> Tmp
 TwoSizes ..|> IComparableT
 
+class "Legend<size:10>ⓈⒶⓅ</size>" as LegendSample {
+	+{static} staticMethod() : void
+	-{static} staticProperty : string
+	==
+	~<i>Note on class markers :</i>
+	<size:10>Ⓢ</size>tatic
+	<size:10>Ⓐ</size>bstract
+	Ⓟartial
+	--
+	- privateField : string
+	+ publicField : string
+	# protectedField : string
+	~ internalField : string
+	--
+	- privateMethod() : void
+	+ publicMethod() : void
+	# protectedMethod() : void
+	~ internalMethod() : void
+}
+
 note right of ImageTreeFile
 	Path conventions in RaiImage:
-	- Default: ItemIdTree8x2
-	Topdir = first 8 chars of ItemId
-	Subdir = first 10 chars of ItemId
-	- Alternate: ItemIdTree3x3
-	Topdir = first 3 chars of ItemId
-	Subdir = first 6 chars of ItemId
-	- CanonicalByName
-	Topdir = ItemId
-	Subdir = null
-	SubdirRoot = TopdirRoot
-	- Caller explicitly selects PathConventionType
-	- ItemTreePath centralizes derived folder segments
+	- default tree mode uses ItemIdTree8x2
+	- alternate tree mode uses ItemIdTree3x3
+	- canonical mode collapses to the item stem
+	ItemTreePath centralizes the derived folders.
 end note
 
 note right of ImageMagick
-	Legacy image-processing facade retained for callers.
-	External process execution now flows through:
+	Legacy image-processing facade
+	retained for callers.
+	External process execution flows through
 	ImageMagick -> ImageMagickCommand -> CliCommand.
 end note
 

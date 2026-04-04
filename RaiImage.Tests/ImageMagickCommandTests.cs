@@ -11,7 +11,7 @@ namespace RaiImage.Tests
 	{
 		private static RaiPath CreateTempRootDir([CallerMemberName] string testName = "")
 		{
-			var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "command" / SanitizeSegment(testName);
+			var root = new RaiPath(Path.GetTempPath()) / "RAIkeep" / "raiimage-tests" / "command" / SanitizeSegment(testName);
 			Cleanup(root);
 			root.mkdir();
 			//return root.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -30,7 +30,7 @@ namespace RaiImage.Tests
 			}
 		}
 
-		private static string CreateExecutableScript(RaiPath rootDir, string scriptName, string ext = "sh", string content = "")
+		private static string CreateExecutableScript(RaiPath rootDir, string scriptName, string content = "", string ext = "sh")
 		{
 			return RaiSystem.CreateScript(rootDir, scriptName, ext: ext, content: content).FullName;
 		}

@@ -1,12 +1,14 @@
 @startuml RaiImageCD
 ' Release: 3.7.3
+
+title RaiImage Core Class Diagram
+
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam linetype ortho
 skinparam DiagramFontName "Casual"
 skinparam DiagramFontSize 36
 skinparam ClassFontName "Casual"
-skinparam ClassFontSize 28
+skinparam ClassFontSize 36
 skinparam ClassAttributeIconSize 10
 skinparam ClassAttributeFontName Casual
 skinparam ClassAttributeFontColor #053583
@@ -27,12 +29,11 @@ skinparam NoteBorderColor #d4b106
 skinparam ArrowColor #9b2c2c
 skinparam ArrowFontColor #374151
 skinparam ArrowFontName "Casual"
+
 hide empty members
 
-title RaiImage Core Class Diagram
-
 package "RaiImage" {
-	class ImageFile {
+	class "<size:18>ImageFile</size>" as ImageFile {
 		+NoImageNumber : int
 		+Image : System.Drawing.Image
 		+Sku : string
@@ -44,19 +45,21 @@ package "RaiImage" {
 		+ShortName : string
 		+FromFile(clone : bool) : System.Drawing.Image
 		+EasyFileName(pic : string, renameFile : bool = false) : string
-		+ExtendToFirstExistingFile(extensions : string, splitMode : PathConventionType, colorInfo : ColorInfo) : bool
+		+ExtendToFirstExistingFile(extensions : string, colorInfo : ColorInfo = null) : bool
 	}
 
-	class ImageTreeFile {
+	class "<size:18>ImageTreeFile</size>" as ImageTreeFile {
+		+Convention : PathConventionType
 		+Topdir : string
 		+Subdir : string
 		+TopdirRoot : string
 		+SubdirRoot : string
-		+MoveToTree(fromDir : string, toDirRoot : string, splitMode : PathConventionType, filter : string, remove : string) : int
+		+MoveToTree(fromDir : string, toDirRoot : string, filter : string, remove : string) : int
 		+CopyTo(destDirs : string[]) : bool
+		+ApplyPathConvention() : void
 	}
 
-	class ImageMagick {
+	class "<size:18>ImageMagick</size>" as ImageMagick {
 		+ImPath : string
 		+MagickCommand : string
 		+OptiPngCommand : string
@@ -70,15 +73,16 @@ package "RaiImage" {
 		+OptiPng(imgFileName : string) : int
 		+JpegTran(imgFileName : string) : int
 		+CreateTiles(...) : int
+		+EmptyForm(imgFile : ImageFile, imageWidth : int, imageHeight : int, drawString : string) : bool
 	}
 
-	class ImageMagickCommand {
+	class "<size:18>ImageMagickCommand</size>" as ImageMagickCommand {
 		+BuildArguments(subcommand : string, args : string = "") : string
 		+RunSubcommand(subcommand : string, args : string = "") : RaiSystemResult
 		+RunSubcommandAsync(subcommand : string, args : string = "") : Task<RaiSystemResult>
 	}
 
-	class ColorInfo {
+	class "<size:18>ColorInfo</size>" as ColorInfo {
 		+ColorNamesFile : string
 		+Color : System.Drawing.Color
 		+Count : int
@@ -87,23 +91,24 @@ package "RaiImage" {
 		+Get(nameOrHexCode : string) : ColorInfo
 	}
 
-	class ImageTypes {
+	class "<size:18>ImageTypes</size>" as ImageTypes {
 		+Default : ImageTypes
 	}
 
-	class Pane
-	class Panes
-	class Src
-	class Tmp
-	class ImageUrl
-	class ItemTreePath
-	interface IPathConvention
+	class "<size:18>Pane</size>" as Pane
+	class "<size:18>Panes</size>" as Panes
+	class "<size:18>Src</size>" as Src
+	class "<size:18>Tmp</size>" as Tmp
+	class "<size:18>ImageUrl</size>" as ImageUrl
+	class "<size:18>ItemTreePath</size>" as ItemTreePath
+	interface "<size:18>IPathConvention</size>" as IPathConvention
+	enum "<size:18>PathConventionType</size>" as PathConventionType << (E,#f59e0b) >>
 }
 
 package "OsLib" {
-	class RaiFile <<external>>
-	abstract class CliCommand <<external>>
-	class RaiSystemResult <<external>>
+	class "RaiFile" as RaiFile <<external>>
+	abstract class "CliCommand" as CliCommand <<external>>
+	class "RaiSystemResult" as RaiSystemResult <<external>>
 }
 
 ImageFile --|> RaiFile
@@ -122,22 +127,41 @@ ImageMagickCommand ..> RaiSystemResult : returns
 ImageUrl ..> Src
 ImageUrl ..> Tmp
 Panes *-- Pane
+IPathConvention ..> PathConventionType : uses
+
+class "Legend<size:10>ⓈⒶⓅ</size>" as LegendSample {
+	+{static} staticMethod() : void
+	-{static} staticProperty : string
+	==
+	~<i>Note on class markers :</i>
+	<size:10>Ⓢ</size>tatic
+	<size:10>Ⓐ</size>bstract
+	Ⓟartial
+	--
+	- privateField : string
+	+ publicField : string
+	# protectedField : string
+	~ internalField : string
+	--
+	- privateMethod() : void
+	+ publicMethod() : void
+	# protectedMethod() : void
+	~ internalMethod() : void
+}
 
 note top of ImageFile
-	There is no concrete top-level "RaiImage" class in code.
-	This diagram centers the RaiImage package around its main image model,
-	path-aware file types, and ImageMagick integration.
+	There is no single concrete
+	`RaiImage` root class in code.
+	This view centers the package
+	on image-aware file types,
+	derived path conventions,
+	and ImageMagick integration.
 end note
 
 note right of ImageMagick
-	Legacy image-processing facade retained for callers.
-	External process execution now flows through:
-	ImageMagick -> ImageMagickCommand -> CliCommand.
-end note
-
-note right of ImageTreeFile
-	ImageTreeFile adds path-convention semantics
-	on top of the core ImageFile naming model.
+	Legacy image-processing facade retained.
+	Process execution is routed through
+	ImageMagickCommand and OsLib CLI helpers.
 end note
 
 @enduml
