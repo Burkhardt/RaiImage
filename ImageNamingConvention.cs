@@ -21,7 +21,18 @@ namespace RaiImage
 		/// Example: "1234567890_thumbnail.webp"
 		/// When TemplateName is empty: "1234567890.webp"
 		/// </summary>
-		ItemTemplate
+		ItemTemplate,
+		/// <summary>
+		/// Glob-searchable structured naming with positional and metadata sections.
+		/// Positional (underscore-separated): ItemId_ImageNumber_NameExt
+		/// Metadata (comma-separated): ,Color,TileTemplate-TileNumber
+		/// Full: ItemId_ImageNumber_NameExt,Color,TileTemplate-TileNumber.Ext
+		/// Example: "471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp"
+		/// Components are omitted when empty/unset. The comma marks the boundary
+		/// between the searchable positional prefix and optional metadata.
+		/// Search pattern: "471100_03_FullSizeHQ,*" finds all color/tile variants.
+		/// </summary>
+		Structured
 	}
 	/// <summary>
 	/// Contract for files that enforce a naming convention.

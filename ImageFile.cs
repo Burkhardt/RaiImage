@@ -70,6 +70,8 @@ namespace RaiImage
 				return;
 			if (namingConvention == ImageNamingConvention.ItemTemplate)
 				ParseItemTemplateName();
+			else if (namingConvention == ImageNamingConvention.Structured)
+				ParseStructuredName();
 		}
 		/// <summary>
 		/// Parse the raw name field into ItemId and TemplateName (stored in NameExt).
@@ -95,6 +97,75 @@ namespace RaiImage
 			Color = null;
 			tileTemplate = string.Empty;
 			tileNumber = string.Empty;
+		}
+		/// <summary>
+		/// Parse the raw name field into structured components using the Structured convention.
+		/// Format: ItemId[_ImageNumber[_NameExt]][,Color[,TileTemplate[-TileNumber]]]
+		/// The comma separates the positional prefix from optional metadata.
+		/// </summary>
+		private void ParseStructuredName()
+		{
+			var rawName = name ?? string.Empty;
+			// Split positional prefix from metadata at first comma
+			var commaPos = rawName.IndexOf(',');
+			var positional = commaPos >= 0 ? rawName[..commaPos] : rawName;
+			var metadata = commaPos >= 0 ? rawName[(commaPos + 1)..] : string.Empty;
+			// Positional: ItemId[_ImageNumber[_NameExt]]
+			var parts = positional.Split('_');
+			itemId = parts[0];
+			imageNumber = NoImageNumber;
+			nameExt = string.Empty;
+			if (parts.Length == 2)
+			{
+				if (int.TryParse(parts[1], out int num))
+					imageNumber = num;
+				else
+					nameExt = parts[1];
+			}
+			else if (parts.Length >= 3)
+			{
+				if (int.TryParse(parts[1], out int num))
+					imageNumber = num;
+				nameExt = parts.Length >= 3
+					? string.Join("_", parts[(int.TryParse(parts[1], out _) ? 2 : 1)..])
+					: string.Empty;
+			}
+			// Metadata: [Color[,TileTemplate[-TileNumber]]]
+			Color = null;
+			tileTemplate = string.Empty;
+			tileNumber = string.Empty;
+			if (!string.IsNullOrEmpty(metadata))
+			{
+				var metaParts = metadata.Split(',');
+				if (metaParts.Length >= 1 && !string.IsNullOrEmpty(metaParts[0]))
+				{
+					var colorName = metaParts[0];
+					try
+					{
+						var looked = ColorInfo.Get(colorName);
+						Color = looked;
+					}
+					catch
+					{
+						// ColorNamesFile not initialized — store name with placeholder code
+						Color = new ColorInfo("#000000", colorName);
+					}
+				}
+				if (metaParts.Length >= 2 && !string.IsNullOrEmpty(metaParts[1]))
+				{
+					var tilePart = metaParts[1];
+					var dashPos = tilePart.IndexOf('-');
+					if (dashPos >= 0)
+					{
+						tileTemplate = tilePart[..dashPos];
+						tileNumber = tilePart[(dashPos + 1)..];
+					}
+					else
+					{
+						tileTemplate = tilePart;
+					}
+				}
+			}
 		}
 		#endregion
 		#region Name composition
@@ -131,10 +202,12 @@ namespace RaiImage
 		/// Composition depends on NamingConvention:
 		/// Legacy:       ItemId_Color_ImageNumber_NameExt,TileTemplate-TileNumber
 		/// ItemTemplate: ItemId_TemplateName (TemplateName = NameExt)
+		/// Structured:   ItemId_ImageNumber_NameExt,Color,TileTemplate-TileNumber
 		/// </summary>
 		/// <remarks>
-		/// Example Legacy: 308024_0DEAD0_01_zoom,4x4tile-17
+		/// Example Legacy:      308024_0DEAD0_01_zoom,4x4tile-17
 		/// Example ItemTemplate: 1234567890_thumbnail
+		/// Example Structured:  471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37
 		/// Subscribers are NOT part of the name — they come through the folder structure.
 		/// </remarks>
 		public override string Name
@@ -146,6 +219,8 @@ namespace RaiImage
 					var id = ItemId ?? string.Empty;
 					return string.IsNullOrEmpty(nameExt) ? id : $"{id}_{nameExt}";
 				}
+				if (conventionActive && namingConvention == ImageNamingConvention.Structured)
+					return ComposeStructuredName();
 				return ComposeLegacyName();
 			}
 			set
@@ -173,6 +248,33 @@ namespace RaiImage
 				n += "," + TileTemplate;
 			if (!string.IsNullOrEmpty(TileNumber))
 				n += "-" + TileNumber;
+			return n.Length > 0 ? n : base.Name;
+		}
+		/// <summary>
+		/// Compose the structured format: ItemId[_ImageNumber[_NameExt]][,Color[,TileTemplate[-TileNumber]]]
+		/// The comma marks the boundary between the glob-searchable positional prefix and metadata.
+		/// </summary>
+		private string ComposeStructuredName()
+		{
+			var n = ItemId ?? string.Empty;
+			if (imageNumber >= 0)
+				n += "_" + imageNumber.ToString("D2");
+			if (!string.IsNullOrEmpty(NameExt))
+				n += "_" + NameExt;
+			// Metadata section after comma
+			var colorStr = Color != null
+				? (!string.IsNullOrEmpty(Color.Name) ? Color.Name : Color.Code[1..])
+				: string.Empty;
+			if (!string.IsNullOrEmpty(colorStr))
+				n += "," + colorStr;
+			if (!string.IsNullOrEmpty(TileTemplate))
+			{
+				if (string.IsNullOrEmpty(colorStr))
+					n += ","; // empty color slot to preserve position
+				n += "," + TileTemplate;
+				if (!string.IsNullOrEmpty(TileNumber))
+					n += "-" + TileNumber;
+			}
 			return n.Length > 0 ? n : base.Name;
 		}
 		/// <summary>
