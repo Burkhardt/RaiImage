@@ -3,10 +3,6 @@ using System.IO;
 using System.Threading;
 using OsLib;
 using System.Collections.Generic;
-// release notes:
-// new min length = 1 for an ImageTreeFile, i.e.:
-// 1.jpg => /1/1/1.jpg
-// 12345678 => /123/123456/12345678.jpg
 namespace RaiImage
 {
 	public static class Extensions
@@ -39,14 +35,71 @@ namespace RaiImage
 		public static System.Drawing.Size HSEfullsize = new(2080, 2600);
 	}
 	/// <summary>
-	/// ImageFile class
+	/// ImageFile — a file with structured naming for image assets.
+	/// Implements INamingConvention to compose and parse filenames from components.
 	/// </summary>
-	/// <remarks>convention: all string Properties return an empty string and never null; instead of s == null use s.Length == 0</remarks>
-	public class ImageFile : RaiFile
+	/// <remarks>Convention: all string properties return an empty string, never null.</remarks>
+	public class ImageFile : RaiFile, INamingConvention
 	{
 		public const int NoImageNumber = -1;
+		#region naming convention
 		/// <summary>
-		/// readonly - set components to change, ie Sku, NameExt, ...
+		/// Controls how the file name is composed from and parsed into components.
+		/// Legacy: ItemId_Color_ImageNumber_NameExt,TileTemplate-TileNumber
+		/// ItemTemplate: ItemId_TemplateName (TemplateName maps to NameExt)
+		/// </summary>
+		public ImageNamingConvention NamingConvention
+		{
+			get => namingConvention;
+			set
+			{
+				namingConvention = value;
+				ApplyNamingConvention();
+			}
+		}
+		private ImageNamingConvention namingConvention = ImageNamingConvention.Legacy;
+		/// <summary>
+		/// True after the constructor has finished and the naming convention
+		/// governs the Name property. During construction, Parse() runs legacy
+		/// parsing regardless of the convention setting.
+		/// </summary>
+		protected bool conventionActive;
+		public void ApplyNamingConvention()
+		{
+			if (!conventionActive)
+				return;
+			if (namingConvention == ImageNamingConvention.ItemTemplate)
+				ParseItemTemplateName();
+		}
+		/// <summary>
+		/// Parse the raw name field into ItemId and TemplateName (stored in NameExt).
+		/// "1234567890_thumbnail" -> ItemId="1234567890", NameExt="thumbnail"
+		/// "1234567890"           -> ItemId="1234567890", NameExt=""
+		/// "abc_thumb_large"      -> ItemId="abc",        NameExt="thumb_large"
+		/// </summary>
+		private void ParseItemTemplateName()
+		{
+			var rawName = name ?? string.Empty;
+			var pos = rawName.IndexOf('_');
+			if (pos >= 0)
+			{
+				itemId = rawName[..pos];
+				nameExt = rawName[(pos + 1)..];
+			}
+			else
+			{
+				itemId = rawName;
+				nameExt = string.Empty;
+			}
+			imageNumber = NoImageNumber;
+			Color = null;
+			tileTemplate = string.Empty;
+			tileNumber = string.Empty;
+		}
+		#endregion
+		#region Name composition
+		/// <summary>
+		/// FullName: Path + Name + "." + Ext
 		/// </summary>
 		public override string FullName
 		{
@@ -59,7 +112,7 @@ namespace RaiImage
 			}
 		}
 		/// <summary>
-		/// Just Sku and Image number
+		/// Just ItemId and ImageNumber, e.g. "308024_01"
 		/// </summary>
 		public string ShortName
 		{
@@ -74,56 +127,93 @@ namespace RaiImage
 			}
 		}
 		/// <summary>
-		/// readonly - set components to change, ie Sku, NameExt, ...
+		/// The composed file name (without path or extension).
+		/// Composition depends on NamingConvention:
+		/// Legacy:       ItemId_Color_ImageNumber_NameExt,TileTemplate-TileNumber
+		/// ItemTemplate: ItemId_TemplateName (TemplateName = NameExt)
 		/// </summary>
 		/// <remarks>
-		/// Convention: ItemId_Color_ImageNumber_NameExt,TileTemplate-TileNumber
-		/// Example: 308024_0DEAD0_01_zoom,4x4tile-17
+		/// Example Legacy: 308024_0DEAD0_01_zoom,4x4tile-17
+		/// Example ItemTemplate: 1234567890_thumbnail
 		/// Subscribers are NOT part of the name — they come through the folder structure.
 		/// </remarks>
 		public override string Name
 		{
 			get
 			{
-				string n = "";
-				if (!string.IsNullOrEmpty(ItemId))
-					n += ItemId;
-				if (Color != null)
-					n += "_" + Color.Code[1..];
-				if (imageNumber >= 0)
-					n += "_" + ImageNumber.ToString("D2");
-				if (!string.IsNullOrEmpty(NameExt))
-					n += "_" + NameExt;
-				if (!string.IsNullOrEmpty(TileTemplate))
-					n += "," + TileTemplate;
-				if (!string.IsNullOrEmpty(TileNumber))
-					n += "-" + TileNumber;
-				return n.Length > 0 ? n : base.Name;
+				if (conventionActive && namingConvention == ImageNamingConvention.ItemTemplate)
+				{
+					var id = ItemId ?? string.Empty;
+					return string.IsNullOrEmpty(nameExt) ? id : $"{id}_{nameExt}";
+				}
+				return ComposeLegacyName();
+			}
+			set
+			{
+				base.Name = value;
+				if (conventionActive)
+					ApplyNamingConvention();
 			}
 		}
 		/// <summary>
-		/// without dir structure but with "." and with extension, ie 123456.png
+		/// Compose the legacy format: ItemId_Color_ImageNumber_NameExt,TileTemplate-TileNumber
+		/// </summary>
+		private string ComposeLegacyName()
+		{
+			string n = "";
+			if (!string.IsNullOrEmpty(ItemId))
+				n += ItemId;
+			if (Color != null)
+				n += "_" + Color.Code[1..];
+			if (imageNumber >= 0)
+				n += "_" + ImageNumber.ToString("D2");
+			if (!string.IsNullOrEmpty(NameExt))
+				n += "_" + NameExt;
+			if (!string.IsNullOrEmpty(TileTemplate))
+				n += "," + TileTemplate;
+			if (!string.IsNullOrEmpty(TileNumber))
+				n += "-" + TileNumber;
+			return n.Length > 0 ? n : base.Name;
+		}
+		/// <summary>
+		/// Without dir structure but with "." and with extension, e.g. "123456.png"
 		/// </summary>
 		public override string NameWithExtension =>
 			string.IsNullOrEmpty(Name) ? string.Empty : Name + (string.IsNullOrEmpty(Ext) ? string.Empty : "." + Ext);
+		#endregion
+		#region naming components
 		public System.Drawing.Image Image { get; set; }
 		public virtual string ItemId
 		{
 			get => itemId;
 			set => itemId = string.IsNullOrEmpty(value) ? string.Empty : value;
 		}
-		private string itemId;
+		protected string itemId = string.Empty;
 		public virtual string Sku
 		{
 			get => ItemId;
 			set => ItemId = value;
 		}
+		/// <summary>
+		/// Name extension / template name component.
+		/// In Legacy convention: the NameExt segment after ImageNumber.
+		/// In ItemTemplate convention: the TemplateName (ImageMagick rendering template).
+		/// </summary>
 		public virtual string NameExt
 		{
 			get => nameExt;
 			set => nameExt = string.IsNullOrEmpty(value) ? string.Empty : value;
 		}
-		private string nameExt;
+		protected string nameExt = string.Empty;
+		/// <summary>
+		/// Alias for NameExt when using the ItemTemplate naming convention.
+		/// The ImageMagick rendering template name used to produce this image variant.
+		/// </summary>
+		public string TemplateName
+		{
+			get => nameExt;
+			set => nameExt = value ?? string.Empty;
+		}
 		public int ImageNumber
 		{
 			get => imageNumber;
@@ -135,7 +225,7 @@ namespace RaiImage
 			get => string.IsNullOrEmpty(tileTemplate) ? string.Empty : tileTemplate;
 			set => tileTemplate = value;
 		}
-		private string tileTemplate;
+		protected string tileTemplate = string.Empty;
 		public string TileNumber
 		{
 			get => tileNumber;
@@ -143,11 +233,12 @@ namespace RaiImage
 		}
 		protected string tileNumber = string.Empty;
 		public ColorInfo Color { get; set; }
-		/// <summary>load Image from file into a System.Drawing.Bitmap object</summary>
-		/// <param name="clone"></param>
-		/// <remarks>closes the file handle asap</remarks>
+		#endregion
+		#region image loading
+		/// <summary>Load Image from file into a System.Drawing.Bitmap object.</summary>
+		/// <param name="clone">when true, clones the image and stream</param>
+		/// <remarks>Closes the file handle as soon as possible.</remarks>
 		/// <returns>the new System.Drawing.Image or null</returns>
-		// TODO Rainer — FromFile uses File.Exists, File.Open directly; consider RaiFile abstractions
 		public System.Drawing.Image FromFile(bool clone)
 		{
 			if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
@@ -176,7 +267,7 @@ namespace RaiImage
 						Image = img;
 						Image.Tag = ms;
 					}
-					retry = 0; // successful
+					retry = 0;
 				}
 				catch (Exception)
 				{
@@ -187,11 +278,13 @@ namespace RaiImage
 			}
 			return Image;
 		}
+		#endregion
+		#region parsing
 		public static string BlankToCamelCase(string filename)
 		{
 			if (filename.Length == 0)
 				return filename;
-			var array = filename.Split([' ', '·'], StringSplitOptions.RemoveEmptyEntries);
+			var array = filename.Split([' ', '\u00b7'], StringSplitOptions.RemoveEmptyEntries);
 			for (int i = 1; i < array.Length; i++)
 			{
 				var x = array[i].ToCharArray();
@@ -200,90 +293,50 @@ namespace RaiImage
 			}
 			return string.Join("", array);
 		}
-		public static string EasyFileName(string pic, bool renameFile = false)
-		{
-			while (pic.EndsWith('_'))
-			{
-				pic = pic[..^1];
-				if (pic.Length == 0)
-					pic = "0";
-			}
-			var imgFile = new ImageFile(pic);
-			if (imgFile.ImageNumber == NoImageNumber)
-				imgFile.ImageNumber = 1;
-			if (string.IsNullOrEmpty(imgFile.Ext))
-				imgFile.Ext = "jpg";
-			if (imgFile.ItemId.Length < 4)
-			{
-				if (imgFile.ItemId.ToLower() == "img")
-				{
-					if (imgFile.ImageNumber > 100000)
-					{
-						imgFile.ItemId = (imgFile.ImageNumber / 100000).ToString();
-						imgFile.ImageNumber %= 100000;
-					}
-					else if (imgFile.ImageNumber > 10)
-					{
-						imgFile.ItemId += (imgFile.ImageNumber / 10).ToString();
-						imgFile.ImageNumber %= 10;
-					}
-					else imgFile.ItemId = nameof(Image);
-				}
-				else if (string.IsNullOrWhiteSpace(imgFile.ItemId))
-					imgFile.ItemId = "0";
-				if (System.Text.RegularExpressions.Regex.IsMatch(imgFile.ItemId, "^[0-9]+$"))
-					while (imgFile.ItemId.Length < 4)
-						imgFile.ItemId = "0" + imgFile.ItemId;
-				else
-					while (imgFile.ItemId.Length < 4)
-						imgFile.ItemId += "0";
-			}
-			if (renameFile)
-			{
-				var from = new RaiFile(pic);
-				if (from.FullName != imgFile.FullName)
-					imgFile.mv(from);
-			}
-			return imgFile.FullName;
-		}
 		/// <summary>
-		/// convert string representation into ImageFile representation
+		/// Parse the raw name string into structured components (legacy convention).
+		/// Handles camera/phone naming patterns, color codes, image numbers,
+		/// tile templates and tile numbers.
 		/// </summary>
 		/// <example>"c:/temp/kill/308024_01_200x300,4x4tile-17.tiff"</example>
-		/// <remarks>removes/replaces name prefixes for phones and cameras, removes blanks (-> camelCase)</remarks>
 		protected void Parse()
 		{
 			#region translate special phone and camera naming conventions
-			Name = BlankToCamelCase(
-				Name
+			base.Name = BlankToCamelCase(
+				base.Name
 				.Replace("_Film", "Film_")
 				.Replace("(", "")
 				.Replace(")", ""));
-			if (Name.ToUpper().StartsWith("WP_20"))
-				Name = Name[5..];
-			if (Name.ToLower().StartsWith("photo-"))
-				Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + "_" + Name[6..];
-			if (Name.ToLower().StartsWith("photo") || Name.ToLower().StartsWith("image"))
-				Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + Name[5..];
-			if (Name.ToUpper().StartsWith("IMG") || Name.ToUpper().StartsWith("_MG"))
-				Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + Name[3..];
-			if (Name.StartsWith("20") && Name.Length > 5 && Name[..5].Contains('-'))
+			var currentName = base.Name;
+			if (currentName.ToUpper().StartsWith("WP_20"))
+				base.Name = currentName[5..];
+			currentName = base.Name;
+			if (currentName.ToLower().StartsWith("photo-"))
+				base.Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + "_" + currentName[6..];
+			currentName = base.Name;
+			if (currentName.ToLower().StartsWith("photo") || currentName.ToLower().StartsWith("image"))
+				base.Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + currentName[5..];
+			currentName = base.Name;
+			if (currentName.ToUpper().StartsWith("IMG") || currentName.ToUpper().StartsWith("_MG"))
+				base.Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + currentName[3..];
+			currentName = base.Name;
+			if (currentName.StartsWith("20") && currentName.Length > 5 && currentName[..5].Contains('-'))
 			{
-				var fields = Name.Split(['-', ' ', '.', ':']);
-				Name = (int.Parse(fields[0]) - 2000).ToString("D2") + fields[1] + fields[2] + fields[3] + "_" + fields[4] + fields[5];
+				var fields = currentName.Split(['-', ' ', '.', ':']);
+				base.Name = (int.Parse(fields[0]) - 2000).ToString("D2") + fields[1] + fields[2] + fields[3] + "_" + fields[4] + fields[5];
 			}
 			#endregion
-			var csvValues = base.Name.Split(',');
+			var csvValues = name.Split(',');
 			#region Sku, Color, ImageNumber and NameExt
 			var parts = csvValues[0].Split('_');
 			int j = parts.Length;
 			imageNumber = NoImageNumber;
 			Color = null;
-			NameExt = string.Empty;
-			if (j == 2) // Sku_Number or Sku_NameExt => Sku_Dye without Number is not allowed
+			nameExt = string.Empty;
+			if (j == 2) // Sku_Number or Sku_NameExt
 			{
 				if (char.IsLetter(parts[1][0]))
-					NameExt = parts[1];
+					nameExt = parts[1];
 				else SetImageNumber(parts[1]);
 			}
 			else if (j == 3) // Sku_Dye_Number or Sku_Number_NameExt
@@ -292,13 +345,13 @@ namespace RaiImage
 				if (parts[1].Length != 6 || (cInfo = new ColorInfo("#" + parts[1])).Color == System.Drawing.Color.Empty)
 				{
 					SetImageNumber(parts[1]);
-					NameExt = BlankToCamelCase(parts[2]);
+					nameExt = BlankToCamelCase(parts[2]);
 				}
 				else
 				{
 					Color = cInfo;
 					SetImageNumber(parts[2]);
-					NameExt = null;
+					nameExt = string.Empty;
 				}
 			}
 			else if (j >= 4) // Sku_Dye_Number_NameExt or Sku_Number_NameExt_SomeOtherStuff
@@ -311,16 +364,16 @@ namespace RaiImage
 				{
 					Color = cInfo;
 					SetImageNumber(parts[2]);
-					NameExt = BlankToCamelCase(parts[3]);
+					nameExt = BlankToCamelCase(parts[3]);
 				}
 				else
 				{
 					Color = null;
 					SetImageNumber(parts[1]);
-					NameExt = BlankToCamelCase(parts[2]);
+					nameExt = BlankToCamelCase(parts[2]);
 				}
 			}
-			ItemId = parts[0]; // also sets topdir and subdir if called for an ImageTreeFile since property ItemId is virtual
+			ItemId = parts[0];
 			#endregion
 			#region TileTemplate
 			if (csvValues.Length > 1)
@@ -349,12 +402,12 @@ namespace RaiImage
 		{
 			ImageNumber = int.TryParse(s, out int number) ? number : NoImageNumber;
 		}
-		/// <summary>get first file that is a match in the filesystem</summary>
+		#endregion
+		/// <summary>Get first file that is a match in the filesystem.</summary>
 		/// <param name="extensions">comma separated string with extensions</param>
 		/// <param name="splitMode">explicit split mode to use for ImageTreeFile probing</param>
 		/// <param name="colorInfo">null by default; will be wildcarded if null</param>
-		/// <returns>false if no file exists for any passed-in extensions - extends the ImageTreeFile accordingly otherwise and returns true</returns>
-		// TODO Rainer — Directory.GetFileSystemEntries; consider RaiPath.GetFiles or similar OsLib abstraction
+		/// <returns>false if no file exists for any passed-in extensions</returns>
 		public bool ExtendToFirstExistingFile(string extensions, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, ColorInfo colorInfo = null)
 		{
 			var itf = new ImageTreeFile(FullName, splitMode);
@@ -381,35 +434,50 @@ namespace RaiImage
 				}
 			return false;
 		}
+		#region constructors
 		/// <summary>
-		/// Constructor that identifies what it knows and throws out the rest
+		/// Construct from a full file path string. Parses the filename into
+		/// structured components. Convention defaults to Legacy.
 		/// </summary>
-		/// <param name="filename">ie c:/temp/image_01_zoom.png</param>
-		public ImageFile(string filename) : base(filename)
+		public ImageFile(string filename,
+			ImageNamingConvention naming = ImageNamingConvention.Legacy)
+			: base(filename)
 		{
 			Image = null;
-			ItemId = null;
-			NameExt = null;
-			TileTemplate = null;
+			itemId = string.Empty;
+			nameExt = string.Empty;
+			tileTemplate = string.Empty;
 			Parse();
+			namingConvention = naming;
+			conventionActive = true;
+			ApplyNamingConvention();
 		}
 		public ImageFile(string name, string path, string nameExt, string ext)
 			: this(new RaiPath(path), name, nameExt, ext)
 		{
 		}
-		public ImageFile(RaiPath path, string name, string nameExt, string ext) :
-			base(path, $"{name}_{nameExt}", ext)
+		public ImageFile(RaiPath path, string name, string nameExt, string ext)
+			: base(path, $"{name}_{nameExt}", ext)
 		{
 			Image = null;
-			ItemId = null;
-			NameExt = null;
-			TileTemplate = null;
+			itemId = string.Empty;
+			this.nameExt = string.Empty;
+			tileTemplate = string.Empty;
 			Parse();
+			conventionActive = true;
 		}
+		#endregion
 	}
+	/// <summary>
+	/// ImageTreeFile — an ImageFile stored in a directory tree derived from ItemId.
+	/// Implements IPathConvention for the directory layout.
+	/// Inherits INamingConvention from ImageFile.
+	/// </summary>
 	public class ImageTreeFile : ImageFile, IPathConvention
 	{
-		public PathConventionType Convention {
+		#region path convention — directory tree layout
+		public PathConventionType Convention
+		{
 			get { return field; }
 			set
 			{
@@ -419,26 +487,34 @@ namespace RaiImage
 		} = PathConventionType.ItemIdTree8x2;
 		public void ApplyPathConvention()
 		{
-			var (tLen, sLen) = ItemTreePath.GetSplit(Convention, ItemId);
-			// strip any old topdir/subdir segments from Path
-			if (!string.IsNullOrEmpty(topdir))
-			{
-				string old = (Os.DIR + topdir + (string.IsNullOrEmpty(subdir) ? "" : Os.DIR + subdir)).ToLower();
-				var path = base.Path.ToString();
-				int pos = path.ToLower().IndexOf(old);
-				if (pos >= 0)
-					base.Path = new RaiPath(path.Remove(pos + 1));
-			}
+			var (tLen, sLen) = ItemTreePath.ConventionSplit(Convention, ItemId);
 			var id = ItemId ?? string.Empty;
-			topdir = id.Length > 0 ? id[..Math.Min(id.Length, tLen)] : string.Empty;
-			// subdir is cumulative: first (tLen + sLen) chars of ItemId, so it always starts with topdir
-			subdir = sLen > 0 && id.Length > 0 ? id[..Math.Min(id.Length, tLen + sLen)] : string.Empty;
-			// DOS reserved device name — "con" as a directory kills Windows
-			topdir = ItemTreePath.SanitizeSegment(topdir);
-			subdir = ItemTreePath.SanitizeSegment(subdir);
+			// strip any existing topdir/subdir segments from Path
+			if (id.Length > 0)
+			{
+				var top = ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen)]);
+				var sub = sLen > 0
+					? ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen + sLen)])
+					: string.Empty;
+				var marker = string.IsNullOrEmpty(sub)
+					? Os.DIR + top
+					: Os.DIR + top + Os.DIR + sub;
+				var pathStr = base.Path.ToString();
+				var pos = pathStr.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+				if (pos >= 0)
+					base.Path = new RaiPath(pathStr.Remove(pos + 1));
+			}
+			topdir = id.Length > 0
+				? new RaiRelPath(ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen)]))
+				: new RaiRelPath();
+			subdir = sLen > 0 && id.Length > 0
+				? new RaiRelPath(ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen + sLen)]))
+				: new RaiRelPath();
 		}
+		#endregion
+		#region composed path — SubdirRoot + Name + Ext
 		/// <summary>
-		/// FullName uses SubdirRoot (Path + topdir + subdir) to build the complete file path
+		/// FullName uses SubdirRoot (Path + topdir + subdir) instead of just Path.
 		/// </summary>
 		public override string FullName
 		{
@@ -450,19 +526,17 @@ namespace RaiImage
 				return n;
 			}
 		}
-		#region topdir and subdir, i.e. "20190919/2019091914/20190919145258_244.jpg"
-		private string topdir;
-		public string Topdir => topdir;
-		private string subdir;
-		public string Subdir => subdir;
-		#endregion
+		private RaiRelPath topdir = new RaiRelPath();
+		public RaiRelPath Topdir => topdir;
+		private RaiRelPath subdir = new RaiRelPath();
+		public RaiRelPath Subdir => subdir;
 		/// <summary>Path + topdir/</summary>
-		public RaiPath TopdirRoot => base.Path / topdir;
+		public RaiPath TopdirRoot => topdir.IsEmpty ? new RaiPath(base.Path.ToString()) : base.Path / topdir;
 		/// <summary>Path + topdir/ + subdir/</summary>
-		public RaiPath SubdirRoot => string.IsNullOrEmpty(subdir) ? TopdirRoot : base.Path / topdir / subdir;
+		public RaiPath SubdirRoot => subdir.IsEmpty ? TopdirRoot : base.Path / topdir / subdir;
 		/// <summary>
-		/// Path is the root without topdir/subdir — use TopdirRoot or SubdirRoot for the full tree path.
-		/// The getter ensures ApplyPathConvention has run; the setter strips any embedded topdir/subdir.
+		/// Path is the root without topdir/subdir.
+		/// Use TopdirRoot or SubdirRoot for the full tree path.
 		/// </summary>
 		public override RaiPath Path
 		{
@@ -477,6 +551,7 @@ namespace RaiImage
 				ApplyPathConvention();
 			}
 		}
+		#endregion
 		#region zoom — resize via ImageMagick
 		protected System.Drawing.Size size;
 		protected int zoomHseMedium(ref ImageFile from)
@@ -520,7 +595,7 @@ namespace RaiImage
 		}
 		public new void mkdir() => SubdirRoot.mkdir();
 		/// <summary>
-		/// copies the file on disk to multiple destinations, preserving the tree structure
+		/// Copy the file to multiple destinations, preserving the tree structure.
 		/// </summary>
 		public new bool CopyTo(List<RaiPath> destDirs)
 		{
@@ -538,8 +613,7 @@ namespace RaiImage
 			return true;
 		}
 		/// <summary>
-		/// MoveToTree moves files in fromDir to a directory structure created in toDirRoot
-		/// using the file's name as names for the folders in the directory structure
+		/// Move files from fromDir into a directory tree structure in toDirRoot.
 		/// </summary>
 		public static int MoveToTree(string fromDir, string toDirRoot, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, string filter = "*.jpg", string remove = "")
 		{
@@ -555,29 +629,46 @@ namespace RaiImage
 			return count;
 		}
 		/// <summary>
-		/// Deletes the directory tree (depth 2) for this file
+		/// Deletes the directory tree (depth 2) for this file.
 		/// </summary>
 		public void rmdir() => SubdirRoot.rmdir(2, true);
+		#region constructors
 		/// <summary>
-		/// Create an ImageTreeFile with its basic components as parameters
+		/// Construct from a full file path string.
+		/// Parse() runs the legacy parser, then the naming convention is applied.
 		/// </summary>
-		/// <param name="name">i.e. 123456</param>
-		/// <param name="path">any path including Os.DIRSEPERATOR; topdir/subdir will be inserted</param>
-		/// <param name="nameExt">i.e. _01</param>
-		/// <param name="ext">i.e. xml</param>
-		/// <param name="splitMode">how to split the ItemId for naming of topdir and subdir</param>
-		public ImageTreeFile(string name, RaiPath path, string nameExt, string ext, PathConventionType splitMode = PathConventionType.ItemIdTree8x2)
-			: base(name)
+		public ImageTreeFile(string file,
+			PathConventionType splitMode = PathConventionType.ItemIdTree8x2,
+			ImageNamingConvention naming = ImageNamingConvention.Legacy)
+			: base(file, naming)
+		{
+			Convention = splitMode;
+		}
+		/// <summary>
+		/// Construct from structured components using the ItemTemplate naming convention.
+		/// The directory tree is built from the itemId according to the path convention.
+		/// </summary>
+		public ImageTreeFile(RaiPath rootPath, string itemId, string templateName, string ext,
+			PathConventionType pathConvention = PathConventionType.ItemIdTree8x2)
+			: this(rootPath.FullPath + itemId
+				+ (string.IsNullOrEmpty(templateName) ? "" : "_" + templateName)
+				+ "." + ext,
+				pathConvention, ImageNamingConvention.ItemTemplate)
+		{
+		}
+		/// <summary>
+		/// Construct from legacy components (name, path, nameExt, ext).
+		/// </summary>
+		public ImageTreeFile(string itemName, RaiPath path, string nameExt, string ext,
+			PathConventionType splitMode = PathConventionType.ItemIdTree8x2,
+			ImageNamingConvention naming = ImageNamingConvention.Legacy)
+			: base(itemName, naming)
 		{
 			base.Path = path;
-			NameExt = string.IsNullOrEmpty(nameExt) ? null : nameExt;
-			Ext = string.IsNullOrEmpty(ext) ? null : ext;
-			Convention = splitMode; // sets Split, calls ApplyPathConvention
+			NameExt = string.IsNullOrEmpty(nameExt) ? string.Empty : nameExt;
+			Ext = string.IsNullOrEmpty(ext) ? string.Empty : ext;
+			Convention = splitMode;
 		}
-		public ImageTreeFile(string file, PathConventionType splitMode = PathConventionType.ItemIdTree8x2)
-			: base(file)
-		{
-			Convention = splitMode; // sets Split, calls ApplyPathConvention
-		}
+		#endregion
 	}
 }
