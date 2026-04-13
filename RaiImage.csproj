@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-		<Version>3.7.4</Version>
+		<Version>3.7.5</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
 		<!--<PackageDescription>Handling
@@ -18,14 +18,13 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-		<PackageReleaseNotes>3.7.4 patch: aligns RaiImage with OsLibCore 3.7.4 and RaiUtils 3.7.4 in the current publish order.</PackageReleaseNotes>
+		<PackageReleaseNotes>3.7.5 patch: aligns RaiImage with OsLibCore 3.7.5 and RaiUtils 3.7.4 in
+			the current publish order.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- <PackageReference Include="CoreCompat.System.Drawing.v2" Version="5.2.0-preview1-r131" /> -->
-		<!-- <PackageReference Include="Handy.DotNETCore-Compatibility.ColorTranslations"	Version="0.2.1" /> -->
-		<PackageReference Include="System.Drawing.Common" Version="11.0.0-preview.2.26159.112" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.5" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
 		<None Include="HardCastle.png" Pack="true" PackagePath="" />
