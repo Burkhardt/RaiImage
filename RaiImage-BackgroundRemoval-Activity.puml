@@ -1,5 +1,5 @@
 @startuml RaiImageBackgroundRemovalActivity
-' Release: 3.7.3
+' Version: 3.7.6
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam linetype ortho

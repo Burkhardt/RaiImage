@@ -301,17 +301,20 @@ class "Legend<size:10>ⓈⒶⓅ</size>" as LegendSample {
 
 note right of ImageTreeFile
 	Path conventions in RaiImage:
-	- default tree mode uses ItemIdTree8x2
-	- alternate tree mode uses ItemIdTree3x3
-	- canonical mode collapses to the item stem
-	ItemTreePath centralizes the derived folders.
+	• default tree mode uses ItemIdTree8x2
+	• alternate tree mode uses ItemIdTree3x3
+	• canonical mode collapses to the item 
+	stem ItemTreePath centralizes the 
+	derived folders.
 end note
 
 note right of ImageMagick
-	Legacy image-processing facade
-	retained for callers.
-	External process execution flows through
-	ImageMagick -> ImageMagickCommand -> CliCommand.
+	Legacy image-processing façade
+	retained for callers. External 
+	process execution flows through 
+	   ImageMagick 
+	    =>    ImageMagickCommand 
+	    =>    CliCommand.
 end note
 
 @enduml

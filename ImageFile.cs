@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using OsLib;
 using System.Collections.Generic;
@@ -346,7 +347,7 @@ namespace RaiImage
 			if (!OperatingSystem.IsWindowsVersionAtLeast(6, 1))
 				return null;
 			string fileName = FullName;
-			if (!File.Exists(fileName))
+			if (!Exists())
 				return null;
 			int retry = 10;
 			while (retry > 0)
@@ -354,8 +355,8 @@ namespace RaiImage
 				try
 				{
 					var ms = new MemoryStream();
-					using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read))
-						fs.CopyTo(ms);
+					using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read))	// TODO Rainer: consider using RaiFile.OpenRead and adding retry logic there instead, since this pattern is common for all file access
+						fs.CopyTo(ms);	// TODO Rainer: RaiFile could have a method to read the whole file into a MemoryStream with retry logic built in, since this pattern is common for all file access
 					var img = System.Drawing.Image.FromStream(ms);
 					if (clone)
 					{
@@ -395,6 +396,84 @@ namespace RaiImage
 			}
 			return string.Join("", array);
 		}
+		public static string EasyFileName(string pic, bool renameFile = false)
+		{
+			while (pic.EndsWith('_'))
+			{
+				pic = pic[..^1];
+				if (pic.Length == 0)
+					pic = "0";
+			}
+			var imgFile = new ImageFile(pic);
+			if (imgFile.ImageNumber == NoImageNumber)
+				imgFile.ImageNumber = 1;
+			if (string.IsNullOrEmpty(imgFile.Ext))
+				imgFile.Ext = "jpg";
+			if (IsWeakItemId(imgFile.ItemId) /*|| HasWeakOriginalPrefix(pic)*/)
+			{
+				string exifModelResult = string.Empty;
+				try
+				{
+					var identifyFileName = imgFile.Exists() ? imgFile.FullName : new RaiFile(pic).FullName;
+					if (new ImageMagick().Identify("-ping -format \"%[exif:Model]\"", identifyFileName, ref exifModelResult) == 0
+						&& !string.IsNullOrWhiteSpace(exifModelResult))
+					{
+						var sanitizedModel = Regex.Replace(exifModelResult, "[^a-zA-Z0-9]", "");
+						if (!string.IsNullOrEmpty(sanitizedModel))
+							imgFile.ItemId = sanitizedModel;
+					}
+				}
+				catch
+				{
+				}
+			}
+			if (imgFile.ItemId.Length < 4)
+			{
+				if (imgFile.ItemId.ToLower() == "img")
+				{
+					if (imgFile.ImageNumber > 100000)
+					{
+						imgFile.ItemId = (imgFile.ImageNumber / 100000).ToString();
+						imgFile.ImageNumber %= 100000;
+					}
+					else if (imgFile.ImageNumber > 10)
+					{
+						imgFile.ItemId += (imgFile.ImageNumber / 10).ToString();
+						imgFile.ImageNumber %= 10;
+					}
+					else imgFile.ItemId = nameof(Image);
+				}
+				else if (string.IsNullOrWhiteSpace(imgFile.ItemId))
+					imgFile.ItemId = "0";
+				if (Regex.IsMatch(imgFile.ItemId, "^[0-9]+$"))
+					while (imgFile.ItemId.Length < 4)
+						imgFile.ItemId = "0" + imgFile.ItemId;
+				else
+					while (imgFile.ItemId.Length < 4)
+						imgFile.ItemId += "0";
+			}
+			if (renameFile)
+			{
+				var from = new RaiFile(pic);
+				if (from.FullName != imgFile.FullName)
+					imgFile.mv(from);
+			}
+			return imgFile.FullName;
+		}
+		private static bool IsWeakItemId(string itemId)
+		{
+			itemId ??= string.Empty;
+			var lower = itemId.ToLower();
+			return itemId.Length < 5 || lower == "img" || lower == "dsc";
+		}
+		/* unneccesary access to file system just for a filename that might not even be connected to a physical file instance (yet)
+		private static bool HasWeakOriginalPrefix(string pic)
+		{
+			var name = System.IO.Path.GetFileNameWithoutExtension(pic) ?? string.Empty;
+			return name.StartsWith("IMG", StringComparison.OrdinalIgnoreCase)
+				|| name.StartsWith("DSC", StringComparison.OrdinalIgnoreCase);
+		}
+		*/
 		/// <summary>
 		/// Parse the raw name string into structured components (legacy convention).
 		/// Handles camera/phone naming patterns, color codes, image numbers,

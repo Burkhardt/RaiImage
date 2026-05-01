@@ -1,5 +1,5 @@
 @startuml RaiImageOperationsUseCases
-' Release: 3.7.3
+' Version: 3.7.6
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam linetype ortho
@@ -11,14 +11,14 @@ skinparam ArrowColor #9b2c2c
 skinparam ArrowFontColor #374151
 skinparam ArrowFontName "Casual"
 left to right direction
-skinparam packageStyle rectangle
+skinparam packageStyle folder
 
 title RaiImage Supported Image Operations
 
 actor "Application / Service" as App
 actor "Batch / Automation" as Batch
 
-rectangle "RaiImage" {
+package "RaiImage" {
 	usecase "Convert image\n(format / resize / transform)" as UCConvert
 	usecase "Mogrify image\n(in-place transform)" as UCMogrify
 	usecase "Composite overlay\nonto image" as UCComposite
