@@ -1,5 +1,5 @@
 @startuml RaiImageTilingActivity
-' Version: 3.7.6
+' Version: 3.7.7
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam linetype ortho
