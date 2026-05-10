@@ -2,12 +2,12 @@
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 3.7.11
+## 3.8.0
 
-- Patch: aligns fallback package references with `OsLibCore 3.7.11` and `RaiUtils 3.7.11` in the current publish order.
+- Coordinated release: aligns fallback package references with `OsLibCore 3.8.0` and `RaiUtils 3.8.0` in the current publish order.
 - No public RaiImage API surface change in this patch release.
 - Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, and `Dropbox`.
-- This README is now configured to ship inside the NuGet package on the next RaiImage release.
+- This README is configured to ship inside the RaiImage NuGet package.
 
 ## cloud storage compatibility
 
@@ -194,4 +194,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.7.11.md](RELEASE_NOTES_3.7.11.md)
+- Release notes: [RELEASE_NOTES_3.8.0.md](RELEASE_NOTES_3.8.0.md)

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-		<Version>3.7.11</Version>
+		<Version>3.8.0</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
@@ -19,7 +19,7 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-		<PackageReleaseNotes>3.7.11 patch: refreshes current docs and diagrams and aligns RaiImage with OsLibCore 3.7.11 and RaiUtils 3.7.11 in
+		<PackageReleaseNotes>3.8.0 release: refreshes current docs and diagrams, keeps the packaged README, and aligns RaiImage with OsLibCore 3.8.0 and RaiUtils 3.8.0 in
 			the current publish order.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
@@ -56,8 +56,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
-		<PackageReference Include="OsLibCore" Version="3.7.11" />
-		<PackageReference Include="RaiUtils" Version="3.7.11" />
+		<PackageReference Include="OsLibCore" Version="3.8.0" />
+		<PackageReference Include="RaiUtils" Version="3.8.0" />
 	</ItemGroup>
 
 </Project>
