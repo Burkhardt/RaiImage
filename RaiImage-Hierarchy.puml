@@ -122,28 +122,48 @@ package "RaiImage" {
 	}
 
 	class "<size:18>ImageMagick</size>" as ImageMagick {
-		+ImPath : string
+		+ImPath : RaiPath
 		+MagickCommand : string
 		+OptiPngCommand : string
 		+JpegTranCommand : string
 		+JpegTranOptions : string
+		-callString : string
+		-message : string
 		+Message : string
 		+ImageMagick()
-		+Convert(...) : int
-		+Mogrify(...) : int
-		+Composite(...) : int
-		+Identify(...) : int
+		+Convert(commandline : string) : int
+		+Convert(options : string, from : string, to : string) : int
+		+Convert(options : string, from : string, to : string, optionsInTheMiddle : bool) : int
+		+Mogrify(commandline : string) : int
+		+Mogrify(options : string, file : string) : int
+		+Composite(commandline : string) : int
+		+Composite(options : string, overlay : string, to : string) : int
+		+Composite(options : string, overlay : string, image : string, target : string) : int
+		+Identify(options : string, image : string, result : ref string) : int
 		+OptiPng(imgFileName : string) : int
 		+JpegTran(imgFileName : string) : int
-		+CreateTiles(...) : int
+		+CreateHistogram(colorTableFile : string, fromName : string, coreName : string, destName : string) : int
+		+Histogram(imageFile : string, histogramFileName : string) : int
+		+GetSize(imageFileName : string) : System.Drawing.Size
+		+CreateTiles(master : ImageTreeFile, tileWidth : int, tileHeight : int, resizeWidth : int, resizeHeight : int, adaptive : bool, quality : string, strip : bool, sharpen : string, asharpen : string, unsharp : string, destFiles : ImageTreeFile, deleteFirst : bool) : int
 		+EmptyForm(imgFile : ImageFile, imageWidth : int, imageHeight : int, drawString : string) : bool
+		-ResolveMagickExecutable() : string
+		-BuildMagickArguments(subcommand : string, args : string) : string
+		-CreateCommand() : ImageMagickCommand
+		-RunMagickSubcommand(subcommand : string, args : string) : RaiSystemResult
+		-CreateMagickCall(subcommand : string, args : string) : RaiSystem
+		-GetTempFileName(fromFile : string) : string
 	}
 
 	class "<size:18>ImageMagickCommand</size>" as ImageMagickCommand {
+		-imPath : RaiPath
+		-commandName : string
 		+ImageMagickCommand(imPath : RaiPath = null, commandName : string = null)
+		+CandidateExecutables : IEnumerable<string>
+		#WindowsPackageId : string
 		+BuildArguments(subcommand : string, args : string = "") : string
 		+RunSubcommand(subcommand : string, args : string = "") : RaiSystemResult
-		+RunSubcommandAsync(subcommand : string, args : string = "") : Task<RaiSystemResult>
+		+RunSubcommandAsync(subcommand : string, args : string = "", cancellationToken : CancellationToken = default) : Task<RaiSystemResult>
 	}
 
 	class "<size:18>ImageTypes</size>" as ImageTypes {

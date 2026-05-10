@@ -289,7 +289,12 @@ namespace RaiImage
 		public virtual string ItemId
 		{
 			get => itemId;
-			set => itemId = string.IsNullOrEmpty(value) ? string.Empty : value;
+			set => itemId = string.IsNullOrEmpty(value)
+				? string.Empty
+				: Regex.Replace(value, @"[,\- _]+(.)?", m =>
+					m.Groups[1].Success
+						? m.Groups[1].Value.ToUpperInvariant()
+						: string.Empty);
 		}
 		protected string itemId = string.Empty;
 		public virtual string Sku

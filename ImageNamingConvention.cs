@@ -30,7 +30,7 @@ namespace RaiImage
 		/// Example: "471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp"
 		/// Components are omitted when empty/unset. The comma marks the boundary
 		/// between the searchable positional prefix and optional metadata.
-		/// Search pattern: "471100_03_FullSizeHQ,*" finds all color/tile variants.
+		/// Search pattern: "471100_03_Fullsizehq,*" finds all color/tile variants.
 		/// </summary>
 		Structured
 	}
