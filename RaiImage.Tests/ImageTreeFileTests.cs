@@ -3,6 +3,13 @@ namespace RaiImage.Tests;
 public class ImageTreeFileTests
 {
 	[Fact]
+	public void Constructor_NormalizesScreenshotStyleFilename()
+	{
+		var sut = new ImageTreeFile("/tmp/root/Screenshot 2026-05-09 at 14.46.25.png");
+
+		Assert.Equal("Screenshot20260509At14.46.25.png", sut.NameWithExtension);
+	}
+	[Fact]
 	public void ParsesItemIdAndTemplateName_WithItemTemplateConvention()
 	{
 		var sut = new ImageTreeFile("/tmp/root/1234567890_thumbnail.webp",
