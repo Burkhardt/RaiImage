@@ -1,27 +1,23 @@
 # RaiImage
 
-Classes to manage image files in directory trees 
-across local and cloud-backed folders 
-on Windows, macOS, and Linux.
+Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
 ## 3.7.11
 
 - Patch: aligns fallback package references with `OsLibCore 3.7.11` and `RaiUtils 3.7.11` in the current publish order.
 - No public RaiImage API surface change in this patch release.
 - Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, and `Dropbox`.
-- Refreshes current package docs and diagram release markers for the `3.7.11` line.
+- This README is now configured to ship inside the NuGet package on the next RaiImage release.
 
 ## cloud storage compatibility
 
-RaiImage is designed to work well with OsLib cloud-root discovery and the current packaged support claim covers:
+RaiImage is designed to work with OsLib cloud-root discovery and the current packaged support claim covers:
 
 - Dropbox
 - OneDrive
 - Google Drive
 
-For cloud-root configuration and environment/setup details, see:
-
-- [OsLib cloud storage discovery guide](https://github.com/Burkhardt/OsLib/blob/main/CLOUD_STORAGE_DISCOVERY.md)
+For cloud-root configuration and environment/setup details, see the OsLib cloud storage discovery guide and keep the same `RAIkeep.json5` cloud-root contract across packages.
 
 ## namespace
 
@@ -42,82 +38,135 @@ RaiImage
 </details>
 
 <details>
-<summary>ColorInfo: ImageMagick-compatible color model with optional name lookup.</summary>
+<summary>ColorInfo: ImageMagick-compatible color descriptor with optional named-color lookup.</summary>
 
-- ColorInfo: `Get`, `Code`, `Name`, `Count`, `NamedColors`
+- ColorInfo: `Get`, `NamedColors`, `Code`, `Name`, `Count`, `Color`
 </details>
 
 <details>
-<summary>Dye and DyeDelta: color delta calculations for hue, brightness, and saturation.</summary>
+<summary>DyeDelta: snapshot of hue/brightness/saturation deltas between two colors.</summary>
 
-- Dye: `Phi`, `DeltaB`, `DeltaS`
-- DyeDelta
+- DyeDelta: constructor-based delta capture for `Phi`, `DeltaB`, and `DeltaS`
 </details>
 
 <details>
-<summary>Size and Extensions: image size value and parser helpers.</summary>
+<summary>Dye: color-wheel and brightness/saturation delta calculator.</summary>
 
-- Size: `Width`, `Height`, `HSEmidsize`, `HSEfullsize`
+- Dye: `Phi`, `DeltaB`, `DeltaSa`, `DeltaSb`, `DeltaS`
+</details>
+
+<details>
+<summary>Extensions and Size: image-size parser and size value helpers.</summary>
+
 - Extensions: `Parse`
+- Size: `ToString`, `nosize`, `noSize`, `HSEmidsize`, `HSEfullsize`
 </details>
 
 <details>
-<summary>ImageFile: parse/compose image names and manage image file identity.</summary>
+<summary>ImageNamingConvention and INamingConvention: file-name convention model for parsing and composition.</summary>
 
-- ImageFile: `Sku`, `Color`, `ImageNumber`, `NameExt`, `TileTemplate`, `TileNumber`, `FromFile`, `ExtendToFirstExistingFile`, `EasyFileName`
+- ImageNamingConvention: `Legacy`, `ItemTemplate`, `Structured`
+- INamingConvention: `NamingConvention`, `ApplyNamingConvention`
 </details>
 
 <details>
-<summary>ImageTreeFile: ImageFile variant with tree-based path partitioning.</summary>
+<summary>ImageFile: image filename parser/composer on top of `RaiFile`.</summary>
 
-- ImageTreeFile: `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`, `MoveToTree`, `CopyTo`
+- ImageFile: `Sku`, `Color`, `ImageNumber`, `NameExt`, `TileTemplate`, `TileNumber`, `NameWithExtension`, `FullName`, `ShortName`
+- ImageFile: `ApplyNamingConvention`, `FromFile`, `BlankToCamelCase`, `EasyFileName`, `SetImageNumber`, `ExtendToFirstExistingFile`
+</details>
+
+<details>
+<summary>ItemTreePath: root path plus tree split convention for item-based directory partitioning.</summary>
+
+- ItemTreePath: `Convention`, `RootPath`, `ItemId`, `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`, `Path`, `FullPath`
+- ItemTreePath: `ConventionSplit`, `ApplyPathConvention`, `ToString`
+</details>
+
+<details>
+<summary>ImageTreeFile: `ImageFile` variant with tree-based path partitioning.</summary>
+
+- ImageTreeFile: `Convention`, `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`
+- ImageTreeFile: `ApplyPathConvention`, `mkdir`, `CopyTo`, `MoveToTree`, `rmdir`
 - Split behavior is driven by `PathConventionType`; `Subdir` is cumulative, for example `3x3 => 123/123456` and `8x2 => 12345678/1234567890`. See [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md).
 </details>
 
 <details>
-<summary>ImageMagick: wrapper around ImageMagick and selected optimization tools.</summary>
+<summary>ImageMagickCommand: typed CLI wrapper around ImageMagick subcommands.</summary>
 
-- ImageMagick: `Convert`, `Mogrify`, `Composite`, `Identify`, `CreateTiles`, `GetSize`, `CreateHistogram`, `OptiPng`, `JpegTran`
+- ImageMagickCommand: `CandidateExecutables`, `BuildArguments`, `RunSubcommand`, `RunSubcommandAsync`
 </details>
 
 <details>
-<summary>ImageTypes, Pane, Panes: typed models for extensions and viewport dimensions.</summary>
+<summary>ImageMagick: facade for ImageMagick and related optimization tools.</summary>
 
-- ImageTypes: `Array`, `String`
-- Pane: `Size`
-- Panes: `ZoomPort`, `ControlPort`
+- ImageMagick: `ImPath`, `MagickCommand`, `OptiPngCommand`, `JpegTranCommand`, `JpegTranOptions`, `Message`
+- ImageMagick: `Convert`, `Mogrify`, `Composite`, `Identify`, `EmptyForm`, `CreateHistogram`, `Histogram`, `OptiPng`, `JpegTran`, `GetSize`, `CreateTiles`
 </details>
 
 <details>
-<summary>Src, Tmp: query parameter models for image source and template selection.</summary>
+<summary>ImageTypes: parsed list of image extensions with a reusable default set.</summary>
 
-- Src: `Sku`, `Subscriber`, `ImageNumber`, `Param`
-- Tmp: `Template`, `Overlays`, `Param`
+- ImageTypes: `Default`, `Array`, `String`
 </details>
 
 <details>
-<summary>IservUrl, ServiceUrl, ImageUrl: URL decomposition and image-link semantics.</summary>
+<summary>Pane: one `WxH` viewport value with string and `Size` conversions.</summary>
 
-- IservUrl: `Protocol`, `Host`, `Port`, `Path`, `App`, `Page`
-- ServiceUrl
-- ImageUrl: `Src`, `Tmp`, `isHDitemLink`
+- Pane: `DefaultPane`, `String`, `Size`
 </details>
 
 <details>
-<summary>TwoSizes: comparable pair of small/large sizes with rating.</summary>
+<summary>Panes: pair-like container for zoom/control pane definitions.</summary>
 
-- TwoSizes: `Rating`, `SmallRect`, `LargeRect`, `CompareTo`
+- Panes: `Count`, `String`, indexer, `ZoomPort`, `ControlPort`
+</details>
+
+<details>
+<summary>Src: parser for the `src=` parameter used in HDitem-style image URLs.</summary>
+
+- Src: `HasMultipleSkus`, `Skus`, `Sku`, `Subscriber`, `ImageNumber`, `Image`, `ImageWithExtension`, `String`, `Param`
+</details>
+
+<details>
+<summary>Tmp: parser for the `tmp=` template/overlay parameter.</summary>
+
+- Tmp: `Template`, `Overlays`, `String`, `Param`
+</details>
+
+<details>
+<summary>IservUrl: URI decomposition into protocol, host, app, page, and path components.</summary>
+
+- IservUrl: `Subscriber`, `Protocol`, `Host`, `Port`, `Path`, `App`, `Page`, `Uri`
+</details>
+
+<details>
+<summary>ServiceUrl: service-oriented specialization layer on top of `IservUrl`.</summary>
+
+- ServiceUrl: `init(Uri, bool)` and inherited `IservUrl` decomposition members
+</details>
+
+<details>
+<summary>ImageUrl: HDitem-aware image URL parser with `Src` and `Tmp` extraction.</summary>
+
+- ImageUrl: `Src`, `Tmp`, `Url`, `isHDitemLink`
+</details>
+
+<details>
+<summary>TwoSizes: comparable pair of small/large sizes with a ranking score.</summary>
+
+- TwoSizes: `Rating`, `SmallRect`, `LargeRect`, `CompareTo`, `Equals`
 </details>
 
 ## example
 
 ```csharp
 var count = ImageTreeFile.MoveToTree(
-            fromDir: p["from"], 
-            toDirRoot: p["to"], 
+            fromDir: p["from"],
+            toDirRoot: p["to"],
             splitMode: PathConventionType.ItemIdTree8x2,
-            filter: p["filter"], 
-            remove: p["remove"]); 
+            filter: p["filter"],
+            remove: p["remove"]);
 Console.WriteLine($"{count} files moved.");
 ```
 
@@ -127,23 +176,22 @@ https://www.nuget.org/packages/RaiImage/
 
 ## diagram
 
-- Class hierarchy: [RaiImage-Hierarchy.puml](RaiImage-Hierarchy.puml) | [RaiImage-Hierarchy.svg](RaiImage-Hierarchy.svg)
+- Class hierarchy: [RaiImage-Hierarchy.puml](RaiImage-Hierarchy.puml) | [RaiImage-Type-Overview.svg](RaiImage-Type-Overview.svg)
 - Focused class diagram: [RaiImageCD.puml](RaiImageCD.puml) | [RaiImageCD.svg](RaiImageCD.svg)
-- Supported operations use cases: [RaiImage-Operations-UseCases.puml](RaiImage-Operations-UseCases.puml) | [RaiImage-Operations-UseCases.svg](RaiImage-Operations-UseCases.svg)
-- Background removal activity: [RaiImage-BackgroundRemoval-Activity.puml](RaiImage-BackgroundRemoval-Activity.puml) | [RaiImage-BackgroundRemoval-Activity.svg](RaiImage-BackgroundRemoval-Activity.svg)
-- Tiling activity: [RaiImage-Tiling-Activity.puml](RaiImage-Tiling-Activity.puml) | [RaiImage-Tiling-Activity.svg](RaiImage-Tiling-Activity.svg)
-- Optimization and recovery activity: [RaiImage-Optimization-Activity.puml](RaiImage-Optimization-Activity.puml) | [RaiImage-Optimization-Activity.svg](RaiImage-Optimization-Activity.svg)
+- Supported operations use cases: [RaiImage-Operations-UseCases.puml](RaiImage-Operations-UseCases.puml) | [RaiImageOperationsUseCases.svg](RaiImageOperationsUseCases.svg)
+- Background removal activity: [RaiImage-BackgroundRemoval-Activity.puml](RaiImage-BackgroundRemoval-Activity.puml) | [RaiImageBackgroundRemovalActivity.svg](RaiImageBackgroundRemovalActivity.svg)
+- Tiling activity: [RaiImage-Tiling-Activity.puml](RaiImage-Tiling-Activity.puml) | [RaiImageTilingActivity.svg](RaiImageTilingActivity.svg)
+- Optimization and recovery activity: [RaiImage-Optimization-Activity.puml](RaiImage-Optimization-Activity.puml) | [RaiImageOptimizationActivity.svg](RaiImageOptimizationActivity.svg)
 - CLI render (if PlantUML is installed): `plantuml RaiImage-Hierarchy.puml RaiImageCD.puml RaiImage-Operations-UseCases.puml RaiImage-BackgroundRemoval-Activity.puml RaiImage-Tiling-Activity.puml RaiImage-Optimization-Activity.puml`
-- VS Code: open the `.puml` file and use a PlantUML preview/render extension.
 
 ## detailed api
 
 - Path-convention splitting note: [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md)
-
 - Foldable class and method-level documentation: [API.md](API.md)
 
 ## migration and release docs
 
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
+- Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
 - Release notes: [RELEASE_NOTES_3.7.11.md](RELEASE_NOTES_3.7.11.md)
