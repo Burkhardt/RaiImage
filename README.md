@@ -5,7 +5,7 @@ Classes to manage image files in directory trees across local and cloud-backed f
 ## 3.8.1
 
 - Changes `ImageTreeFile.mkdir()` from member hiding to a true `RaiFile.mkdir()` override.
-- Aligns fallback package references with `OsLibCore 3.8.1` and `RaiUtils 3.8.0`.
+- Aligns fallback package references with `OsLibCore 3.8.1` and `RaiUtils 3.8.1`.
 - Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, and `Dropbox`.
 - This README is configured to ship inside the RaiImage NuGet package.
 

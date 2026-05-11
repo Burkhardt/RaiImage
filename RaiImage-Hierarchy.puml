@@ -1,5 +1,5 @@
 @startuml RaiImage-Type-Overview
-' Release: 3.8.0
+' Release: 3.8.1
 
 title RaiImage Type Overview
 
@@ -114,6 +114,7 @@ package "RaiImage" {
 		+Subdir : string
 		+TopdirRoot : string
 		+SubdirRoot : string
+		+{override} mkdir() : RaiPath
 		+ImageTreeFile(name : string, path : RaiPath, nameExt : string, ext : string, splitMode : PathConventionType = ItemIdTree8x2)
 		+ImageTreeFile(file : string, splitMode : PathConventionType = ItemIdTree8x2)
 		+MoveToTree(fromDir : string, toDirRoot : string, filter : string = "*.jpg", remove : string = "") : int

@@ -56,7 +56,7 @@
 
 	<ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
 		<PackageReference Include="OsLibCore" Version="3.8.1" />
-		<PackageReference Include="RaiUtils" Version="3.8.0" />
+		<PackageReference Include="RaiUtils" Version="3.8.1" />
 	</ItemGroup>
 
 </Project>

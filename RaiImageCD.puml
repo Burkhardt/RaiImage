@@ -1,5 +1,5 @@
 @startuml RaiImageCD
-' Release: 3.8.0
+' Release: 3.8.1
 
 title RaiImage Core Class Diagram
 
@@ -54,6 +54,7 @@ package "RaiImage" {
 		+Subdir : string
 		+TopdirRoot : string
 		+SubdirRoot : string
+		+{override} mkdir() : RaiPath
 		+MoveToTree(fromDir : string, toDirRoot : string, filter : string, remove : string) : int
 		+CopyTo(destDirs : string[]) : bool
 		+ApplyPathConvention() : void
