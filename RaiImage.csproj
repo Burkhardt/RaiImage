@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-		<Version>3.8.0</Version>
+		<Version>3.8.1</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
@@ -19,8 +19,7 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-		<PackageReleaseNotes>3.8.0 release: refreshes current docs and diagrams, keeps the packaged README, and aligns RaiImage with OsLibCore 3.8.0 and RaiUtils 3.8.0 in
-			the current publish order.</PackageReleaseNotes>
+		<PackageReleaseNotes>3.8.1 release: changes ImageTreeFile.mkdir() from member hiding to a true RaiFile.mkdir() override so base-class write operations create image-tree directories correctly.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
 
@@ -56,7 +55,7 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
-		<PackageReference Include="OsLibCore" Version="3.8.0" />
+		<PackageReference Include="OsLibCore" Version="3.8.1" />
 		<PackageReference Include="RaiUtils" Version="3.8.0" />
 	</ItemGroup>
 

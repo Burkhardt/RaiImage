@@ -779,7 +779,7 @@ namespace RaiImage
 			get => ItemId;
 			set => ItemId = value;
 		}
-		public new void mkdir() => SubdirRoot.mkdir();
+		public override RaiPath mkdir() => SubdirRoot.mkdir();
 		/// <summary>
 		/// Copy the file to multiple destinations, preserving the tree structure.
 		/// </summary>
