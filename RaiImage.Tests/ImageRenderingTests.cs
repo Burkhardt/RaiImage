@@ -35,7 +35,14 @@ public class ImageRenderingTests : IDisposable
 			source.mkdir();
 			new TextFile(source.FullName, "source");
 
-			var template = new TemplateSetting("Huge", "300x200", false, "webp", 82, true);
+			var template = new TemplateSetting
+			{
+				Name = "Huge",
+				Resize = "300x200>",
+				Format = "webp",
+				Quality = "82",
+				Strip = true
+			};
 			var rendered = ImageTreeFile.ApplyTemplate(
 				imageTreeRoot,
 				"/img/Dr2RAI/Screenshot20260509At14.46.25Copy?tmp=HugeNewBargain",
@@ -79,8 +86,25 @@ public class ImageRenderingTests : IDisposable
 
 			var final = current.ApplyOverlays(new List<OverlaySetting>
 			{
-				new("Bargain", "bargain.png", "SouthEast", 70, renderOrder: 2, overlayRoot: overlayRoot),
-				new("New", "new.png", "NorthWest", 90, width: 60, renderOrder: 1, overlayRoot: overlayRoot)
+				new()
+				{
+					Name = "Bargain",
+					Image = "bargain.png",
+					Gravity = "SouthEast",
+					Dissolve = "70",
+					RenderOrder = 2,
+					OverlayRoot = overlayRoot
+				},
+				new()
+				{
+					Name = "New",
+					Image = "new.png",
+					Gravity = "NorthWest",
+					Dissolve = "90",
+					Resize = "60x",
+					RenderOrder = 1,
+					OverlayRoot = overlayRoot
+				}
 			});
 
 			Assert.True(final.Exists());

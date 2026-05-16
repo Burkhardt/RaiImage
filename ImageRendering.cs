@@ -9,109 +9,80 @@ namespace RaiImage
 	/// <summary>
 	/// Per-subscriber rendering template consumed by <see cref="ImageTreeFile.ApplyTemplate(TemplateSetting)"/>.
 	/// </summary>
+	/// <remarks>
+	/// Hybrid String Schema:
+	/// <list type="bullet">
+	/// <item>Explicit properties form the schema the UI uses to generate form fields.</item>
+	/// <item>Optional scalars are <see cref="string"/> (so ImageMagick's mini-language — <c>800x</c>, <c>50%</c>,
+	/// <c>800x600^</c>, <c>85%</c> — passes through unchanged) or <see cref="Nullable{T}"/> for true tri-state semantics.</item>
+	/// <item>No hardcoded defaults: a <c>null</c>/whitespace property omits the flag entirely.</item>
+	/// <item><see cref="Extra"/> is the duck-typed escape hatch for any ImageMagick flag not modeled explicitly.</item>
+	/// </list>
+	/// </remarks>
 	public sealed class TemplateSetting
 	{
 		public const string DefaultWipImage = "WorkInProgress";
 		public const string DefaultFormat = "webp";
 
-		private string resize = string.Empty;
-		private string format = DefaultFormat;
-		private int width;
-		private int height;
-
+		// Identity / metadata (not ImageMagick flags).
 		public string Name { get; set; } = string.Empty;
 		public string Note { get; set; } = string.Empty;
 
-		public string Resize
-		{
-			get => resize;
-			set
-			{
-				resize = value?.Trim() ?? string.Empty;
-				(width, height) = ParseSize(resize);
-			}
-		}
+		/// <summary>Output container extension (without leading dot). Not an ImageMagick flag; selects the target file name.</summary>
+		public string Format { get; set; }
 
-		public int Width
-		{
-			get => width;
-			set
-			{
-				width = Math.Max(0, value);
-				resize = ComposeSize(width, height);
-			}
-		}
+		// Canonical sizing: a raw ImageMagick geometry string. The single source of truth.
+		// Examples: "800x", "x600", "800x600", "800x600!", "800x600^", "800x600>", "50%".
+		public string Resize { get; set; }
 
-		public int Height
-		{
-			get => height;
-			set
-			{
-				height = Math.Max(0, value);
-				resize = ComposeSize(width, height);
-			}
-		}
+		// Scalar ImageMagick flag arguments — strings so they preserve %, units, and other modifiers.
+		public string Quality { get; set; }
+		public string Density { get; set; }
+		public string Unsharp { get; set; }
 
-		/// <summary>Legacy alias for <see cref="Resize"/>.</summary>
-		public string Size
-		{
-			get => getSize();
-			set => setSize(value);
-		}
+		// Boolean ImageMagick flags — nullable so absent ≠ false.
+		public bool? AdaptiveResize { get; set; }
+		public bool? Strip { get; set; }
+		public bool? Compress { get; set; }
+		public bool? Flatten { get; set; }
+		public bool? AutoOrient { get; set; }
 
-		/// <summary>Output extension without leading dot.</summary>
-		public string Ext
-		{
-			get => Format;
-			set => Format = value;
-		}
+		// Raw pre/post pass-through (already free-form).
+		public string CustomFirst { get; set; }
+		public string CustomLast { get; set; }
 
-		public string Format
-		{
-			get => string.IsNullOrWhiteSpace(format) ? DefaultFormat : format;
-			set => format = NormalizeExtension(value, DefaultFormat);
-		}
-
-		public int Quality { get; set; } = 85;
-		public bool ForceAR { get; set; }
-		public bool Strip { get; set; } = true;
-		public bool AdaptiveResize { get; set; }
-		public bool Compress { get; set; }
-		public bool Flatten { get; set; }
-		public string Unsharp { get; set; } = string.Empty;
-		public int Density { get; set; }
-		public string CustomFirst { get; set; } = string.Empty;
-		public string CustomLast { get; set; } = string.Empty;
-		public bool WipFallback { get; set; }
-		public string WipImage { get; set; } = string.Empty;
+		// WIP fallback metadata (not ImageMagick flags).
+		public bool? WipFallback { get; set; }
+		public string WipImage { get; set; }
 		public string EffectiveWipImage => string.IsNullOrWhiteSpace(WipImage)
 			? DefaultWipImage
 			: StripKnownExtension(WipImage);
 
-		public string getSize() => string.IsNullOrEmpty(Resize) ? null : Resize;
-		public void setSize(string value) => Resize = value;
+		/// <summary>
+		/// Duck-typed escape hatch for any ImageMagick flag not modeled as an explicit property.
+		/// Key is the flag name without leading dash (e.g., <c>"colorspace"</c>); value is the flag argument,
+		/// or <c>null</c>/empty for boolean-style flags emitted on their own.
+		/// </summary>
+		public IDictionary<string, string> Extra { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		public string BuildConvertOptions()
 		{
 			var options = new List<string>();
-			AddOption(options, CustomFirst);
-			if (Density > 0)
-				options.Add("-density " + Density);
-			options.Add("-auto-orient");
+			AppendRaw(options, CustomFirst);
+			AppendValueFlag(options, "density", Density);
+			AppendBooleanFlag(options, "auto-orient", AutoOrient);
 			if (!string.IsNullOrWhiteSpace(Resize))
 			{
-				var resizeOperator = AdaptiveResize ? "-adaptive-resize" : "-resize";
-				options.Add($"{resizeOperator} {BuildResizeGeometry(Resize, ForceAR)}");
+				var resizeOperator = AdaptiveResize == true ? "-adaptive-resize" : "-resize";
+				options.Add($"{resizeOperator} {Resize.Trim()}");
 			}
-			if (Flatten)
-				options.Add("-flatten");
-			if (!string.IsNullOrWhiteSpace(Unsharp))
-				options.Add("-unsharp " + Unsharp.Trim());
-			if (Strip)
-				options.Add("-strip");
-			if (Quality > 0)
-				options.Add("-quality " + Quality);
-			AddOption(options, CustomLast);
+			AppendBooleanFlag(options, "flatten", Flatten);
+			AppendValueFlag(options, "unsharp", Unsharp);
+			AppendBooleanFlag(options, "strip", Strip);
+			AppendBooleanFlag(options, "compress", Compress);
+			AppendValueFlag(options, "quality", Quality);
+			AppendExtra(options, Extra);
+			AppendRaw(options, CustomLast);
 			return string.Join(" ", options);
 		}
 
@@ -119,74 +90,35 @@ namespace RaiImage
 		{
 		}
 
-		public TemplateSetting(string name, string resize, bool forceAR, string format, int quality, bool strip,
-			bool wipFallback = false, string wipImage = null)
+		internal static void AppendRaw(ICollection<string> options, string raw)
 		{
-			Name = name ?? string.Empty;
-			Resize = resize;
-			ForceAR = forceAR;
-			Format = format;
-			Quality = quality;
-			Strip = strip;
-			WipFallback = wipFallback;
-			WipImage = wipImage ?? string.Empty;
+			if (!string.IsNullOrWhiteSpace(raw))
+				options.Add(raw.Trim());
 		}
 
-		public TemplateSetting(string name, string note, string size, string ext, bool strip, string quality,
-			string wipName, bool adaptiveResize, string unsharp, int density = 0, bool compress = false,
-			bool flatten = false, string customFirst = null, string customLast = null)
+		internal static void AppendValueFlag(ICollection<string> options, string flag, string value)
 		{
-			Name = name ?? string.Empty;
-			Note = note ?? string.Empty;
-			Resize = size;
-			Format = ext;
-			Strip = strip;
-			Quality = int.TryParse((quality ?? string.Empty).TrimEnd('%'), out var q) ? q : 0;
-			WipImage = wipName ?? string.Empty;
-			AdaptiveResize = adaptiveResize;
-			Unsharp = unsharp ?? string.Empty;
-			Density = density;
-			Compress = compress;
-			Flatten = flatten;
-			CustomFirst = customFirst ?? string.Empty;
-			CustomLast = customLast ?? string.Empty;
+			if (!string.IsNullOrWhiteSpace(value))
+				options.Add("-" + flag + " " + value.Trim());
 		}
 
-		private static void AddOption(ICollection<string> options, string option)
+		internal static void AppendBooleanFlag(ICollection<string> options, string flag, bool? value)
 		{
-			if (!string.IsNullOrWhiteSpace(option))
-				options.Add(option.Trim());
+			if (value == true)
+				options.Add("-" + flag);
 		}
 
-		private static string BuildResizeGeometry(string geometry, bool forceAR)
+		internal static void AppendExtra(ICollection<string> options, IDictionary<string, string> extra)
 		{
-			var trimmed = geometry.Trim();
-			if (trimmed.Length == 0)
-				return trimmed;
-			var last = trimmed[^1];
-			return last == '!' || last == '>' || last == '<' || last == '^' || last == '@'
-				? trimmed
-				: trimmed + (forceAR ? "!" : ">");
-		}
-
-		private static (int width, int height) ParseSize(string value)
-		{
-			if (string.IsNullOrWhiteSpace(value))
-				return (0, 0);
-			var core = value.Trim().TrimEnd('!', '>', '<', '^', '@');
-			var pos = core.IndexOf('x');
-			if (pos < 0)
-				return (0, 0);
-			_ = int.TryParse(core[..pos], out var parsedWidth);
-			_ = int.TryParse(core[(pos + 1)..], out var parsedHeight);
-			return (Math.Max(0, parsedWidth), Math.Max(0, parsedHeight));
-		}
-
-		private static string ComposeSize(int width, int height)
-		{
-			if (width <= 0 && height <= 0)
-				return string.Empty;
-			return width + "x" + height;
+			if (extra == null)
+				return;
+			foreach (var kv in extra)
+			{
+				if (string.IsNullOrWhiteSpace(kv.Key))
+					continue;
+				var flag = "-" + kv.Key.Trim().TrimStart('-');
+				options.Add(string.IsNullOrWhiteSpace(kv.Value) ? flag : flag + " " + kv.Value.Trim());
+			}
 		}
 
 		internal static string NormalizeExtension(string value, string fallback = "")
@@ -215,68 +147,45 @@ namespace RaiImage
 	/// <summary>
 	/// Overlay definition consumed by <see cref="ImageTreeFile.ApplyOverlay(OverlaySetting)"/>.
 	/// </summary>
+	/// <remarks>
+	/// Follows the same Hybrid String Schema as <see cref="TemplateSetting"/>: explicit string properties
+	/// form the UI schema, optional flags use <c>string</c> or <see cref="Nullable{T}"/> so absent ≠ default,
+	/// and <see cref="Extra"/> carries any unmodelled ImageMagick composite flags.
+	/// </remarks>
 	public sealed class OverlaySetting
 	{
 		public string Name { get; set; } = string.Empty;
 		public string Note { get; set; } = string.Empty;
 		public string Image { get; set; } = string.Empty;
-		public string Gravity { get; set; } = "Center";
-		public int Dissolve { get; set; } = 100;
-		public int? Width { get; set; }
-		public int? Height { get; set; }
-		public string AutoGravity { get; set; } = string.Empty;
+
+		/// <summary>ImageMagick gravity (e.g., <c>Center</c>, <c>NorthEast</c>, or shorthand <c>NE</c>). Null = no <c>-gravity</c> flag.</summary>
+		public string Gravity { get; set; }
+
+		/// <summary>ImageMagick dissolve argument as a raw string (e.g., <c>"70"</c> or <c>"70x40"</c>). Null = no <c>-dissolve</c> flag.</summary>
+		public string Dissolve { get; set; }
+
+		/// <summary>Canonical overlay sizing as a raw ImageMagick geometry string (e.g., <c>"60x"</c>, <c>"x80"</c>, <c>"60x60!"</c>). Null = overlay used at native size.</summary>
+		public string Resize { get; set; }
+
+		public string AutoGravity { get; set; }
 		public RaiPath OverlayRoot { get; set; }
 
 		/// <summary>Stacking order for multiple overlays. Lower values render first.</summary>
 		public int RenderOrder { get; set; }
 
-		/// <summary>Legacy alias for <see cref="RenderOrder"/>.</summary>
-		public int RenderTime
-		{
-			get => RenderOrder;
-			set => RenderOrder = value;
-		}
-
-		/// <summary>Common z-order alias for <see cref="RenderOrder"/>.</summary>
-		public int ZIndex
-		{
-			get => RenderOrder;
-			set => RenderOrder = value;
-		}
-
-		public string Size
-		{
-			get => getSize();
-			set => setSize(value);
-		}
-
-		public string getSize()
-		{
-			if ((Width ?? 0) <= 0 && (Height ?? 0) <= 0)
-				return null;
-			return (Width ?? 0) + "x" + (Height ?? 0);
-		}
-
-		public void setSize(string value)
-		{
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				Width = null;
-				Height = null;
-				return;
-			}
-			var pos = value.IndexOf('x');
-			if (pos < 0)
-				throw new FormatException("Overlay size must be WIDTHxHEIGHT.");
-			Width = int.TryParse(value[..pos], out var width) && width > 0 ? width : null;
-			Height = int.TryParse(value[(pos + 1)..], out var height) && height > 0 ? height : null;
-		}
+		/// <summary>
+		/// Duck-typed escape hatch for any ImageMagick composite flag not modeled as an explicit property.
+		/// See <see cref="TemplateSetting.Extra"/> for the contract.
+		/// </summary>
+		public IDictionary<string, string> Extra { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
 		public string BuildCompositeOptions()
 		{
 			var options = new List<string>();
-			options.Add("-dissolve " + Dissolve);
-			options.Add("-gravity " + NormalizeGravity(Gravity));
+			TemplateSetting.AppendValueFlag(options, "dissolve", Dissolve);
+			if (!string.IsNullOrWhiteSpace(Gravity))
+				options.Add("-gravity " + NormalizeGravity(Gravity));
+			TemplateSetting.AppendExtra(options, Extra);
 			return string.Join(" ", options);
 		}
 
@@ -302,41 +211,6 @@ namespace RaiImage
 		{
 		}
 
-		public OverlaySetting(string name, string image, string gravity, int dissolve, int? width = null,
-			int renderOrder = 0, RaiPath overlayRoot = null)
-		{
-			Name = name ?? string.Empty;
-			Image = image ?? string.Empty;
-			Gravity = string.IsNullOrWhiteSpace(gravity) ? "Center" : gravity;
-			Dissolve = dissolve;
-			Width = width;
-			RenderOrder = renderOrder;
-			OverlayRoot = overlayRoot;
-		}
-
-		public OverlaySetting(string name, string note, string image, int width, int height, string dissolve,
-			string gravity, string autoGravity, int renderTime, string overlayDir)
-			: this(name, note, image, dissolve, gravity, autoGravity, renderTime, overlayDir)
-		{
-			if (Width == null && width > 0)
-				Width = width;
-			if (Height == null && height > 0)
-				Height = height;
-		}
-
-		public OverlaySetting(string name, string note, string image, string dissolve, string gravity,
-			string autoGravity, int renderTime, string overlayDir)
-		{
-			Name = name ?? string.Empty;
-			Note = note ?? string.Empty;
-			Image = image ?? string.Empty;
-			Dissolve = int.TryParse((dissolve ?? string.Empty).TrimEnd('%'), out var d) ? d : 100;
-			Gravity = string.IsNullOrWhiteSpace(gravity) ? "Center" : gravity;
-			AutoGravity = autoGravity ?? string.Empty;
-			RenderOrder = renderTime;
-			OverlayRoot = string.IsNullOrWhiteSpace(overlayDir) ? null : new RaiPath(overlayDir);
-		}
-
 		private static string NormalizeGravity(string gravity)
 		{
 			return (gravity ?? string.Empty).Trim().ToUpperInvariant() switch
@@ -350,7 +224,6 @@ namespace RaiImage
 				"W" => "West",
 				"NW" => "NorthWest",
 				"C" => "Center",
-				"" => "Center",
 				_ => gravity.Trim()
 			};
 		}
@@ -485,11 +358,10 @@ namespace RaiImage
 			RaiFile tempOverlay = null;
 			try
 			{
-				if ((overlay.Width ?? 0) > 0 || (overlay.Height ?? 0) > 0)
+				if (!string.IsNullOrWhiteSpace(overlay.Resize))
 				{
 					tempOverlay = CreateTempOverlayFile(target);
-					var resize = BuildOverlayResizeGeometry(overlay);
-					var resizeExit = magick.Convert("-resize " + resize, overlayFile.FullName, tempOverlay.FullName, true);
+					var resizeExit = magick.Convert("-resize " + overlay.Resize.Trim(), overlayFile.FullName, tempOverlay.FullName, true);
 					EnsureRenderSucceeded(resizeExit, tempOverlay, magick.Message, "overlay resize", overlay.Name);
 					compositedOverlay = tempOverlay;
 				}
@@ -534,15 +406,6 @@ namespace RaiImage
 
 		private static string AppendRenderingName(string current, string addition)
 			=> string.IsNullOrWhiteSpace(current) ? addition : current + addition;
-
-		private static string BuildOverlayResizeGeometry(OverlaySetting overlay)
-		{
-			var width = overlay.Width.GetValueOrDefault();
-			var height = overlay.Height.GetValueOrDefault();
-			if (width > 0 && height > 0)
-				return width + "x" + height;
-			return width > 0 ? width + "x" : "x" + height;
-		}
 
 		private static RaiFile CreateTempOverlayFile(ImageTreeFile target)
 			=> new RaiFile(target.SubdirRoot, ".raimage-overlay-" + Guid.NewGuid().ToString("N"), "png");
