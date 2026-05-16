@@ -659,7 +659,7 @@ namespace RaiImage
 	/// Implements IPathConvention for the directory layout.
 	/// Inherits INamingConvention from ImageFile.
 	/// </summary>
-	public class ImageTreeFile : ImageFile, IPathConvention
+	public partial class ImageTreeFile : ImageFile, IPathConvention
 	{
 		#region path convention — directory tree layout
 		public PathConventionType Convention

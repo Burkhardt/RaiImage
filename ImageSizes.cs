@@ -91,16 +91,16 @@ namespace RaiImage
 		private ImageFile image;
 
 		public bool HasMultipleSkus =>
-			src.Contains(' ') || src.Contains("%20") || src.Count(f => f == '/') > 1;
+			ParseSource().Contains(' ') || ParseSource().Contains("%20") || ParseSource().Count(f => f == '/') > 1;
 
 		public string[] Skus =>
-			src[(src.IndexOf('/') + 1)..].Replace("%20", ",").Replace(" ", ",").Split(',');
+			ParseSource()[(ParseSource().IndexOf('/') + 1)..].Replace("%20", ",").Replace(" ", ",").Split(',');
 
 		public string Sku
 		{
 			get
 			{
-				image ??= new ImageFile(src);
+				image ??= new ImageFile(ParseSource());
 				return image.Sku;
 			}
 		}
@@ -109,9 +109,9 @@ namespace RaiImage
 		{
 			get
 			{
-				image ??= new ImageFile(src);
-				var p = image.Path.ToString();
-				return p.Length > 0 ? p[..^1] : p;
+				var source = ParseSource();
+				var separator = source.IndexOfAny(['/', '\\']);
+				return separator > 0 ? source[..separator] : string.Empty;
 			}
 		}
 
@@ -119,7 +119,7 @@ namespace RaiImage
 		{
 			get
 			{
-				image ??= new ImageFile(src);
+				image ??= new ImageFile(ParseSource());
 				return image.ImageNumber;
 			}
 		}
@@ -128,7 +128,7 @@ namespace RaiImage
 		{
 			get
 			{
-				image ??= new ImageFile(src);
+				image ??= new ImageFile(ParseSource());
 				return image.Name;
 			}
 		}
@@ -137,7 +137,7 @@ namespace RaiImage
 		{
 			get
 			{
-				image ??= new ImageFile(src);
+				image ??= new ImageFile(ParseSource());
 				return image.NameWithExtension;
 			}
 		}
@@ -147,7 +147,32 @@ namespace RaiImage
 
 		public Src(string src)
 		{
-			this.src = src.Replace("%2F", "/");
+			this.src = (src ?? string.Empty).Replace("%2F", "/");
+		}
+
+		private string ParseSource()
+		{
+			var value = src;
+			var route = value.Trim();
+			if (Uri.TryCreate(route, UriKind.Absolute, out var uri)
+			    && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+			{
+				route = uri.AbsolutePath;
+			}
+			else
+			{
+				var fragment = route.IndexOf('#');
+				if (fragment >= 0)
+					route = route[..fragment];
+				var query = route.IndexOf('?');
+				if (query >= 0)
+					route = route[..query];
+			}
+
+			var segments = route.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
+			if (segments.Length >= 3 && string.Equals(segments[^3], "img", StringComparison.OrdinalIgnoreCase))
+				return Uri.UnescapeDataString(segments[^2]) + "/" + Uri.UnescapeDataString(segments[^1]);
+			return value;
 		}
 	}
 
@@ -158,7 +183,8 @@ namespace RaiImage
 			get => template;
 			set
 			{
-				var val = value.Split('=').Last();
+				var val = ExtractTmpValue(value);
+				Overlays = [];
 				if (string.IsNullOrEmpty(val))
 				{
 					template = val;
@@ -184,10 +210,32 @@ namespace RaiImage
 		}
 		private List<string> overlays = [];
 
-		public string String => Template + string.Join("", Overlays);
+		public string String => (Template ?? string.Empty) + string.Join("", Overlays);
 		public string Param() => "tmp=" + String;
 
 		public Tmp(string tmpString) => Template = tmpString;
+
+		private static string ExtractTmpValue(string value)
+		{
+			var val = (value ?? string.Empty).Trim();
+			if (val.Length == 0)
+				return string.Empty;
+
+			var queryStart = val.IndexOf('?');
+			if (queryStart >= 0)
+				val = val[(queryStart + 1)..];
+
+			if (val.Contains('&') || val.StartsWith("tmp=", StringComparison.OrdinalIgnoreCase))
+			{
+				var query = HttpUtility.ParseQueryString(val);
+				foreach (var key in query.AllKeys)
+					if (string.Equals(key, "tmp", StringComparison.OrdinalIgnoreCase))
+						return query[key]?.Trim() ?? string.Empty;
+				return string.Empty;
+			}
+
+			return val;
+		}
 	}
 
 	public class IservUrl
@@ -262,7 +310,7 @@ namespace RaiImage
 		public Src Src { get; set; }
 		public Tmp Tmp { get; set; }
 
-		public bool isHDitemLink() => Tmp != null && !string.IsNullOrEmpty(Src.Subscriber);
+		public bool isHDitemLink() => Tmp != null && Src != null && !string.IsNullOrEmpty(Src.Subscriber);
 
 		public string Url
 		{
@@ -288,15 +336,26 @@ namespace RaiImage
 		{
 			if (callBaseInit)
 				init(uri);
-			if (string.IsNullOrEmpty(u.Query)) return;
+			if (string.IsNullOrEmpty(u.Query))
+			{
+				ApplyRouteSrc();
+				return;
+			}
 
 			var p = HttpUtility.ParseQueryString(u.Query);
-			Src = new Src(p["src"]);
-			Subscriber = Src.Subscriber;
 			Tmp = p["tmp"] == null ? null : new Tmp(p["tmp"]);
+			if (!string.IsNullOrWhiteSpace(p["src"]))
+			{
+				Src = new Src(p["src"]);
+				Subscriber = Src.Subscriber;
+			}
+			else
+			{
+				ApplyRouteSrc();
+			}
 
 			#region try to get the SKU for non-HDitem links
-			if (Src == null || string.IsNullOrEmpty(Src.Sku))
+			if (Src != null && string.IsNullOrEmpty(Src.Sku))
 			{
 				var regex = new Regex(@"([a-z]{2}\d{6}-\d{3}-\d{2})-(\d{1})x");
 				var img = new ImageFile(Src.Image);
@@ -311,6 +370,21 @@ namespace RaiImage
 				}
 			}
 			#endregion
+		}
+
+		private void ApplyRouteSrc()
+		{
+			var segments = u.Path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+			if (segments.Length < 2)
+				return;
+
+			var subscriber = Uri.UnescapeDataString(segments[^2]);
+			var image = Uri.UnescapeDataString(segments[^1]);
+			if (string.IsNullOrWhiteSpace(subscriber) || string.IsNullOrWhiteSpace(image))
+				return;
+
+			Src = new Src(subscriber + "/" + image);
+			Subscriber = subscriber;
 		}
 
 		public ImageUrl(string imageUrl) : base(imageUrl)

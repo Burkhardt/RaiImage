@@ -3,6 +3,18 @@ namespace RaiImage.Tests;
 public class ImageTreeFileTests
 {
 	[Fact]
+	public void ImageUrl_From_HDitem()
+	{
+		var tmp = new Tmp("LargeNew");
+		var src = new Src("/img/Dr2RAI/Screenshot20260502At13.06.17");
+		var imageUrl = new ImageUrl("https://localhost:7143/img/Dr2RAI/Screenshot20260502At13.06.17?tmp=LargeNew");
+		Assert.True(tmp.Overlays.Count == 1);
+		Assert.Equal("LargeNew", tmp.String);
+		Assert.Equal("/img/Dr2RAI/Screenshot20260502At13.06.17", src.String);
+		Assert.Equal("Dr2RAI", src.Subscriber);
+		Assert.Equal(-1, src.ImageNumber);
+	}
+	[Fact]
 	public void Constructor_NormalizesScreenshotStyleFilename()
 	{
 		var sut = new ImageTreeFile("/tmp/root/Screenshot 2026-05-09 at 14.46.25.png");
