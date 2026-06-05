@@ -596,28 +596,48 @@ namespace RaiImage
 		/// <returns>false if no file exists for any passed-in extensions</returns>
 		public bool ExtendToFirstExistingFile(string extensions, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, ColorInfo colorInfo = null)
 		{
-			var itf = new ImageTreeFile(FullName, splitMode);
-			itf.Color = colorInfo ?? new ColorInfo("#0DEAD0");
-			itf.Ext = "*";
-			var searchPattern = colorInfo == null ? itf.NameWithExtension.Replace("_0DEAD0", "*") : itf.NameWithExtension;
-			string[] dirEntries = Directory.GetFileSystemEntries(itf.SubdirRoot.ToString(), searchPattern);
+			var itf = new ImageTreeFile(FullName, splitMode, NamingConvention);
+			string[] dirEntries = Directory.GetFileSystemEntries(itf.SubdirRoot.ToString(), $"{ItemId}*");
 			string[] extArray = extensions.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
 			if (extArray.Length > 0)
-				foreach (var dirEntry in dirEntries)
+			{
+				foreach (string extension in extArray)
 				{
-					itf = new ImageTreeFile(dirEntry, splitMode);
-					foreach (string extension in extArray)
+					foreach (var dirEntry in dirEntries)
 					{
-						if (extension == itf.Ext)
+						var foundItf = new ImageTreeFile(dirEntry, splitMode, NamingConvention);
+
+						// 1. Matches ItemId (case-insensitive)
+						if (!string.Equals(foundItf.ItemId, ItemId, StringComparison.OrdinalIgnoreCase))
+							continue;
+
+						// 2. Matches ImageNumber exactly (both NoImageNumber or specific match)
+						if (foundItf.ImageNumber != ImageNumber)
+							continue;
+
+						// 3. Must be a real source (no NameExt/Template name)
+						if (!string.IsNullOrEmpty(foundItf.NameExt))
+							continue;
+
+						// 4. Matches requested color if colorInfo is provided
+						if (colorInfo != null)
 						{
-							Ext = extension;
-							Color = itf.Color;
+							if (foundItf.Color == null || !string.Equals(foundItf.Color.Code, colorInfo.Code, StringComparison.OrdinalIgnoreCase))
+								continue;
+						}
+
+						// 5. Matches target extension (case-insensitive)
+						if (string.Equals(extension, foundItf.Ext, StringComparison.OrdinalIgnoreCase))
+						{
+							Ext = foundItf.Ext;
+							Color = foundItf.Color;
 							if (ImageNumber == NoImageNumber)
-								ImageNumber = new ImageTreeFile(dirEntry, splitMode).ImageNumber;
+								ImageNumber = foundItf.ImageNumber;
 							return true;
 						}
 					}
 				}
+			}
 			return false;
 		}
 		#region constructors
