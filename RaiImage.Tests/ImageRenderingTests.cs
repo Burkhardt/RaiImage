@@ -17,6 +17,52 @@ public class ImageRenderingTests : IDisposable
 	}
 
 	[Fact]
+	public void ApplyTemplate_PreservesImageNumberInRenderedOutputNames()
+	{
+		var root = NewTestRoot();
+		try
+		{
+			var tools = root / "tools";
+			tools.mkdir();
+			var log = new RaiFile(root, "magick", "log");
+			var script = CreateFakeMagickScript(tools, log.FullName);
+			ImageMagick.ImPath = tools;
+			ImageMagick.MagickCommand = new RaiFile(script).NameWithExtension;
+
+			var imageTreeRoot = root / "images";
+			var subscriberRoot = imageTreeRoot / "Dr2RAI";
+			SeedFile(new ImageTreeFile(subscriberRoot.FullPath + "AfricanPicnic_01.png",
+				PathConventionType.ItemIdTree8x2, ImageNamingConvention.Structured), "source-01");
+			SeedFile(new ImageTreeFile(subscriberRoot.FullPath + "AfricanPicnic_02.png",
+				PathConventionType.ItemIdTree8x2, ImageNamingConvention.Structured), "source-02");
+			SeedFile(new ImageTreeFile(subscriberRoot, "GageElementary", string.Empty, "png"), "source-no-number");
+
+			var template = new TemplateSetting
+			{
+				Name = "Huge",
+				Resize = "300x200>",
+				Format = "webp"
+			};
+
+			var rendered01 = ImageTreeFile.ApplyTemplate(imageTreeRoot, "Dr2RAI", "AfricanPicnic_01", template);
+			var rendered02 = ImageTreeFile.ApplyTemplate(imageTreeRoot, "Dr2RAI", "AfricanPicnic_02", template);
+			var renderedNoNumber = ImageTreeFile.ApplyTemplate(imageTreeRoot, "Dr2RAI", "GageElementary", template);
+
+			Assert.True(rendered01.Exists());
+			Assert.True(rendered02.Exists());
+			Assert.True(renderedNoNumber.Exists());
+			Assert.NotEqual(rendered01.FullName, rendered02.FullName);
+			Assert.EndsWith("AfricanPicnic_01_Huge.webp", rendered01.FullName);
+			Assert.EndsWith("AfricanPicnic_02_Huge.webp", rendered02.FullName);
+			Assert.EndsWith("GageElementary_Huge.webp", renderedNoNumber.FullName);
+		}
+		finally
+		{
+			Cleanup(root);
+		}
+	}
+
+	[Fact]
 	public void StaticApplyTemplate_ResolvesExternalLinkSource_AndCreatesRenderedImage()
 	{
 		var root = NewTestRoot();
@@ -129,6 +175,12 @@ public class ImageRenderingTests : IDisposable
 	{
 		if (root?.Exists() == true)
 			root.rmdir(depth: 5, deleteFiles: true);
+	}
+
+	private static void SeedFile(ImageTreeFile file, string content)
+	{
+		file.mkdir();
+		new TextFile(file.FullName, content);
 	}
 
 	private static string CreateFakeMagickScript(RaiPath toolsDir, string logPath)

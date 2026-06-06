@@ -247,6 +247,11 @@ namespace RaiImage
 
 		public static ImageTreeFile FromImageTree(RaiPath imageTreeRoot, string subscriber, string itemId,
 			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromImageTree(imageTreeRoot, subscriber, itemId, InferSourceNamingConvention(itemId), sourceExtensions, convention);
+
+		public static ImageTreeFile FromImageTree(RaiPath imageTreeRoot, string subscriber, string itemId,
+			ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 		{
 			if (imageTreeRoot == null)
 				throw new ArgumentNullException(nameof(imageTreeRoot));
@@ -257,7 +262,8 @@ namespace RaiImage
 				throw new ArgumentException("ItemId must be a plain file stem.", nameof(itemId));
 
 			var ownerRoot = imageTreeRoot / new RaiRelPath(subscriber);
-			var source = new ImageTreeFile(ownerRoot, TemplateSetting.StripKnownExtension(itemId), string.Empty, "png", convention);
+			var sourceStem = TemplateSetting.StripKnownExtension(itemId);
+			var source = new ImageTreeFile(ownerRoot.FullPath + sourceStem + ".png", convention, namingConvention);
 			if (!TryExtendToFirstExistingFile(source, sourceExtensions ?? DefaultSourceExtensions, convention))
 				throw new FileNotFoundException(
 					$"Source image '{itemId}' was not found for subscriber '{subscriber}' under '{imageTreeRoot.FullPath}'.",
@@ -269,6 +275,11 @@ namespace RaiImage
 			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromImageTree(new RaiPath(imageTreeRoot), subscriber, itemId, sourceExtensions, convention);
 
+		public static ImageTreeFile FromImageTree(string imageTreeRoot, string subscriber, string itemId,
+			ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromImageTree(new RaiPath(imageTreeRoot), subscriber, itemId, namingConvention, sourceExtensions, convention);
+
 		public static ImageTreeFile FromExternalLink(RaiPath imageTreeRoot, string externalLink,
 			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
 		{
@@ -276,9 +287,22 @@ namespace RaiImage
 			return FromImageTree(imageTreeRoot, request.Subscriber, request.ItemId, sourceExtensions, convention);
 		}
 
+		public static ImageTreeFile FromExternalLink(RaiPath imageTreeRoot, string externalLink,
+			ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		{
+			var request = ParseExternalLink(externalLink, ModernImgRouteConvention.Default);
+			return FromImageTree(imageTreeRoot, request.Subscriber, request.ItemId, namingConvention, sourceExtensions, convention);
+		}
+
 		public static ImageTreeFile FromExternalLink(string imageTreeRoot, string externalLink,
 			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromExternalLink(new RaiPath(imageTreeRoot), externalLink, sourceExtensions, convention);
+
+		public static ImageTreeFile FromExternalLink(string imageTreeRoot, string externalLink,
+			ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromExternalLink(new RaiPath(imageTreeRoot), externalLink, namingConvention, sourceExtensions, convention);
 
 		public static ImageTreeFile FromExternalLink(RaiPath imageTreeRoot, string externalLink,
 			IImageRouteConvention routeConvention, string sourceExtensions = null,
@@ -288,40 +312,83 @@ namespace RaiImage
 			return FromImageTree(imageTreeRoot, request.Subscriber, request.ItemId, sourceExtensions, convention);
 		}
 
+		public static ImageTreeFile FromExternalLink(RaiPath imageTreeRoot, string externalLink,
+			IImageRouteConvention routeConvention, ImageNamingConvention namingConvention,
+			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		{
+			var request = ParseExternalLink(externalLink, routeConvention);
+			return FromImageTree(imageTreeRoot, request.Subscriber, request.ItemId, namingConvention, sourceExtensions, convention);
+		}
+
 		public static ImageTreeFile FromExternalLink(string imageTreeRoot, string externalLink,
 			IImageRouteConvention routeConvention, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromExternalLink(new RaiPath(imageTreeRoot), externalLink, routeConvention, sourceExtensions, convention);
+
+		public static ImageTreeFile FromExternalLink(string imageTreeRoot, string externalLink,
+			IImageRouteConvention routeConvention, ImageNamingConvention namingConvention,
+			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromExternalLink(new RaiPath(imageTreeRoot), externalLink, routeConvention, namingConvention, sourceExtensions, convention);
 
 		public static ImageTreeFile ApplyTemplate(RaiPath imageTreeRoot, string subscriber, string itemId,
 			TemplateSetting tmp, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromImageTree(imageTreeRoot, subscriber, itemId, sourceExtensions, convention).ApplyTemplate(tmp);
 
+		public static ImageTreeFile ApplyTemplate(RaiPath imageTreeRoot, string subscriber, string itemId,
+			TemplateSetting tmp, ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromImageTree(imageTreeRoot, subscriber, itemId, namingConvention, sourceExtensions, convention).ApplyTemplate(tmp);
+
 		public static ImageTreeFile ApplyTemplate(string imageTreeRoot, string subscriber, string itemId,
 			TemplateSetting tmp, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> ApplyTemplate(new RaiPath(imageTreeRoot), subscriber, itemId, tmp, sourceExtensions, convention);
+
+		public static ImageTreeFile ApplyTemplate(string imageTreeRoot, string subscriber, string itemId,
+			TemplateSetting tmp, ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> ApplyTemplate(new RaiPath(imageTreeRoot), subscriber, itemId, tmp, namingConvention, sourceExtensions, convention);
 
 		public static ImageTreeFile ApplyTemplate(RaiPath imageTreeRoot, string externalLink,
 			TemplateSetting tmp, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromExternalLink(imageTreeRoot, externalLink, sourceExtensions, convention).ApplyTemplate(tmp);
 
+		public static ImageTreeFile ApplyTemplate(RaiPath imageTreeRoot, string externalLink,
+			TemplateSetting tmp, ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromExternalLink(imageTreeRoot, externalLink, namingConvention, sourceExtensions, convention).ApplyTemplate(tmp);
+
 		public static ImageTreeFile ApplyTemplate(string imageTreeRoot, string externalLink,
 			TemplateSetting tmp, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> ApplyTemplate(new RaiPath(imageTreeRoot), externalLink, tmp, sourceExtensions, convention);
+
+		public static ImageTreeFile ApplyTemplate(string imageTreeRoot, string externalLink,
+			TemplateSetting tmp, ImageNamingConvention namingConvention, string sourceExtensions = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> ApplyTemplate(new RaiPath(imageTreeRoot), externalLink, tmp, namingConvention, sourceExtensions, convention);
 
 		public static ImageTreeFile ApplyTemplate(RaiPath imageTreeRoot, string externalLink,
 			TemplateSetting tmp, IImageRouteConvention routeConvention, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromExternalLink(imageTreeRoot, externalLink, routeConvention, sourceExtensions, convention).ApplyTemplate(tmp);
 
+		public static ImageTreeFile ApplyTemplate(RaiPath imageTreeRoot, string externalLink,
+			TemplateSetting tmp, IImageRouteConvention routeConvention, ImageNamingConvention namingConvention,
+			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromExternalLink(imageTreeRoot, externalLink, routeConvention, namingConvention, sourceExtensions, convention).ApplyTemplate(tmp);
+
 		public static ImageTreeFile ApplyTemplate(string imageTreeRoot, string externalLink,
 			TemplateSetting tmp, IImageRouteConvention routeConvention, string sourceExtensions = null,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> ApplyTemplate(new RaiPath(imageTreeRoot), externalLink, tmp, routeConvention, sourceExtensions, convention);
+
+		public static ImageTreeFile ApplyTemplate(string imageTreeRoot, string externalLink,
+			TemplateSetting tmp, IImageRouteConvention routeConvention, ImageNamingConvention namingConvention,
+			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> ApplyTemplate(new RaiPath(imageTreeRoot), externalLink, tmp, routeConvention, namingConvention, sourceExtensions, convention);
 
 		public ImageTreeFile ApplyTemplate(TemplateSetting tmp)
 		{
@@ -399,9 +466,24 @@ namespace RaiImage
 
 		private ImageTreeFile CreateRenderingTarget(string renderingName, string ext)
 		{
-			var target = new ImageTreeFile(Path, ItemId, renderingName,
-				TemplateSetting.NormalizeExtension(ext, TemplateSetting.DefaultFormat), Convention);
-			return target;
+			var normalizedExt = TemplateSetting.NormalizeExtension(ext, TemplateSetting.DefaultFormat);
+			if (ImageNumber == NoImageNumber)
+				return new ImageTreeFile(Path, ItemId, renderingName, normalizedExt, Convention);
+
+			var targetStem = ItemId + "_" + ImageNumber.ToString("D2") + "_" + renderingName;
+			return new ImageTreeFile(Path.FullPath + targetStem + "." + normalizedExt,
+				Convention, ImageNamingConvention.Structured);
+		}
+
+		private static ImageNamingConvention InferSourceNamingConvention(string itemId)
+		{
+			var stem = TemplateSetting.StripKnownExtension(itemId);
+			var comma = stem.IndexOf(',');
+			var positional = comma >= 0 ? stem[..comma] : stem;
+			var parts = positional.Split('_');
+			return parts.Length >= 2 && int.TryParse(parts[1], out _)
+				? ImageNamingConvention.Structured
+				: ImageNamingConvention.Legacy;
 		}
 
 		private static string AppendRenderingName(string current, string addition)
