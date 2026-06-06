@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.8.15 scope note
+## 3.9.0 scope note
 
-- RaiImage aligns with the `3.8.15` `RAIkeep` package line.
-- Coordinated release: adds naming-convention overloads for render source resolution and preserves `ImageNumber` in rendered target names; fallback package references align to `OsLibCore 3.8.15` and `RaiUtils 3.8.15`.
+- RaiImage aligns with the `3.9.0` `RAIkeep` package line.
+- Coordinated release: adds naming-aware rooted `ImageTreeFile.FromName(...)` factories, makes `InferSourceNamingConvention(...)` public, preserves `ImageNumber` in rendered target names, and aligns fallback package references to `OsLibCore 3.9.0` and `RaiUtils 3.9.0`.
 
 ## naming and parsing helpers
 
@@ -118,8 +118,8 @@ This document provides a detailed, foldable API overview.
 		</details>
 	</details>
 
-- <details>
-	<summary>ImageTreeFile: `ImageFile` with tree-based directory partitioning.</summary>
+	- <details>
+		<summary>ImageTreeFile: `ImageFile` with tree-based directory partitioning.</summary>
 
 	- <details>
 		<summary>Topdir / Subdir / TopdirRoot / SubdirRoot: partition path components.</summary>
@@ -138,9 +138,20 @@ This document provides a detailed, foldable API overview.
 		- Builds destination tree from file names and moves files into partitioned folders.
 		</details>
 	- <details>
+		<summary>FromName(rootPath, name, ...): parse a rooted short name without needing a source file extension.</summary>
+
+		- Supports route values such as `AfricanPicnic_04`, `AfricanPicnic_04_Small`, `GageElementary`, and `GageElementary_Huge`.
+		- Can auto-infer `ImageNamingConvention` from the supplied name or accept it explicitly.
+		</details>
+	- <details>
 		<summary>CopyTo(destDirs), mkdir(), rmdir(): tree-aware file/folder operations.</summary>
 
 		- Supports multi-target copy and depth-based tree cleanup.
+		</details>
+	- <details>
+		<summary>InferSourceNamingConvention(itemId): expose RaiImage's own naming inference for callers that need to stay in lockstep.</summary>
+
+		- Returns `Structured` when the name carries a numeric image-number segment; otherwise returns `Legacy`.
 		</details>
 	</details>
 
