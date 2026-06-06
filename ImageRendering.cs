@@ -245,6 +245,36 @@ namespace RaiImage
 		public static string DefaultSourceExtensions { get; set; } =
 			"webp,jpg,jpeg,png,heic,heif,tif,tiff,gif,bmp,psd";
 
+		public static ImageTreeFile FromName(RaiPath rootPath, string name,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromName(rootPath, name, InferSourceNamingConvention(name), convention);
+
+		public static ImageTreeFile FromName(string rootPath, string name,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromName(new RaiPath(rootPath), name, convention);
+
+		public static ImageTreeFile FromName(RaiPath rootPath, string name,
+			ImageNamingConvention namingConvention,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		{
+			if (rootPath == null)
+				throw new ArgumentNullException(nameof(rootPath));
+			if (string.IsNullOrWhiteSpace(name))
+				throw new ArgumentException("Name is required.", nameof(name));
+			if (name.Contains('/') || name.Contains('\\'))
+				throw new ArgumentException("Name must be a plain file name or stem.", nameof(name));
+
+			var stem = TemplateSetting.StripKnownExtension(name);
+			if (string.IsNullOrWhiteSpace(stem))
+				throw new ArgumentException("Name is required.", nameof(name));
+			return new ImageTreeFile(rootPath, stem, string.Empty, string.Empty, convention, namingConvention);
+		}
+
+		public static ImageTreeFile FromName(string rootPath, string name,
+			ImageNamingConvention namingConvention,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> FromName(new RaiPath(rootPath), name, namingConvention, convention);
+
 		public static ImageTreeFile FromImageTree(RaiPath imageTreeRoot, string subscriber, string itemId,
 			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromImageTree(imageTreeRoot, subscriber, itemId, InferSourceNamingConvention(itemId), sourceExtensions, convention);
@@ -262,8 +292,7 @@ namespace RaiImage
 				throw new ArgumentException("ItemId must be a plain file stem.", nameof(itemId));
 
 			var ownerRoot = imageTreeRoot / new RaiRelPath(subscriber);
-			var sourceStem = TemplateSetting.StripKnownExtension(itemId);
-			var source = new ImageTreeFile(ownerRoot.FullPath + sourceStem + ".png", convention, namingConvention);
+			var source = FromName(ownerRoot, itemId, namingConvention, convention);
 			if (!TryExtendToFirstExistingFile(source, sourceExtensions ?? DefaultSourceExtensions, convention))
 				throw new FileNotFoundException(
 					$"Source image '{itemId}' was not found for subscriber '{subscriber}' under '{imageTreeRoot.FullPath}'.",
@@ -475,7 +504,7 @@ namespace RaiImage
 				Convention, ImageNamingConvention.Structured);
 		}
 
-		private static ImageNamingConvention InferSourceNamingConvention(string itemId)
+		public static ImageNamingConvention InferSourceNamingConvention(string itemId)
 		{
 			var stem = TemplateSetting.StripKnownExtension(itemId);
 			var comma = stem.IndexOf(',');

@@ -488,28 +488,28 @@ namespace RaiImage
 		protected void Parse()
 		{
 			#region translate special phone and camera naming conventions
-			base.Name = BlankToCamelCase(
+			base.name = BlankToCamelCase(
 				base.Name
 				.Replace("_Film", "Film_")
 				.Replace("(", "")
 				.Replace(")", ""));
 			var currentName = base.Name;
 			if (currentName.ToUpper().StartsWith("WP_20"))
-				base.Name = currentName[5..];
+				base.name = currentName[5..];
 			currentName = base.Name;
 			if (currentName.ToLower().StartsWith("photo-"))
-				base.Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + "_" + currentName[6..];
+				base.name = DateTimeOffset.UtcNow.ToString("yyMMdd") + "_" + currentName[6..];
 			currentName = base.Name;
 			if (currentName.ToLower().StartsWith("photo") || currentName.ToLower().StartsWith("image"))
-				base.Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + currentName[5..];
+				base.name = DateTimeOffset.UtcNow.ToString("yyMMdd") + currentName[5..];
 			currentName = base.Name;
 			if (currentName.ToUpper().StartsWith("IMG") || currentName.ToUpper().StartsWith("_MG"))
-				base.Name = DateTimeOffset.UtcNow.ToString("yyMMdd") + currentName[3..];
+				base.name = DateTimeOffset.UtcNow.ToString("yyMMdd") + currentName[3..];
 			currentName = base.Name;
 			if (currentName.StartsWith("20") && currentName.Length > 5 && currentName[..5].Contains('-'))
 			{
 				var fields = currentName.Split(['-', ' ', '.', ':']);
-				base.Name = (int.Parse(fields[0]) - 2000).ToString("D2") + fields[1] + fields[2] + fields[3] + "_" + fields[4] + fields[5];
+				base.name = (int.Parse(fields[0]) - 2000).ToString("D2") + fields[1] + fields[2] + fields[3] + "_" + fields[4] + fields[5];
 			}
 			#endregion
 			var csvValues = name.Split(',');
@@ -596,8 +596,10 @@ namespace RaiImage
 		/// <returns>false if no file exists for any passed-in extensions</returns>
 		public bool ExtendToFirstExistingFile(string extensions, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, ColorInfo colorInfo = null)
 		{
-			var itf = new ImageTreeFile(FullName, splitMode, NamingConvention);
-			string[] dirEntries = Directory.GetFileSystemEntries(itf.SubdirRoot.ToString(), $"{ItemId}*");
+			var searchRoot = this is ImageTreeFile treeFile
+				? treeFile.SubdirRoot.ToString()
+				: Path.ToString();
+			string[] dirEntries = Directory.GetFileSystemEntries(searchRoot, $"{ItemId}*");
 			string[] extArray = extensions.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
 			if (extArray.Length > 0)
 			{
@@ -663,10 +665,15 @@ namespace RaiImage
 		{
 		}
 		public ImageFile(RaiPath path, string name, string nameExt, string ext)
-			: base(path, $"{name}_{nameExt}", ext)
+			: base(path, string.IsNullOrEmpty(nameExt) ? name : $"{name}_{nameExt}", ext)
 		{
 			Image = null;
 			itemId = string.Empty;
+			if (ext != null && ext.Length == 0)
+			{
+				base.name = string.IsNullOrEmpty(nameExt) ? name : $"{name}_{nameExt}";
+				Ext = string.Empty;
+			}
 			this.nameExt = string.Empty;
 			tileTemplate = string.Empty;
 			Parse();
@@ -856,11 +863,15 @@ namespace RaiImage
 		/// </summary>
 		public ImageTreeFile(RaiPath rootPath, string itemId, string templateName, string ext,
 			PathConventionType pathConvention = PathConventionType.ItemIdTree8x2)
-			: this(rootPath.FullPath + itemId
-				+ (string.IsNullOrEmpty(templateName) ? "" : "_" + templateName)
-				+ "." + ext,
-				pathConvention, ImageNamingConvention.ItemTemplate)
+			: this(rootPath, itemId, templateName, ext, pathConvention, ImageNamingConvention.ItemTemplate)
 		{
+		}
+		public ImageTreeFile(RaiPath rootPath, string itemId, string templateName, string ext,
+			PathConventionType pathConvention, ImageNamingConvention naming)
+			: base(rootPath, itemId, templateName, ext)
+		{
+			NamingConvention = naming;
+			Convention = pathConvention;
 		}
 		/// <summary>
 		/// Construct from legacy components (name, path, nameExt, ext).
