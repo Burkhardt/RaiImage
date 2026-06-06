@@ -2,12 +2,12 @@
 
 This repository aligns with private internal architecture decisions maintained outside this public repository.
 
-## 3.8.14 release alignment
+## 3.8.15 release alignment
 
-- Coordinated release: aligns RaiImage with the `3.8.14` `RAIkeep` package line in the current dependency order.
+- Coordinated release: aligns RaiImage with the `3.8.15` `RAIkeep` package line in the current dependency order.
 - The packaged support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, and `Dropbox`.
 - Cross-package wording now reflects JsonPit's `Id`-based identifier contract.
-- The aligned fallback dependencies remain `OsLibCore 3.8.14` and `RaiUtils 3.8.14` in the current package line.
+- The aligned fallback dependencies remain `OsLibCore 3.8.15` and `RaiUtils 3.8.15` in the current package line.
 - No RaiImage API changes from `3.8.11`.
 
 ## intent for RaiImage

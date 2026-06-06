@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.8.14 scope note
+## 3.8.15 scope note
 
-- RaiImage aligns with the `3.8.14` `RAIkeep` package line.
-- Coordinated release: no RaiImage API changes from `3.8.11`; fallback package references align to `OsLibCore 3.8.14` and `RaiUtils 3.8.14`.
+- RaiImage aligns with the `3.8.15` `RAIkeep` package line.
+- Coordinated release: adds naming-convention overloads for render source resolution and preserves `ImageNumber` in rendered target names; fallback package references align to `OsLibCore 3.8.15` and `RaiUtils 3.8.15`.
 
 ## naming and parsing helpers
 
