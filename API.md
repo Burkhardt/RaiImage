@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.8.11 scope note
+## 3.8.12 scope note
 
-- RaiImage aligns with the `3.8.11` `RAIkeep` package line.
-- Coordinated release: `ImageTreeFile.mkdir()` now overrides `RaiFile.mkdir()` and fallback package references align to `OsLibCore 3.8.11` and `RaiUtils 3.8.11`.
+- RaiImage aligns with the `3.8.12` `RAIkeep` package line.
+- Coordinated release: no RaiImage API changes from `3.8.11`; fallback package references align to `OsLibCore 3.8.12` and `RaiUtils 3.8.12`.
 
 ## naming and parsing helpers
 
