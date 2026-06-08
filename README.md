@@ -28,15 +28,15 @@ RaiImage
 ## classes
 
 <details>
-<summary>StringHelper: helper methods for title casing and camel-case splitting.</summary>
+<summary>StringHelper: helper methods for title casing and word splitting.</summary>
 
-- StringHelper: `ToTitle`, `CamelSplit`
+- StringHelper: `ToTitle`, `WordSplit`, `CamelSplit`
 </details>
 
 <details>
-<summary>CamelCase: converts between camel/pascal strings and token arrays.</summary>
+<summary>WordCase: converts between PascalCase, lower camelCase, snake_case, kebab-case, and token arrays.</summary>
 
-- CamelCase: `Array`, `String`
+- WordCase: `Array`, `String`, `PascalCase`, `LowerCamelCase`, `SnakeCase`, `KebabCase`
 </details>
 
 <details>

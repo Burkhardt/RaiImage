@@ -18,19 +18,21 @@ This document provides a detailed, foldable API overview.
 		- Converts `abc` to `Abc` and lowercases the remaining characters.
 		</details>
 	- <details>
-		<summary>CamelSplit(value): split camel/pascal case tokens.</summary>
+		<summary>WordSplit(value): split mixed case/separator tokens.</summary>
 
-		- Uses `CamelCase` tokenization rules and returns a token array.
+		- Uses `WordCase` tokenization rules and returns a token array.
+		- `CamelSplit(value)` remains as a compatibility alias.
 		</details>
 	</details>
 
 - <details>
-	<summary>CamelCase: bidirectional camel/pascal representation.</summary>
+	<summary>WordCase: bidirectional word-case representation.</summary>
 
 	- <details>
-		<summary>Array / String: synchronized token and joined forms.</summary>
+		<summary>Array / String / case properties: synchronized token and formatted forms.</summary>
 
-		- `Array` lazily tokenizes `String`; setting either side refreshes the other view.
+		- `Array` stores parsed word tokens; `String` returns `PascalCase` for legacy callers.
+		- Use `PascalCase`, `LowerCamelCase`, `SnakeCase`, or `KebabCase` for explicit output.
 		</details>
 	</details>
 

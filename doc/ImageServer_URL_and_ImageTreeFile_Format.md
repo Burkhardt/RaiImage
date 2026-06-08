@@ -35,7 +35,7 @@ Behavior from `Src`:
 
 ### 2.2 `tmp`
 
-`tmp` can represent a base template plus overlays in CamelCase.
+`tmp` can represent a base template plus overlays in lower camel/Pascal word case.
 
 Examples:
 
@@ -46,7 +46,7 @@ Examples:
 
 `Tmp` class behavior:
 
-- First CamelCase token -> `Template`
+- First word-case token -> `Template`
 - Remaining tokens -> `Overlays`
 
 ### 2.3 Output format switches
