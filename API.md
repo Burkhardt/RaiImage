@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.9.0 scope note
+## 3.9.1 scope note
 
-- RaiImage aligns with the `3.9.0` `RAIkeep` package line.
-- Coordinated release: adds naming-aware rooted `ImageTreeFile.FromName(...)` factories, makes `InferSourceNamingConvention(...)` public, preserves `ImageNumber` in rendered target names, and aligns fallback package references to `OsLibCore 3.9.0` and `RaiUtils 3.9.0`.
+- RaiImage aligns with the `3.9.1` `RAIkeep` package line.
+- Coordinated release: preserves trailing image numbers during `EasyFileName(...)` normalization, keeps all-uppercase tokens intact in `WordCase` PascalCase output, and aligns fallback package references to `OsLibCore 3.9.1` and `RaiUtils 3.9.1`.
 
 ## naming and parsing helpers
 

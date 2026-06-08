@@ -2,12 +2,12 @@
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 3.9.0
+## 3.9.1
 
-- Minor release: aligns fallback package references with `OsLibCore 3.9.0` and `RaiUtils 3.9.0`.
-- Adds naming-aware `ImageTreeFile.FromName(...)` factories for short-name rooted construction without a dummy extension or caller-side naming inference.
-- Makes `ImageTreeFile.InferSourceNamingConvention(...)` public and applies the naming-aware component constructor when building tree-based render targets.
-- Preserves `ImageNumber` in rendered target names.
+- Patch release: aligns fallback package references with `OsLibCore 3.9.1` and `RaiUtils 3.9.1`.
+- `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
+- `WordCase` now preserves all-uppercase tokens in PascalCase output so names such as `SD-State-Sony-149` normalize as expected.
+- The structured-name flow now stays aligned with the `iorg` CLI when it stages source images into `ImageTreeFile` layouts.
 - Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, and `Dropbox`.
 - This README is configured to ship inside the RaiImage NuGet package.
 
@@ -196,4 +196,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.9.0.md](RELEASE_NOTES_3.9.0.md)
+- Release notes: [RELEASE_NOTES_3.9.1.md](RELEASE_NOTES_3.9.1.md)

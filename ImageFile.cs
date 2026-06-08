@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using OsLib;
@@ -403,13 +404,19 @@ namespace RaiImage
 		}
 		public static string EasyFileName(string pic, bool renameFile = false)
 		{
-			while (pic.EndsWith('_'))
+			var sourceFile = new RaiFile(pic);
+			var sourceName = sourceFile.Name;
+			while (sourceName.EndsWith('_'))
 			{
-				pic = pic[..^1];
-				if (pic.Length == 0)
-					pic = "0";
+				sourceName = sourceName[..^1];
+				if (sourceName.Length == 0)
+					sourceName = "0";
 			}
-			var imgFile = new ImageFile(pic);
+			var (itemName, discoveredImageNumber) = SplitTrailingImageNumber(sourceName);
+			var itemId = new WordCase(itemName).PascalCase;
+			var imgFile = new ImageFile(sourceFile.Path, itemId, string.Empty, sourceFile.Ext);
+			if (discoveredImageNumber != NoImageNumber)
+				imgFile.ImageNumber = discoveredImageNumber;
 			if (imgFile.ImageNumber == NoImageNumber)
 				imgFile.ImageNumber = 1;
 			if (string.IsNullOrEmpty(imgFile.Ext))
@@ -464,6 +471,19 @@ namespace RaiImage
 					imgFile.mv(from);
 			}
 			return imgFile.FullName;
+		}
+		private static (string itemName, int imageNumber) SplitTrailingImageNumber(string sourceName)
+		{
+			var match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)(?<imageNumber>[0-9]+)$");
+			var itemName = match.Groups["itemName"].Value;
+			if (!match.Success
+				|| string.IsNullOrWhiteSpace(itemName)
+				|| !itemName.Any(char.IsLetter))
+				return (sourceName, NoImageNumber);
+
+			return int.TryParse(match.Groups["imageNumber"].Value, out var imageNumber)
+				? (itemName, imageNumber)
+				: (sourceName, NoImageNumber);
 		}
 		private static bool IsWeakItemId(string itemId)
 		{

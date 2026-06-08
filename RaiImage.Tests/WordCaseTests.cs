@@ -9,6 +9,7 @@ public class WordCaseTests
 
 	[Theory]
 	[InlineData("San-Diego-State-09.24-212", "SanDiegoState0924212", "sanDiegoState0924212", "san_diego_state_09_24_212", "san-diego-state-09-24-212")]
+	[InlineData("SD-State-Sony-149", "SDStateSony149", "sdStateSony149", "sd_state_sony_149", "sd-state-sony-149")]
 	[InlineData("nomsa-concert-167", PascalName, CamelName, SnakeName, KebabName)]
 	[InlineData("Mixed_Snake.AndPascal-and-kebabCase", "MixedSnakeAndPascalAndKebabCase", "mixedSnakeAndPascalAndKebabCase", "mixed_snake_and_pascal_and_kebab_case", "mixed-snake-and-pascal-and-kebab-case")]
 	public void StringConstructor_DetectsInputCaseAndConvertsToAllOutputCases(

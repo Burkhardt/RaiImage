@@ -90,6 +90,37 @@ public class ImageFileTests
 		var sut = new ImageFile("/tmp/root/308024_01_zoom.jpg");
 		Assert.Equal("308024_01", sut.ShortName);
 	}
+	[Theory]
+	[InlineData("nomsa-concert-11.jpg", "NomsaConcert_11.jpg")]
+	[InlineData("SD-State-Sony-149.jpg", "SDStateSony_149.jpg")]
+	[InlineData("San-Diego-State-09.24-232.jpg", "SanDiegoState0924_232.jpg")]
+	[InlineData("SD-State-Fuji-unedited-87.jpg", "SDStateFujiUnedited_87.jpg")]
+	public void EasyFileName_ConvertsSeparatedTrailingNumberToImageNumber(string sourceName, string expectedName)
+	{
+		var root = new RaiPath("/tmp/root/");
+		var source = new RaiFile(root, sourceName);
+		var expected = new RaiFile(root, expectedName);
+
+		Assert.Equal(expected.FullName, ImageFile.EasyFileName(source.FullName));
+	}
+	[Fact]
+	public void EasyFileName_ConvertsCompactTrailingDigitsToImageNumber()
+	{
+		var root = new RaiPath("/tmp/root/");
+		var source = new RaiFile(root, "NomsaConcert167.jpg");
+		var expected = new RaiFile(root, "NomsaConcert_167.jpg");
+
+		Assert.Equal(expected.FullName, ImageFile.EasyFileName(source.FullName));
+	}
+	[Fact]
+	public void EasyFileName_KeepsPureNumericNameAsItemId()
+	{
+		var root = new RaiPath("/tmp/root/");
+		var source = new RaiFile(root, "12345.jpg");
+		var expected = new RaiFile(root, "12345_01.jpg");
+
+		Assert.Equal(expected.FullName, ImageFile.EasyFileName(source.FullName));
+	}
 	#region Structured naming convention
 	[Fact]
 	public void StructuredConvention_ParsesAllComponents()

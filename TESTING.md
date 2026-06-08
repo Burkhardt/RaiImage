@@ -1,10 +1,10 @@
 # Testing RaiImage
 
-## 3.9.0 scope note
+## 3.9.1 scope note
 
 - The packaged `RAIkeep` support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, and `Dropbox`.
 - RaiImage test expectations should stay aligned with the same OsLib/JsonPit package line and configuration contract.
-- Fallback package validation for release builds now assumes `OsLibCore 3.9.0` and `RaiUtils 3.9.0`.
+- Fallback package validation for release builds now assumes `OsLibCore 3.9.1` and `RaiUtils 3.9.1`.
 
 ## Test projects
 
@@ -27,7 +27,7 @@ dotnet test RaiImage.Tests/RaiImage.Tests.csproj
 ## Current coverage focus
 
 - Item tree path partitioning and normalization (`ItemTreePath`)
-- Filename normalization defaults (`ImageFile.EasyFileName`)
+- Filename normalization defaults (`ImageFile.EasyFileName`) including separated and compact trailing image numbers
 - Naming-aware rooted short-name construction (`ImageTreeFile.FromName`)
 - ImageMagick wrapper constructor behavior with and without configured executable paths
 

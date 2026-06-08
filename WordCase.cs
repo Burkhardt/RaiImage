@@ -106,7 +106,10 @@ namespace RaiImage
 
 		private static string FormatPascalWord(string word)
 		{
-			return char.IsDigit(word[0]) ? word : word.ToTitle();
+			if (char.IsDigit(word[0]) || IsAllUppercaseWord(word))
+				return word;
+
+			return word.ToTitle();
 		}
 
 		private static string FormatCamelFirstWord(string word)
@@ -117,6 +120,12 @@ namespace RaiImage
 		private static string FormatSnakeWord(string word)
 		{
 			return word.ToLowerInvariant();
+		}
+
+		private static bool IsAllUppercaseWord(string word)
+		{
+			return word.Any(char.IsLetter)
+				&& word.Where(char.IsLetter).All(char.IsUpper);
 		}
 	}
 }
