@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.9.1 scope note
+## 3.10.0 scope note
 
-- RaiImage aligns with the `3.9.1` `RAIkeep` package line.
-- Coordinated release: preserves trailing image numbers during `EasyFileName(...)` normalization, keeps all-uppercase tokens intact in `WordCase` PascalCase output, and aligns fallback package references to `OsLibCore 3.9.1` and `RaiUtils 3.9.1`.
+- RaiImage aligns with the `3.10.0` `RAIkeep` package line.
+- Coordinated release: preserves trailing image numbers during `EasyFileName(...)` normalization, keeps all-uppercase tokens intact in `WordCase` PascalCase output, and aligns fallback package references to `OsLibCore 3.10.0` and `RaiUtils 3.10.0`.
 
 ## naming and parsing helpers
 

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-		<Version>3.9.1</Version>
+		<Version>3.10.0</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
@@ -19,7 +19,7 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-		<PackageReleaseNotes>3.9.1 release: improves filename normalization for trailing image numbers, preserves all-uppercase tokens in WordCase PascalCase output, refreshes live docs/diagrams, and aligns fallback dependencies with the coordinated patch line.</PackageReleaseNotes>
+		<PackageReleaseNotes>3.10.0 release: carries forward the current filename-normalization behavior, refreshes live docs/diagrams, aligns fallback dependencies with the coordinated minor line, and makes no further API changes beyond 3.9.1.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
 
@@ -55,8 +55,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
-		<PackageReference Include="OsLibCore" Version="3.9.1" />
-		<PackageReference Include="RaiUtils" Version="3.9.1" />
+		<PackageReference Include="OsLibCore" Version="3.10.0" />
+		<PackageReference Include="RaiUtils" Version="3.10.0" />
 	</ItemGroup>
 
 </Project>
