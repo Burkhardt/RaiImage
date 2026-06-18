@@ -2,9 +2,9 @@
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 3.10.1
+## 3.10.2
 
-- Patch release: aligns fallback package references with `OsLibCore 3.10.1` and `RaiUtils 3.10.1`.
+- Patch release: aligns fallback package references with `OsLibCore 3.10.2` and `RaiUtils 3.10.2`.
 - `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
 - `WordCase` now preserves all-uppercase tokens in PascalCase output so names such as `SD-State-Sony-149` normalize as expected.
 - The structured-name flow now stays aligned with the `iorg` CLI when it stages source images into `ImageTreeFile` layouts.
@@ -196,4 +196,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.10.1.md](RELEASE_NOTES_3.10.1.md)
+- Release notes: [RELEASE_NOTES_3.10.2.md](RELEASE_NOTES_3.10.2.md)
