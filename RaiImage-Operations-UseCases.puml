@@ -1,5 +1,5 @@
 @startuml RaiImageOperationsUseCases
-' Version: 3.10.2
+' Version: 3.10.4
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam linetype ortho

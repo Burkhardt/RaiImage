@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-		<Version>3.10.2</Version>
+		<Version>3.10.4</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
@@ -19,7 +19,7 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-		<PackageReleaseNotes>3.10.1 release: carries forward the current filename-normalization behavior, refreshes live docs and diagrams, aligns fallback dependencies with the coordinated package line, and makes no further API changes from 3.10.0.</PackageReleaseNotes>
+		<PackageReleaseNotes>3.10.4 release: documents WordCase as the replacement for the retired CamelCase helper, refreshes the live hierarchy diagram, and keeps fallback dependencies on the coordinated 3.10.2 line.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
 
@@ -55,8 +55,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
-		<PackageReference Include="OsLibCore" Version="3.10.1" />
-		<PackageReference Include="RaiUtils" Version="3.10.1" />
+		<PackageReference Include="OsLibCore" Version="3.10.2" />
+		<PackageReference Include="RaiUtils" Version="3.10.2" />
 	</ItemGroup>
 
 </Project>

@@ -82,6 +82,8 @@ new WordCase("nomsa-concert-167").CamelCaseString; // nomsaConcert167
 
 `String` defaults to `PascalCase` for legacy callers.
 
+The old `CamelCase` class is retired. Treat it as obsolete API documentation and migrate callers to `WordCase`.
+
 ## Tests
 
 The behavior is covered in `RaiImage.Tests/WordCaseTests.cs`.

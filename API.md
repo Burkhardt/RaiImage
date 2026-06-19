@@ -2,10 +2,10 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.10.2 scope note
+## 3.10.4 scope note
 
-- RaiImage aligns with the `3.10.2` `RAIkeep` package line.
-- Coordinated release: preserves trailing image numbers during `EasyFileName(...)` normalization, keeps all-uppercase tokens intact in `WordCase` PascalCase output, and aligns fallback package references to `OsLibCore 3.10.2` and `RaiUtils 3.10.2`.
+- RaiImage publishes a `3.10.4` patch while keeping fallback package references on `OsLibCore 3.10.2` and `RaiUtils 3.10.2`.
+- Coordinated release: documents `WordCase` as the supported replacement for the retired `CamelCase` helper and refreshes the live hierarchy diagram so it no longer advertises the removed type.
 
 ## naming and parsing helpers
 
@@ -33,6 +33,7 @@ This document provides a detailed, foldable API overview.
 
 		- `Array` stores parsed word tokens; `String` returns `PascalCase` for legacy callers.
 		- Use `PascalCase`, `LowerCamelCase`, `SnakeCase`, or `KebabCase` for explicit output.
+		- The old `CamelCase` class is retired; use `WordCase` instead.
 		</details>
 	</details>
 
