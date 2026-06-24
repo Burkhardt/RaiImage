@@ -54,7 +54,7 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-CamelCase.cs
+WordCase.cs
 ColorInfo.cs
 Dye.cs
 ImageFile.cs
