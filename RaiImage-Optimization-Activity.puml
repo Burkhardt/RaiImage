@@ -1,5 +1,5 @@
 @startuml RaiImageOptimizationActivity
-' Version: 3.11.1
+' Version: 3.11.2
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam linetype ortho

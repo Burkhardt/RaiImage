@@ -2,9 +2,9 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.11.1 scope note
+## 3.11.2 scope note
 
-- RaiImage publishes a coordinated `3.11.1` release with fallback package references aligned to `OsLibCore 3.11.1` and `RaiUtils 3.11.1`.
+- RaiImage publishes a coordinated `3.11.2` release with fallback package references aligned to `OsLibCore 3.11.2` and `RaiUtils 3.11.2`.
 - Coordinated release: documents `WordCase` as the supported replacement for the retired `CamelCase` helper and refreshes the live hierarchy diagram so it no longer advertises the removed type.
 
 ## naming and parsing helpers
@@ -156,6 +156,11 @@ This document provides a detailed, foldable API overview.
 
 		- Returns `Structured` when the name carries a numeric image-number segment; otherwise returns `Legacy`.
 		</details>
+	- <details>
+		<summary>RenderPlantUml(...): persist PlantUML source and render sibling SVG inside the subscriber tree.</summary>
+
+		- Writes the source as a `.puml` `TextFile`, renders a sibling `.svg` through the local PlantUML CLI, and returns both handles as `PlantUmlRenderResult`.
+		</details>
 	</details>
 
 ## imaging operations
@@ -182,6 +187,27 @@ This document provides a detailed, foldable API overview.
 		<summary>CreateHistogram / Histogram / OptiPng / JpegTran: optimization helpers.</summary>
 
 		- Includes histogram generation and format-specific optimization pipelines.
+		</details>
+	</details>
+
+- <details>
+	<summary>PlantUmlCommand, PlantUml, and PlantUmlRenderResult: PlantUML CLI integration.</summary>
+
+	- <details>
+		<summary>PlantUmlCommand: typed CLI wrapper for local binary or jar execution.</summary>
+
+		- Supports direct `plantuml` binaries and `.jar` execution through `java -jar`.
+		- `RenderSvg(...)` invokes PlantUML with `-tsvg` against a staged `.puml` file.
+		</details>
+	- <details>
+		<summary>PlantUml: lightweight facade that mirrors RaiImage's existing external-tool flow.</summary>
+
+		- Exposes `PlantUmlPath`, `CommandName`, `JavaCommand`, `Message`, and `RenderSvg(...)`.
+		</details>
+	- <details>
+		<summary>PlantUmlRenderResult: paired file handles for source and rendered output.</summary>
+
+		- Carries both the `.puml` source and the generated `.svg` as `ImageTreeFile` references.
 		</details>
 	</details>
 

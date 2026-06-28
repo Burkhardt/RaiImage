@@ -2,14 +2,14 @@
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 3.11.1
+## 3.11.2
 
-- Coordinated patch release: carries forward `WordCase` as the supported replacement for the retired `CamelCase` helper and aligns fallback package references on `OsLibCore 3.11.1` and `RaiUtils 3.11.1`.
+- Coordinated patch release: carries forward `WordCase` as the supported replacement for the retired `CamelCase` helper and aligns fallback package references on `OsLibCore 3.11.2` and `RaiUtils 3.11.2`.
 - Refreshes the live hierarchy diagram so it no longer advertises the removed `CamelCase` type.
 - `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
 - `WordCase` now preserves all-uppercase tokens in PascalCase output so names such as `SD-State-Sony-149` normalize as expected.
 - The structured-name flow now stays aligned with the `iorg` CLI when it stages source images into `ImageTreeFile` layouts.
-- Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, and `Dropbox`.
+- Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, `ICloudDrive`, and `Dropbox`.
 - This README is configured to ship inside the RaiImage NuGet package.
 
 ## cloud storage compatibility
@@ -18,7 +18,8 @@ RaiImage is designed to work with OsLib cloud-root discovery and the current pac
 
 - Dropbox
 - OneDrive
-- Google Drive
+- GoogleDrive
+- ICloudDrive
 
 For cloud-root configuration and environment/setup details, see the OsLib cloud storage discovery guide and keep the same `RAIkeep.json5` cloud-root contract across packages.
 
@@ -91,7 +92,7 @@ RaiImage
 <summary>ImageTreeFile: `ImageFile` variant with tree-based path partitioning.</summary>
 
 - ImageTreeFile: `Convention`, `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`
-- ImageTreeFile: `ApplyPathConvention`, `mkdir`, `CopyTo`, `MoveToTree`, `rmdir`
+- ImageTreeFile: `ApplyPathConvention`, `mkdir`, `CopyTo`, `MoveToTree`, `rmdir`, `RenderPlantUml`
 - Split behavior is driven by `PathConventionType`; `Subdir` is cumulative, for example `3x3 => 123/123456` and `8x2 => 12345678/1234567890`. See [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md).
 </details>
 
@@ -106,6 +107,14 @@ RaiImage
 
 - ImageMagick: `ImPath`, `MagickCommand`, `OptiPngCommand`, `JpegTranCommand`, `JpegTranOptions`, `Message`
 - ImageMagick: `Convert`, `Mogrify`, `Composite`, `Identify`, `EmptyForm`, `CreateHistogram`, `Histogram`, `OptiPng`, `JpegTran`, `GetSize`, `CreateTiles`
+</details>
+
+<details>
+<summary>PlantUmlCommand, PlantUml, and PlantUmlRenderResult: subscriber-aware PlantUML rendering support.</summary>
+
+- PlantUmlCommand: `CandidateExecutables`, `BuildSvgArguments`, `RenderSvg`, `RenderSvgAsync`
+- PlantUml: `PlantUmlPath`, `CommandName`, `JavaCommand`, `Message`, `RenderSvg`
+- PlantUmlRenderResult: `Source`, `Svg`
 </details>
 
 <details>
@@ -198,4 +207,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.11.1.md](RELEASE_NOTES_3.11.1.md)
+- Release notes: [RELEASE_NOTES_3.11.2.md](RELEASE_NOTES_3.11.2.md)

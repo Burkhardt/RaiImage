@@ -493,6 +493,52 @@ namespace RaiImage
 			return current;
 		}
 
+		public static PlantUmlRenderResult RenderPlantUml(RaiPath imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(imageTreeRoot, subscriber, itemId, plantUmlContent,
+				InferSourceNamingConvention(itemId), convention);
+
+		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(new RaiPath(imageTreeRoot), subscriber, itemId, plantUmlContent, convention);
+
+		public static PlantUmlRenderResult RenderPlantUml(RaiPath imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, ImageNamingConvention namingConvention,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		{
+			if (imageTreeRoot == null)
+				throw new ArgumentNullException(nameof(imageTreeRoot));
+			ValidatePlainSegment(subscriber, nameof(subscriber));
+			if (string.IsNullOrWhiteSpace(itemId))
+				throw new ArgumentException("ItemId is required.", nameof(itemId));
+
+			var ownerRoot = imageTreeRoot / new RaiRelPath(subscriber);
+			var diagram = FromName(ownerRoot, itemId, namingConvention, convention);
+			return diagram.RenderPlantUml(plantUmlContent);
+		}
+
+		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, ImageNamingConvention namingConvention,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(new RaiPath(imageTreeRoot), subscriber, itemId, plantUmlContent, namingConvention, convention);
+
+		public PlantUmlRenderResult RenderPlantUml(string plantUmlContent)
+		{
+			if (string.IsNullOrWhiteSpace(plantUmlContent))
+				throw new ArgumentException("PlantUML content is required.", nameof(plantUmlContent));
+
+			var source = CreateSiblingWithExtension("puml");
+			source.mkdir();
+			var pumlText = new TextFile(source.FullName);
+			pumlText.DeleteAll().Append(plantUmlContent).Save();
+
+			var svg = CreateSiblingWithExtension("svg");
+			var plantUml = new PlantUml();
+			var result = plantUml.RenderSvg(source.FullName);
+			EnsureRenderSucceeded(result.ExitCode, svg, plantUml.Message, "PlantUML", source.Name);
+			return new PlantUmlRenderResult(source, svg);
+		}
+
 		private ImageTreeFile CreateRenderingTarget(string renderingName, string ext)
 		{
 			var normalizedExt = TemplateSetting.NormalizeExtension(ext, TemplateSetting.DefaultFormat);
@@ -520,6 +566,10 @@ namespace RaiImage
 
 		private static RaiFile CreateTempOverlayFile(ImageTreeFile target)
 			=> new RaiFile(target.SubdirRoot, ".raimage-overlay-" + Guid.NewGuid().ToString("N"), "png");
+
+		private ImageTreeFile CreateSiblingWithExtension(string ext)
+			=> new ImageTreeFile(SubdirRoot.FullPath + Name + "." + TemplateSetting.NormalizeExtension(ext),
+				Convention, NamingConvention);
 
 		private static void EnsureSourceExists(ImageTreeFile source)
 		{
