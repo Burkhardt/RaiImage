@@ -2,9 +2,9 @@
 
 This document provides a detailed, foldable API overview.
 
-## 3.11.2 scope note
+## 3.11.3 scope note
 
-- RaiImage publishes a coordinated `3.11.2` release with fallback package references aligned to `OsLibCore 3.11.2` and `RaiUtils 3.11.2`.
+- RaiImage publishes a coordinated `3.11.3` release with fallback package references aligned to `OsLibCore 3.11.3` and `RaiUtils 3.11.3`.
 - Coordinated release: documents `WordCase` as the supported replacement for the retired `CamelCase` helper and refreshes the live hierarchy diagram so it no longer advertises the removed type.
 
 ## naming and parsing helpers
