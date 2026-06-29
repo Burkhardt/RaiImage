@@ -2,9 +2,9 @@
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 3.11.3
+## 3.12.1
 
-- Coordinated patch release: carries forward `WordCase` as the supported replacement for the retired `CamelCase` helper and aligns fallback package references on `OsLibCore 3.11.3` and `RaiUtils 3.11.3`.
+- Coordinated patch release: carries forward `WordCase` as the supported replacement for the retired `CamelCase` helper, keeps first-class PlantUML rendering support, and aligns fallback package references on `OsLibCore 3.12.1` and `RaiUtils 3.12.1`.
 - Refreshes the live hierarchy diagram so it no longer advertises the removed `CamelCase` type.
 - `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
 - `WordCase` now preserves all-uppercase tokens in PascalCase output so names such as `SD-State-Sony-149` normalize as expected.
@@ -207,4 +207,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RELEASE_NOTES_3.11.3.md](RELEASE_NOTES_3.11.3.md)
+- Release notes: [RELEASE_NOTES_3.12.1.md](RELEASE_NOTES_3.12.1.md)
