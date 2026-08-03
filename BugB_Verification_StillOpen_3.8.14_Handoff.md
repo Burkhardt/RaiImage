@@ -36,7 +36,7 @@ the next attempt targets the right code.
 
 ## Misleading release note (please correct)
 
-`RELEASE_NOTES_3.8.14.md` says *"Keeps the image-number-preserving rendering
+`doc/RaiImage_RELEASE_NOTES_3.8.14.md` says *"Keeps the image-number-preserving rendering
 behavior from the prior patch line."* That phrase describes the **probe**
 (which matches on `ImageNumber`), not the rendered **output filename**. As
 written it implies Bug B is handled; it is not. Recommend rewording to scope it
