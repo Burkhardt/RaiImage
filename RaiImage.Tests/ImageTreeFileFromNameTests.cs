@@ -5,8 +5,8 @@ namespace RaiImage.Tests;
 
 /// <summary>
 /// Executable acceptance spec for the requested <c>ImageTreeFile.FromName(...)</c>
-/// factory — see <c>Request_ImageTreeFile_NamingAwareCtor.md</c> at the RaiImage
-/// repo root.
+/// factory — see <c>doc/RaiImage_CR_ImageTreeFile_NamingAwareCtor-resolved-in-v3.9.0.md</c>
+/// at the RAIkeep repo root.
 ///
 /// <para>Contract: construct/parse an <see cref="ImageTreeFile"/> from a route
 /// <b>ShortName</b> (e.g. <c>AfricanPicnic_04</c>) or an unnumbered name
