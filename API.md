@@ -2,10 +2,27 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.0.0 scope note
+## 4.1.0 scope note
 
-- RaiImage publishes a coordinated `4.0.0` release with fallback package references aligned to `OsLibCore 4.0.0` and `RaiUtils 4.0.0`.
-- Coordinated release: documents `WordCase` as the supported replacement for the retired `CamelCase` helper and refreshes the live hierarchy diagram so it no longer advertises the removed type.
+- RaiImage publishes a coordinated `4.1.0` release with fallback package references aligned to `OsLibCore 4.1.0` and `RaiUtils 4.1.0`.
+- `RaiImageIOException` and `RaiImageNotFoundException` provide image-domain failures; missing paths remain `RaiPathNotFoundException`, and missing external tools remain `ToolNotFoundException`.
+- `WriteFromAsync(IAsyncEnumerable<byte[]>, CancellationToken)` provides stream-free asynchronous image ingestion.
+
+## exception and ingestion boundaries
+
+- <details>
+	<summary>RaiImage exception hierarchy</summary>
+
+	- `RaiImageIOException` is the RaiUtils-backed base for image-specific read, write, conversion, or rendering failures.
+	- `RaiImageNotFoundException` inherits from `RaiImageIOException` and means an image could not be resolved inside an otherwise valid location.
+	- Missing paths and tools retain the cross-package `RaiPathNotFoundException` and `ToolNotFoundException` distinctions.
+	</details>
+- <details>
+	<summary>WriteFromAsync(chunks, cancellationToken)</summary>
+
+	- Accepts `IAsyncEnumerable&lt;byte[]&gt;` and writes through the RaiFile boundary without requiring consumers to exchange raw streams.
+	- Honors cancellation and preserves the destination image object's established path semantics.
+	</details>
 
 ## naming and parsing helpers
 
@@ -128,7 +145,7 @@ This document provides a detailed, foldable API overview.
 		<summary>Topdir / Subdir / TopdirRoot / SubdirRoot: partition path components.</summary>
 
 		- Derives directory segments from `ItemId` or `Sku` via `PathConventionType`; `Subdir` is cumulative, not a separate slice (`3x3 => 123/123456`, `8x2 => 12345678/1234567890`).
-		- Examples and rationale: [PATH_CONVENTION_SPLITTING.md](PATH_CONVENTION_SPLITTING.md).
+		- Examples and rationale: [PATH_CONVENTION_SPLITTING.md](https://github.com/Burkhardt/RaiImage/blob/main/PATH_CONVENTION_SPLITTING.md).
 		</details>
 	- <details>
 		<summary>Path and Sku overrides: keep path and partition segments synchronized.</summary>
