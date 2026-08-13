@@ -256,7 +256,9 @@ public class ImageMagickTests
 	{
 		using var scope = new ImageMagickStateScope();
 		ImageMagick.ImPath = new RaiPath("/tmp/raimage-missing-magick");
-		Assert.Throws<FileNotFoundException>(() => new ImageMagick());
+		var exception = Assert.Throws<RaiUtils.ToolNotFoundException>(() => new ImageMagick());
+		Assert.Equal("ImageMagick", exception.ToolName);
+		Assert.NotEmpty(exception.ExecutablePath);
 	}
 
 	[Fact]

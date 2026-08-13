@@ -4,9 +4,12 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 4.0.1
+## 4.1.0
 
-- Coordinated CR006 patch alignment on `OsLibCore 4.0.1` and `RaiUtils 4.0.1`; no RaiImage API or behavior changes from `4.0.0`.
+- Adds `RaiImageIOException` and `RaiImageNotFoundException` for image-domain failures.
+- Missing lookup directories throw `RaiPathNotFoundException`; missing images in an existing location throw `RaiImageNotFoundException`.
+- Missing ImageMagick or PlantUML executables throw `ToolNotFoundException`.
+- Image files accept `IAsyncEnumerable<byte[]>` ingestion through the OsLib file boundary.
 - Refreshes the live hierarchy diagram so it no longer advertises the removed `CamelCase` type.
 - `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
 - `WordCase` now preserves all-uppercase tokens in PascalCase output so names such as `SD-State-Sony-149` normalize as expected.
@@ -209,4 +212,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](TESTING.md)
-- Release notes: [RaiImage_RELEASE_NOTES_4.0.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.0.1.md)
+- Release notes: [RaiImage_RELEASE_NOTES_4.1.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.1.0.md)

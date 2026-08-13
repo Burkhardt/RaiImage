@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using OsLib;
+using RaiUtils;
 
 namespace RaiImage
 {
@@ -31,7 +33,8 @@ namespace RaiImage
 		{
 			var command = CreateCommand();
 			if (!command.IsAvailable())
-				throw new InvalidOperationException(GetMissingExecutableMessage(command));
+				throw new ToolNotFoundException(
+					"PlantUML", command.CandidateExecutables.FirstOrDefault() ?? CommandName);
 		}
 
 		public RaiSystemResult RenderSvg(string pumlFileName)
@@ -41,13 +44,5 @@ namespace RaiImage
 			return result;
 		}
 
-		private static string GetMissingExecutableMessage(PlantUmlCommand command)
-		{
-			var install = command.GetInstallCommand();
-			var configuredName = string.IsNullOrWhiteSpace(CommandName) ? "plantuml" : CommandName;
-			return string.IsNullOrWhiteSpace(install)
-				? $"PlantUML is required to render .puml files, but '{configuredName}' was not found."
-				: $"PlantUML is required to render .puml files, but '{configuredName}' was not found. Install it first, for example with: {install}";
-		}
 	}
 }

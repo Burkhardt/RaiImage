@@ -88,7 +88,7 @@ public class PlantUmlRenderingTests : IDisposable
 			PlantUml.PlantUmlPath = tools;
 			PlantUml.CommandName = "definitely-missing-plantuml";
 
-			var error = Assert.Throws<InvalidOperationException>(() =>
+			var error = Assert.Throws<RaiUtils.ToolNotFoundException>(() =>
 				ImageTreeFile.RenderPlantUml(
 					root / "images",
 					"Dr2RAI",
@@ -96,8 +96,8 @@ public class PlantUmlRenderingTests : IDisposable
 					"@startuml\nAlice -> Bob : hello\n@enduml",
 					ImageNamingConvention.Structured));
 
-			Assert.Contains("PlantUML is required", error.Message);
-			Assert.Contains("definitely-missing-plantuml", error.Message);
+			Assert.Equal("PlantUML", error.ToolName);
+			Assert.Contains("definitely-missing-plantuml", error.ExecutablePath);
 		}
 		finally
 		{

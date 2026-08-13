@@ -4,6 +4,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using OsLib;
+using RaiUtils;
 
 namespace RaiImage
 {
@@ -63,7 +64,7 @@ namespace RaiImage
 			{
 				var exe = new RaiFile(ResolveMagickExecutable());
 				if (!exe.Exists())
-					throw new FileNotFoundException("ImageMagick (magick CLI) must be installed in ImPath.", exe.FullName);
+					throw new ToolNotFoundException("ImageMagick", exe.FullName);
 			}
 			callString = "";
 		}
@@ -279,7 +280,7 @@ namespace RaiImage
 					throw new InvalidDataException("in ImageMagick.GetSize/Identify call of " + imageFileName);
 				return new System.Drawing.Size(System.Convert.ToInt16(results[0]), System.Convert.ToInt16(results[1]));
 			}
-			throw new FileNotFoundException("in ImageMagick.GetSize;", imageFileName);
+			throw new RaiImageNotFoundException("Image was not found while reading its size.", imageFileName);
 		}
 		/// <summary>
 		/// creates tiles from a master image; master image stays unaffected

@@ -294,7 +294,7 @@ namespace RaiImage
 			var ownerRoot = imageTreeRoot / new RaiRelPath(subscriber);
 			var source = FromName(ownerRoot, itemId, namingConvention, convention);
 			if (!TryExtendToFirstExistingFile(source, sourceExtensions ?? DefaultSourceExtensions, convention))
-				throw new FileNotFoundException(
+				throw new RaiImageNotFoundException(
 					$"Source image '{itemId}' was not found for subscriber '{subscriber}' under '{imageTreeRoot.FullPath}'.",
 					source.FullName);
 			return source;
@@ -448,7 +448,7 @@ namespace RaiImage
 			var magick = new ImageMagick();
 			var overlayFile = overlay.ResolveImageFile(Path);
 			if (!overlayFile.Exists())
-				throw new FileNotFoundException("Overlay image was not found.", overlayFile.FullName);
+				throw new RaiImageNotFoundException("Overlay image was not found.", overlayFile.FullName);
 
 			RaiFile compositedOverlay = overlayFile;
 			RaiFile tempOverlay = null;
@@ -574,7 +574,7 @@ namespace RaiImage
 		private static void EnsureSourceExists(ImageTreeFile source)
 		{
 			if (!source.Exists())
-				throw new FileNotFoundException("Source image was not found.", source.FullName);
+				throw new RaiImageNotFoundException("Source image was not found.", source.FullName);
 		}
 
 		private static void EnsureRenderSucceeded(int exitCode, ImageTreeFile target, string message,
@@ -599,16 +599,7 @@ namespace RaiImage
 
 		private static bool TryExtendToFirstExistingFile(ImageTreeFile source, string sourceExtensions,
 			PathConventionType convention)
-		{
-			try
-			{
-				return source.ExtendToFirstExistingFile(sourceExtensions, convention);
-			}
-			catch (DirectoryNotFoundException)
-			{
-				return false;
-			}
-		}
+			=> source.ExtendToFirstExistingFile(sourceExtensions, convention);
 
 		private static ImageRenderRequest ParseExternalLink(string externalLink, IImageRouteConvention routeConvention)
 		{

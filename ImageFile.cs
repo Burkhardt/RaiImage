@@ -617,9 +617,21 @@ namespace RaiImage
 		public bool ExtendToFirstExistingFile(string extensions, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, ColorInfo colorInfo = null)
 		{
 			var searchRoot = this is ImageTreeFile treeFile
-				? treeFile.SubdirRoot.ToString()
-				: Path.ToString();
-			string[] dirEntries = Directory.GetFileSystemEntries(searchRoot, $"{ItemId}*");
+				? treeFile.SubdirRoot
+				: Path;
+			if (!searchRoot.Exists())
+				throw new RaiPathNotFoundException(
+					$"Image lookup path does not exist: {searchRoot.FullPath}", searchRoot.FullPath);
+			string[] dirEntries;
+			try
+			{
+				dirEntries = Directory.GetFileSystemEntries(searchRoot.FullPath, $"{ItemId}*");
+			}
+			catch (DirectoryNotFoundException ex)
+			{
+				throw new RaiPathNotFoundException(
+					$"Image lookup path disappeared: {searchRoot.FullPath}", searchRoot.FullPath, ex);
+			}
 			string[] extArray = extensions.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
 			if (extArray.Length > 0)
 			{
