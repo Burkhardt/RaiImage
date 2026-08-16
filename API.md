@@ -2,9 +2,9 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.1.0 scope note
+## 4.2.0 scope note
 
-- RaiImage publishes a coordinated `4.1.0` release with fallback package references aligned to `OsLibCore 4.1.0` and `RaiUtils 4.1.0`.
+- RaiImage publishes a coordinated `4.2.0` release with fallback package references aligned to `OsLibCore 4.2.0` and `RaiUtils 4.2.0`.
 - `RaiImageIOException` and `RaiImageNotFoundException` provide image-domain failures; missing paths remain `RaiPathNotFoundException`, and missing external tools remain `ToolNotFoundException`.
 - `WriteFromAsync(IAsyncEnumerable<byte[]>, CancellationToken)` provides stream-free asynchronous image ingestion.
 

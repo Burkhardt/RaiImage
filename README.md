@@ -4,8 +4,9 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 4.1.0
+## 4.2.0
 
+- Aligns RaiImage with the seven-package RAIkeep release and provides RaiDiagram's supported PlantUML rendering boundary.
 - Adds `RaiImageIOException` and `RaiImageNotFoundException` for image-domain failures.
 - Missing lookup directories throw `RaiPathNotFoundException`; missing images in an existing location throw `RaiImageNotFoundException`.
 - Missing ImageMagick or PlantUML executables throw `ToolNotFoundException`.
@@ -168,4 +169,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Release notes: [RaiImage_RELEASE_NOTES_4.1.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.1.0.md)
+- Release notes: [RaiImage_RELEASE_NOTES_4.2.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.0.md)

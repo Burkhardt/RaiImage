@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-				<Version>4.1.0</Version>
+		<Version>4.2.0</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
@@ -19,7 +19,7 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-				<PackageReleaseNotes>4.1.0 implements CR008 image/path/tool domain exceptions and async byte-chunk ingestion.</PackageReleaseNotes>
+		<PackageReleaseNotes>4.2.0 aligns RaiImage with the seven-package RAIkeep release and supplies the rendering boundary used by RaiDiagram.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
 
@@ -38,25 +38,31 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<OsLibProjectPath Condition="Exists('../OsLib/OsLib.csproj')">../OsLib/OsLib.csproj</OsLibProjectPath>
-		<OsLibProjectPath
-			Condition="'$(OsLibProjectPath)' == '' and Exists('../JsonPitSolution/OsLib/OsLib.csproj')">
-			../JsonPitSolution/OsLib/OsLib.csproj</OsLibProjectPath>
-		<RaiUtilsProjectPath Condition="Exists('../RaiUtils/RaiUtils.csproj')">
-			../RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
-		<RaiUtilsProjectPath
-			Condition="'$(RaiUtilsProjectPath)' == '' and Exists('../JsonPitSolution/RaiUtils/RaiUtils.csproj')">
-			../JsonPitSolution/RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
+		<RAIkeepRoot Condition="'$(RAIkeepRoot)' == '' and Exists('../OsLib/OsLib.csproj')">..</RAIkeepRoot>
+		<OsLibProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/OsLib/OsLib.csproj')">$(RAIkeepRoot)/OsLib/OsLib.csproj</OsLibProjectPath>
+		<RaiUtilsProjectPath Condition="'$(RAIkeepRoot)' != '' and Exists('$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj')">$(RAIkeepRoot)/RaiUtils/RaiUtils.csproj</RaiUtilsProjectPath>
+		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
+		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != ''">true</UseLocalRAIkeepSources>
+		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.2.0</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.2.0</RaiUtilsPackageVersion>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != ''">
+	<Target Name="ValidateLocalRAIkeepSources"
+		BeforeTargets="Restore"
+		Condition="'$(UseLocalRAIkeepSources)' == 'true'">
+		<Error Condition="'$(OsLibProjectPath)' == ''" Text="UseLocalRAIkeepSources=true requires an OsLib project checkout. Set /p:RAIkeepRoot=/path/to/RAIkeep." />
+		<Error Condition="'$(RaiUtilsProjectPath)' == ''" Text="UseLocalRAIkeepSources=true requires a RaiUtils project checkout. Set /p:RAIkeepRoot=/path/to/RAIkeep." />
+	</Target>
+
+	<ItemGroup Condition="'$(UseLocalRAIkeepSources)' == 'true'">
 		<ProjectReference Include="$(OsLibProjectPath)" />
 		<ProjectReference Include="$(RaiUtilsProjectPath)" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(OsLibProjectPath)' == '' or '$(RaiUtilsProjectPath)' == ''">
-			<PackageReference Include="OsLibCore" Version="4.1.0" />
-			<PackageReference Include="RaiUtils" Version="4.1.0" />
+	<ItemGroup Condition="'$(UseLocalRAIkeepSources)' != 'true'">
+		<PackageReference Include="OsLibCore" Version="$(OsLibPackageVersion)" />
+		<PackageReference Include="RaiUtils" Version="$(RaiUtilsPackageVersion)" />
 	</ItemGroup>
 
 </Project>
