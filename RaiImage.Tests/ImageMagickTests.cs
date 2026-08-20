@@ -1,6 +1,5 @@
 using OsLib;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Xunit;
 
@@ -13,7 +12,7 @@ public class ImageMagickTests
 
 	private static RaiPath NewTestRoot([CallerMemberName] string testName = "")
 	{
-		var root = new RaiPath(Path.GetTempPath()) / "RAIkeep" / "raiimage-tests" / "imagemagick" / SanitizeSegment(testName);
+		var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "imagemagick" / SanitizeSegment(testName);
 		Cleanup(root);
 		return root;
 	}
@@ -25,22 +24,14 @@ public class ImageMagickTests
 
 	private sealed class ImageMagickStateScope : IDisposable
 	{
-		private static readonly FieldInfo? OsTempDirField = typeof(Os).GetField("tempDir", BindingFlags.Static | BindingFlags.NonPublic);
-		private readonly object? _tempDir = OsTempDirField?.GetValue(null);
 		private readonly RaiPath _imPath = ImageMagick.ImPath;
 		private readonly string _magickCommand = ImageMagick.MagickCommand;
 		private readonly string _optiPngCommand = ImageMagick.OptiPngCommand;
 		private readonly string _jpegTranCommand = ImageMagick.JpegTranCommand;
 		private readonly string _jpegTranOptions = ImageMagick.JpegTranOptions;
 
-		public ImageMagickStateScope()
-		{
-			OsTempDirField?.SetValue(null, new RaiPath(Path.GetTempPath()));
-		}
-
 		public void Dispose()
 		{
-			OsTempDirField?.SetValue(null, _tempDir);
 			ImageMagick.ImPath = _imPath;
 			ImageMagick.MagickCommand = _magickCommand;
 			ImageMagick.OptiPngCommand = _optiPngCommand;
@@ -194,8 +185,9 @@ public class ImageMagickTests
 		versionInfo = string.Empty;
 		try
 		{
-			var rs = new RaiSystem(executable, "-version");
-			if (rs.Exec(out versionInfo) == 0 && !string.IsNullOrWhiteSpace(versionInfo))
+			var result = new ImageMagickCommand(commandName: executable).Run(["-version"]);
+			versionInfo = result.Output;
+			if (result.ExitCode == 0 && !string.IsNullOrWhiteSpace(versionInfo))
 				return true;
 		}
 		catch (Exception ex)
@@ -206,18 +198,8 @@ public class ImageMagickTests
 		return false;
 	}
 
-	private static bool SupportsWebp(string executable)
-	{
-		try
-		{
-			var rs = new RaiSystem(executable, "-list format");
-			return rs.Exec(out var formats) == 0 && formats.Contains("WEBP", StringComparison.OrdinalIgnoreCase);
-		}
-		catch
-		{
-			return false;
-		}
-	}
+	private static bool SupportsWebp(string versionInfo)
+		=> versionInfo.Contains("WEBP", StringComparison.OrdinalIgnoreCase);
 
 	private static string IdentifyPixel(ImageMagick sut, string image, int x, int y)
 	{
@@ -519,7 +501,7 @@ public class ImageMagickTests
 			return;
 		}
 
-		if (!SupportsWebp(magickExecutable))
+		if (!SupportsWebp(versionInfo))
 		{
 			Console.WriteLine($"ImageMagick is available but WEBP support was not detected. Version: {versionInfo.Split(Environment.NewLine)[0]}");
 			return;

@@ -40,11 +40,27 @@ namespace RaiImage
 		public string BuildSvgArguments(string pumlFileName)
 			=> $"-tsvg {Os.EscapeParam(pumlFileName)}";
 
+		public string BuildSvgArguments(string pumlFileName, string configFileName)
+		{
+			if (string.IsNullOrWhiteSpace(configFileName))
+				return BuildSvgArguments(pumlFileName);
+			return $"-config {Os.EscapeParam(configFileName)} -tsvg {Os.EscapeParam(pumlFileName)}";
+		}
+
 		public RaiSystemResult RenderSvg(string pumlFileName)
 			=> Run(BuildSvgArguments(pumlFileName));
 
+		public RaiSystemResult RenderSvg(string pumlFileName, string configFileName)
+			=> Run(BuildSvgArguments(pumlFileName, configFileName));
+
 		public Task<RaiSystemResult> RenderSvgAsync(string pumlFileName, CancellationToken cancellationToken = default)
 			=> RunAsync(BuildSvgArguments(pumlFileName), cancellationToken);
+
+		public Task<RaiSystemResult> RenderSvgAsync(
+			string pumlFileName,
+			string configFileName,
+			CancellationToken cancellationToken = default)
+			=> RunAsync(BuildSvgArguments(pumlFileName, configFileName), cancellationToken);
 
 		public override RaiSystemResult Run(string arguments = "")
 			=> RunAsync(arguments).GetAwaiter().GetResult();
@@ -56,7 +72,7 @@ namespace RaiImage
 				return base.RunAsync(arguments, cancellationToken);
 
 			var javaExecutable = FindExecutableOnPath(javaCommand) ?? javaCommand;
-			var javaArgs = $"-jar {Os.EscapeParam(executable)} {arguments}".Trim();
+			var javaArgs = $"-Djava.awt.headless=true -jar {Os.EscapeParam(executable)} {arguments}".Trim();
 			return new RaiSystem(javaExecutable, javaArgs).ExecAsync(cancellationToken);
 		}
 

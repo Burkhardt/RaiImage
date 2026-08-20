@@ -2,12 +2,12 @@
 
 This repository aligns with private internal architecture decisions maintained outside this public repository.
 
-## 4.2.0 release alignment
+## 4.2.2 release alignment
 
-- Coordinated release: prepares RaiImage `4.2.0` with fallback dependencies aligned to the current `4.2.0` OsLib/RaiUtils package line.
+- Coordinated release: prepares RaiImage `4.2.2` with fallback dependencies aligned to the current `4.2.2` OsLib/RaiUtils package line.
 - The packaged support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, `ICloudDrive`, and `Dropbox`.
 - Cross-package wording now reflects JsonPit's `Id`-based identifier contract.
-- The aligned fallback dependencies are `OsLibCore 4.2.0` and `RaiUtils 4.2.0` in the current package line.
+- The aligned fallback dependencies are `OsLibCore 4.2.2` and `RaiUtils 4.2.2` in the current package line.
 - RaiDiagram consumes RaiImage as the supported rendering boundary; RaiImage does not depend on RaiDiagram.
 - The active RaiImage patch behavior is smarter filename normalization for trailing image numbers and uppercase tokens used by structured tree workflows.
 - `WordCase` is the supported word-case helper; the old `CamelCase` class is retired and should not appear in current diagrams.

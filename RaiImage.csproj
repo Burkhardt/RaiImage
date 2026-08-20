@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Title>RaiImage</Title>
 		<PackageId>RaiImage</PackageId>
-		<Version>4.2.0</Version>
+		<Version>4.2.2</Version>
 		<Authors>Rainer Burkhardt</Authors>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>Managing image files with meaningful elements in the image name and path.</Description>
@@ -19,7 +19,7 @@
 		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
-		<PackageReleaseNotes>4.2.0 aligns RaiImage with the seven-package RAIkeep release and supplies the rendering boundary used by RaiDiagram.</PackageReleaseNotes>
+		<PackageReleaseNotes>4.2.2 adds CR010 typed diagram artifacts and CR014 typed ImageMagick, PlantUML, OptiPNG, and JPEGTran execution boundaries.</PackageReleaseNotes>
 		<PackageIcon>HardCastle.png</PackageIcon>
 	</PropertyGroup>
 
@@ -44,8 +44,8 @@
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(ContinuousIntegrationBuild)' == 'true'">false</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == '' and '$(OsLibProjectPath)' != '' and '$(RaiUtilsProjectPath)' != ''">true</UseLocalRAIkeepSources>
 		<UseLocalRAIkeepSources Condition="'$(UseLocalRAIkeepSources)' == ''">false</UseLocalRAIkeepSources>
-		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.2.0</OsLibPackageVersion>
-		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.2.0</RaiUtilsPackageVersion>
+		<OsLibPackageVersion Condition="'$(OsLibPackageVersion)' == ''">4.2.2</OsLibPackageVersion>
+		<RaiUtilsPackageVersion Condition="'$(RaiUtilsPackageVersion)' == ''">4.2.2</RaiUtilsPackageVersion>
 	</PropertyGroup>
 
 	<Target Name="ValidateLocalRAIkeepSources"

@@ -2,9 +2,9 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.0 scope note
+## 4.2.2 scope note
 
-- RaiImage publishes a coordinated `4.2.0` release with fallback package references aligned to `OsLibCore 4.2.0` and `RaiUtils 4.2.0`.
+- RaiImage publishes a coordinated `4.2.2` release with fallback package references aligned to `OsLibCore 4.2.2` and `RaiUtils 4.2.2`.
 - `RaiImageIOException` and `RaiImageNotFoundException` provide image-domain failures; missing paths remain `RaiPathNotFoundException`, and missing external tools remain `ToolNotFoundException`.
 - `WriteFromAsync(IAsyncEnumerable<byte[]>, CancellationToken)` provides stream-free asynchronous image ingestion.
 
@@ -169,6 +169,11 @@ This document provides a detailed, foldable API overview.
 		- Supports multi-target copy and depth-based tree cleanup.
 		</details>
 	- <details>
+		<summary>CreateSiblingWithExtension(ext): create another ImageTree handle in the same item placement.</summary>
+
+		- Preserves the item, naming convention, and tree path while changing only the artifact extension.
+		</details>
+	- <details>
 		<summary>InferSourceNamingConvention(itemId): expose RaiImage's own naming inference for callers that need to stay in lockstep.</summary>
 
 		- Returns `Structured` when the name carries a numeric image-number segment; otherwise returns `Legacy`.
@@ -176,8 +181,16 @@ This document provides a detailed, foldable API overview.
 	- <details>
 		<summary>RenderPlantUml(...): persist PlantUML source and render sibling SVG inside the subscriber tree.</summary>
 
-		- Writes the source as a `.puml` `TextFile`, renders a sibling `.svg` through the local PlantUML CLI, and returns both handles as `PlantUmlRenderResult`.
+		- Writes the source as `.puml`, optionally persists a sibling `_config.puml` using `NameExt = "config"` and `Ext = "puml"`, invokes the local PlantUML CLI with `-config`, and keeps all artifacts in one subscriber `ItemTreePath`.
 		</details>
+	</details>
+
+- <details>
+	<summary>ImageTreeTextFile: text content placed by the existing ImageTree contract.</summary>
+
+	- Derives from OsLib `TextFile`, not `ImageFile`, and carries `ItemPath`, `SubscriberRoot`, `ItemId`, `NameExt`, `Convention`, and `SubdirRoot`.
+	- `CreateSibling(nameExt, ext)` retains the subscriber, item id, convention, and item bucket while producing a truthful text artifact type.
+	- A config artifact uses `NameExt = "config"` and `Ext = "puml"`, producing `_config.puml` rather than a compound extension.
 	</details>
 
 ## imaging operations
@@ -204,7 +217,17 @@ This document provides a detailed, foldable API overview.
 		<summary>CreateHistogram / Histogram / OptiPng / JpegTran: optimization helpers.</summary>
 
 		- Includes histogram generation and format-specific optimization pipelines.
+		- ImageMagick subcommands delegate to `ImageMagickCommand`; PNG and JPEG optimization delegate to `OptiPngCommand` and `JpegTranCommand`.
 		</details>
+	</details>
+
+- <details>
+	<summary>ImageMagickCommand, OptiPngCommand, and JpegTranCommand: typed image-tool boundaries.</summary>
+
+	- `ImageMagickCommand` supports string-compatible and tokenized subcommand arguments through `RunSubcommand` and `RunSubcommandAsync`.
+	- `OptiPngCommand.BuildArguments(image)` preserves the complete `RaiFile` path as one process token; `Optimize` and `OptimizeAsync` return `RaiSystemResult`.
+	- `JpegTranCommand.BuildArguments(options, source, destination)` preserves every option and file path as a separate token; `Transform` and `TransformAsync` return `RaiSystemResult`.
+	- The compatibility `ImageMagick` facade no longer constructs individual `RaiSystem` calls for these tools.
 	</details>
 
 - <details>
@@ -213,8 +236,8 @@ This document provides a detailed, foldable API overview.
 	- <details>
 		<summary>PlantUmlCommand: typed CLI wrapper for local binary or jar execution.</summary>
 
-		- Supports direct `plantuml` binaries and `.jar` execution through `java -jar`.
-		- `RenderSvg(...)` invokes PlantUML with `-tsvg` against a staged `.puml` file.
+		- Supports direct `plantuml` binaries and headless `.jar` execution through `java -Djava.awt.headless=true -jar`.
+		- `RenderSvg(...)` invokes PlantUML with `-tsvg` against a staged `.puml` file and accepts an optional resolved config file through `-config`.
 		</details>
 	- <details>
 		<summary>PlantUml: lightweight facade that mirrors RaiImage's existing external-tool flow.</summary>
@@ -222,9 +245,9 @@ This document provides a detailed, foldable API overview.
 		- Exposes `PlantUmlPath`, `CommandName`, `JavaCommand`, `Message`, and `RenderSvg(...)`.
 		</details>
 	- <details>
-		<summary>PlantUmlRenderResult: paired file handles for source and rendered output.</summary>
+		<summary>PlantUmlRenderResult: co-located artifact handles for source, optional config, and rendered output.</summary>
 
-		- Carries both the `.puml` source and the generated `.svg` as `ImageTreeFile` references.
+		- Carries typed `.puml` source/config text artifacts, compatibility `ImageTreeFile` handles, and the generated `.svg` in one subscriber item bucket.
 		</details>
 	</details>
 

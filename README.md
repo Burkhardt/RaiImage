@@ -4,12 +4,15 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 4.2.0
+## 4.2.2
 
-- Aligns RaiImage with the seven-package RAIkeep release and provides RaiDiagram's supported PlantUML rendering boundary.
+- Implements CR010's truthful `ImageTreeTextFile` placement beside rendered ImageTree images and preserves RaiDiagram's supported PlantUML rendering boundary.
+- Adds resolved `_config.puml` persistence using `NameExt = "config"`, typed source/config handles, and PlantUML `-config` invocation.
+- Aligns fallback dependencies on `OsLibCore 4.2.2` and `RaiUtils 4.2.2`.
 - Adds `RaiImageIOException` and `RaiImageNotFoundException` for image-domain failures.
 - Missing lookup directories throw `RaiPathNotFoundException`; missing images in an existing location throw `RaiImageNotFoundException`.
 - Missing ImageMagick or PlantUML executables throw `ToolNotFoundException`.
+- CR014 routes ImageMagick, PlantUML, OptiPNG, and JPEGTran execution through typed RaiImage wrappers; optimizer paths are passed as discrete process arguments.
 - Image files accept `IAsyncEnumerable<byte[]>` ingestion through the OsLib file boundary.
 - Refreshes the live hierarchy diagram so it no longer advertises the removed `CamelCase` type.
 - `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
@@ -82,20 +85,29 @@ RaiImage
 - ImageTreeFile: `ApplyPathConvention`, `mkdir`, `CopyTo`, `MoveToTree`, `rmdir`, `RenderPlantUml`
 - Split behavior is driven by `PathConventionType`; `Subdir` is cumulative, for example `3x3 => 123/123456` and `8x2 => 12345678/1234567890`. See [PATH_CONVENTION_SPLITTING.md](https://github.com/Burkhardt/RaiImage/blob/main/PATH_CONVENTION_SPLITTING.md).
 
+### ImageTreeTextFile: truthful text-file placement in an ImageTree item bucket.
+
+- ImageTreeTextFile: `SubscriberRoot`, `ItemPath`, `ItemId`, `NameExt`, `Convention`, `SubdirRoot`, `CreateSibling`
+- It derives from OsLib `TextFile`, not `ImageFile`, while sharing the same subscriber root, item id, `ItemTreePath`, and `PathConventionType` placement as an `ImageTreeFile`.
+- A resolved PlantUML config uses `NameExt = "config"` and `Ext = "puml"`, producing names such as `ScheduleRehearsal_config.puml` beside `.raid`, clean `.puml`, and rendered `.svg` artifacts.
+
 ### ImageMagickCommand: typed CLI wrapper around ImageMagick subcommands.
 
 - ImageMagickCommand: `CandidateExecutables`, `BuildArguments`, `RunSubcommand`, `RunSubcommandAsync`
+- OptiPngCommand: `BuildArguments`, `Optimize`, `OptimizeAsync`
+- JpegTranCommand: `BuildArguments`, `Transform`, `TransformAsync`
 
 ### ImageMagick: facade for ImageMagick and related optimization tools.
 
-- ImageMagick: `ImPath`, `MagickCommand`, `OptiPngCommand`, `JpegTranCommand`, `JpegTranOptions`, `Message`
+- ImageMagick: `ImPath`, `MagickCommand`, `OptiPngCommand`, `JpegTranCommand`, `JpegTranOptions`, `Message`; every external image-tool call delegates to its typed wrapper
 - ImageMagick: `Convert`, `Mogrify`, `Composite`, `Identify`, `EmptyForm`, `CreateHistogram`, `Histogram`, `OptiPng`, `JpegTran`, `GetSize`, `CreateTiles`
 
 ### PlantUmlCommand, PlantUml, and PlantUmlRenderResult: subscriber-aware PlantUML rendering support.
 
-- PlantUmlCommand: `CandidateExecutables`, `BuildSvgArguments`, `RenderSvg`, `RenderSvgAsync`
+- PlantUmlCommand: `CandidateExecutables`, `BuildSvgArguments`, `RenderSvg`, `RenderSvgAsync`, including optional `-config` injection
+- PlantUML `.jar` commands run Java in headless mode for CI, server, and remote-terminal compatibility.
 - PlantUml: `PlantUmlPath`, `CommandName`, `JavaCommand`, `Message`, `RenderSvg`
-- PlantUmlRenderResult: `Source`, `Svg`
+- PlantUmlRenderResult: compatibility `Source`/`Config` image-shaped handles, typed `SourceArtifact`/`ConfigArtifact` text files, and `Svg`; all use the same subscriber `ItemTreePath`
 
 ### ImageTypes: parsed list of image extensions with a reusable default set.
 
@@ -169,4 +181,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Release notes: [RaiImage_RELEASE_NOTES_4.2.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.0.md)
+- Release notes: [RaiImage_RELEASE_NOTES_4.2.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.2.md)

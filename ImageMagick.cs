@@ -13,28 +13,14 @@ namespace RaiImage
 		// Hard break: use ImageMagick 7+ unified CLI (magick) with subcommands.
 		public static RaiPath ImPath = null;
 		public static string MagickCommand = "magick";
-		// External tools are executed through RaiSystem with path-agnostic command names.
+		// External tools are executed through typed CliCommand wrappers.
 		public static string OptiPngCommand = "optipng";
 		public static string JpegTranCommand = "jpegtran";
 		public static string JpegTranOptions = "-optimize -progressive";
-		private string callString;
 		private string message;
 		public string Message
 		{
 			get { return message; }
-		}
-
-		private static string ResolveMagickExecutable()
-		{
-			if (ImPath == null || string.IsNullOrWhiteSpace(ImPath.Path))
-				return MagickCommand;
-			var cmd = new RaiFile(ImPath, MagickCommand);
-			return cmd.FullName;
-		}
-
-		private static string BuildMagickArguments(string subcommand, string args)
-		{
-			return $"{subcommand} {args}".Trim();
 		}
 
 		private static ImageMagickCommand CreateCommand()
@@ -45,28 +31,18 @@ namespace RaiImage
 		private RaiSystemResult RunMagickSubcommand(string subcommand, string args)
 		{
 			var result = CreateCommand().RunSubcommand(subcommand, args);
-			callString = result.CommandLine;
 			message = result.Output;
 			return result;
-		}
-
-		private RaiSystem CreateMagickCall(string subcommand, string args)
-		{
-			var executable = ResolveMagickExecutable();
-			var magickArgs = BuildMagickArguments(subcommand, args);
-			callString = string.IsNullOrWhiteSpace(magickArgs) ? executable : $"{executable} {magickArgs}";
-			return new RaiSystem(executable, magickArgs);
 		}
 
 		public ImageMagick()
 		{
 			if (ImPath != null && !string.IsNullOrWhiteSpace(ImPath.Path))
 			{
-				var exe = new RaiFile(ResolveMagickExecutable());
+				var exe = new RaiFile(ImPath, MagickCommand);
 				if (!exe.Exists())
 					throw new ToolNotFoundException("ImageMagick", exe.FullName);
 			}
-			callString = "";
 		}
 		// todo RSB use Exec option that logs to windows log file
 		public int Convert(string commandline)
@@ -212,8 +188,9 @@ namespace RaiImage
 			}
 			if (result == 0)
 			{
-				var optiPng = new RaiSystem(OptiPngCommand, Os.EscapeParam(image.FullName));
-				result = optiPng.Exec(out message);
+				var optimized = new OptiPngCommand(OptiPngCommand).Optimize(image);
+				result = optimized.ExitCode;
+				message = optimized.Output;
 			}
 			return result;
 		}
@@ -240,9 +217,12 @@ namespace RaiImage
 				return result;
 			var tempFile = new ImageFile(GetTempFileName(image.FullName));
 			tempFile.mv(image);
-			var jpegTranArgs = JpegTranOptions + " " + Os.EscapeParam(tempFile.FullName) + " " + Os.EscapeParam(image.FullName);
-			var jpegTran = new RaiSystem(JpegTranCommand, jpegTranArgs);
-			result = jpegTran.Exec(out message);
+			var transformed = new JpegTranCommand(JpegTranCommand).Transform(
+				JpegTranOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries),
+				tempFile,
+				image);
+			result = transformed.ExitCode;
+			message = transformed.Output;
 			if (result != 0 || !image.Exists()) // TODO Rainer — File.Exists → RaiFile.Exists; verify rollback logic uses OsLib throughout
 			{
 				if (image.Exists())

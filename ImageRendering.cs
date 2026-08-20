@@ -275,6 +275,24 @@ namespace RaiImage
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromName(new RaiPath(rootPath), name, namingConvention, convention);
 
+		public static ImageTreeFile FromItemTree(
+			RaiPath subscriberRoot,
+			string itemId,
+			string nameExt,
+			string ext,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2,
+			ImageNamingConvention namingConvention = ImageNamingConvention.ItemTemplate)
+		{
+			ArgumentNullException.ThrowIfNull(subscriberRoot);
+			return new ImageTreeFile(
+				subscriberRoot,
+				itemId,
+				nameExt ?? string.Empty,
+				ext,
+				convention,
+				namingConvention);
+		}
+
 		public static ImageTreeFile FromImageTree(RaiPath imageTreeRoot, string subscriber, string itemId,
 			string sourceExtensions = null, PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> FromImageTree(imageTreeRoot, subscriber, itemId, InferSourceNamingConvention(itemId), sourceExtensions, convention);
@@ -291,8 +309,8 @@ namespace RaiImage
 			if (itemId.Contains('/') || itemId.Contains('\\'))
 				throw new ArgumentException("ItemId must be a plain file stem.", nameof(itemId));
 
-			var ownerRoot = imageTreeRoot / new RaiRelPath(subscriber);
-			var source = FromName(ownerRoot, itemId, namingConvention, convention);
+			var subscriberRoot = imageTreeRoot / new RaiRelPath(subscriber);
+			var source = FromName(subscriberRoot, itemId, namingConvention, convention);
 			if (!TryExtendToFirstExistingFile(source, sourceExtensions ?? DefaultSourceExtensions, convention))
 				throw new RaiImageNotFoundException(
 					$"Source image '{itemId}' was not found for subscriber '{subscriber}' under '{imageTreeRoot.FullPath}'.",
@@ -498,12 +516,29 @@ namespace RaiImage
 			=> RenderPlantUml(imageTreeRoot, subscriber, itemId, plantUmlContent,
 				InferSourceNamingConvention(itemId), convention);
 
+		public static PlantUmlRenderResult RenderPlantUml(RaiPath imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, string plantUmlConfigContent,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(imageTreeRoot, subscriber, itemId, plantUmlContent, plantUmlConfigContent,
+				InferSourceNamingConvention(itemId), convention);
+
 		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
 			string plantUmlContent, PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> RenderPlantUml(new RaiPath(imageTreeRoot), subscriber, itemId, plantUmlContent, convention);
 
+		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, string plantUmlConfigContent,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(new RaiPath(imageTreeRoot), subscriber, itemId,
+				plantUmlContent, plantUmlConfigContent, convention);
+
 		public static PlantUmlRenderResult RenderPlantUml(RaiPath imageTreeRoot, string subscriber, string itemId,
 			string plantUmlContent, ImageNamingConvention namingConvention,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(imageTreeRoot, subscriber, itemId, plantUmlContent, null, namingConvention, convention);
+
+		public static PlantUmlRenderResult RenderPlantUml(RaiPath imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, string plantUmlConfigContent, ImageNamingConvention namingConvention,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 		{
 			if (imageTreeRoot == null)
@@ -512,9 +547,32 @@ namespace RaiImage
 			if (string.IsNullOrWhiteSpace(itemId))
 				throw new ArgumentException("ItemId is required.", nameof(itemId));
 
-			var ownerRoot = imageTreeRoot / new RaiRelPath(subscriber);
-			var diagram = FromName(ownerRoot, itemId, namingConvention, convention);
-			return diagram.RenderPlantUml(plantUmlContent);
+			var subscriberRoot = imageTreeRoot / new RaiRelPath(subscriber);
+			return RenderPlantUmlAtSubscriber(
+				subscriberRoot,
+				itemId,
+				plantUmlContent,
+				plantUmlConfigContent,
+				convention,
+				namingConvention);
+		}
+
+		public static PlantUmlRenderResult RenderPlantUmlAtSubscriber(
+			RaiPath subscriberRoot,
+			string itemId,
+			string plantUmlContent,
+			string plantUmlConfigContent = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2,
+			ImageNamingConvention namingConvention = ImageNamingConvention.ItemTemplate)
+		{
+			ArgumentNullException.ThrowIfNull(subscriberRoot);
+			_ = namingConvention; // retained for parity with the compatibility overloads
+			return RenderPlantUmlAtSubscriber(
+				subscriberRoot,
+				itemId,
+				convention,
+				plantUmlContent,
+				plantUmlConfigContent);
 		}
 
 		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
@@ -522,21 +580,49 @@ namespace RaiImage
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
 			=> RenderPlantUml(new RaiPath(imageTreeRoot), subscriber, itemId, plantUmlContent, namingConvention, convention);
 
+		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
+			string plantUmlContent, string plantUmlConfigContent, ImageNamingConvention namingConvention,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUml(new RaiPath(imageTreeRoot), subscriber, itemId,
+				plantUmlContent, plantUmlConfigContent, namingConvention, convention);
+
 		public PlantUmlRenderResult RenderPlantUml(string plantUmlContent)
+			=> RenderPlantUml(plantUmlContent, null);
+
+		public PlantUmlRenderResult RenderPlantUml(string plantUmlContent, string plantUmlConfigContent)
+			=> RenderPlantUmlAtSubscriber(
+				Path,
+				ItemId,
+				Convention,
+				plantUmlContent,
+				plantUmlConfigContent);
+
+		private static PlantUmlRenderResult RenderPlantUmlAtSubscriber(
+			RaiPath subscriberRoot,
+			string itemId,
+			PathConventionType convention,
+			string plantUmlContent,
+			string plantUmlConfigContent)
 		{
 			if (string.IsNullOrWhiteSpace(plantUmlContent))
 				throw new ArgumentException("PlantUML content is required.", nameof(plantUmlContent));
 
-			var source = CreateSiblingWithExtension("puml");
-			source.mkdir();
-			var pumlText = new TextFile(source.FullName);
-			pumlText.DeleteAll().Append(plantUmlContent).Save();
+			var source = new ImageTreeTextFile(subscriberRoot, itemId, string.Empty, "puml", convention);
+			source.DeleteAll().Append(plantUmlContent).Save();
 
-			var svg = CreateSiblingWithExtension("svg");
+			var svg = FromItemTree(subscriberRoot, itemId, string.Empty, "svg", convention);
+			ImageTreeTextFile config = null;
+			if (!string.IsNullOrWhiteSpace(plantUmlConfigContent))
+			{
+				config = new ImageTreeTextFile(subscriberRoot, itemId, "config", "puml", convention);
+				config.DeleteAll().Append(plantUmlConfigContent).Save();
+			}
 			var plantUml = new PlantUml();
-			var result = plantUml.RenderSvg(source.FullName);
+			var result = config is null
+				? plantUml.RenderSvg(source.FullName)
+				: plantUml.RenderSvg(source.FullName, config.FullName);
 			EnsureRenderSucceeded(result.ExitCode, svg, plantUml.Message, "PlantUML", source.Name);
-			return new PlantUmlRenderResult(source, svg);
+			return new PlantUmlRenderResult(source, config, svg);
 		}
 
 		private ImageTreeFile CreateRenderingTarget(string renderingName, string ext)
@@ -567,9 +653,28 @@ namespace RaiImage
 		private static RaiFile CreateTempOverlayFile(ImageTreeFile target)
 			=> new RaiFile(target.SubdirRoot, ".raimage-overlay-" + Guid.NewGuid().ToString("N"), "png");
 
-		private ImageTreeFile CreateSiblingWithExtension(string ext)
-			=> new ImageTreeFile(SubdirRoot.FullPath + Name + "." + TemplateSetting.NormalizeExtension(ext),
+		public ImageTreeFile CreateSiblingWithExtension(string ext)
+		{
+			var normalized = TemplateSetting.NormalizeExtension(ext);
+			if (string.IsNullOrWhiteSpace(normalized)
+				|| normalized.Any(character => !char.IsLetterOrDigit(character)
+					&& character is not ('.' or '_' or '-')))
+				throw new ArgumentException("Artifact extension contains unsupported characters.", nameof(ext));
+			return new ImageTreeFile(SubdirRoot.FullPath + Name + "." + normalized,
 				Convention, NamingConvention);
+		}
+
+		public ImageTreeFile CreateSiblingWithNameExt(string nameExt, string ext)
+		{
+			if (string.IsNullOrWhiteSpace(nameExt)
+				|| nameExt.Any(character => !char.IsLetterOrDigit(character) && character is not ('-' or '_')))
+				throw new ArgumentException("Artifact NameExt contains unsupported characters.", nameof(nameExt));
+			var normalizedExt = TemplateSetting.NormalizeExtension(ext);
+			if (string.IsNullOrWhiteSpace(normalizedExt)
+				|| normalizedExt.Any(character => !char.IsLetterOrDigit(character)))
+				throw new ArgumentException("Artifact extension must be one file-type token.", nameof(ext));
+			return new ImageTreeFile(Path, ItemId, nameExt, normalizedExt, Convention, NamingConvention);
+		}
 
 		private static void EnsureSourceExists(ImageTreeFile source)
 		{

@@ -50,6 +50,42 @@ public class PlantUmlRenderingTests : IDisposable
 	}
 
 	[Fact]
+	public void RenderPlantUml_WithConfigPersistsSidecarAndPassesConfigArgument()
+	{
+		var root = NewTestRoot();
+		try
+		{
+			var tools = root / "tools";
+			tools.mkdir();
+			var log = new RaiFile(root, "plantuml-config", "log");
+			var script = CreateFakePlantUmlScript(tools, log.FullName);
+			PlantUml.PlantUmlPath = tools;
+			PlantUml.CommandName = new RaiFile(script).NameWithExtension;
+
+			var result = ImageTreeFile.RenderPlantUml(
+				root / "images",
+				"Dr2RAI",
+				"AfricanPicnic_01",
+				"@startuml\nAlice -> Bob : hello\n@enduml",
+				"!theme cerulean",
+				ImageNamingConvention.Structured);
+
+			Assert.True(result.Config.Exists());
+			Assert.EndsWith("AfricanPicnic_01_config.puml", result.Config.FullName);
+			Assert.Equal("config", result.ConfigArtifact.NameExt);
+			Assert.Equal("puml", result.ConfigArtifact.Ext);
+			Assert.Equal("!theme cerulean", new TextFile(result.Config.FullName).ReadAllText().Trim());
+			var invocation = string.Join("\n", new TextFile(log.FullName).Lines);
+			Assert.Contains("-config", invocation);
+			Assert.Contains(result.Config.FullName, invocation);
+		}
+		finally
+		{
+			Cleanup(root);
+		}
+	}
+
+	[Fact]
 	public async Task PlantUmlCommand_RunAsync_UsesJavaForJarCommands()
 	{
 		var root = NewTestRoot();
@@ -62,14 +98,20 @@ public class PlantUmlRenderingTests : IDisposable
 			_ = new TextFile(new RaiFile(tools, "plantuml", "jar").FullName, "fake-jar");
 			var sut = new PlantUmlCommand(tools, "plantuml.jar", javaScript);
 
-			var result = await sut.RenderSvgAsync("diagram.puml", TestContext.Current.CancellationToken);
+			var result = await sut.RenderSvgAsync(
+				"diagram.puml",
+				"diagram_config.puml",
+				TestContext.Current.CancellationToken);
 
 			Assert.Equal(0, result.ExitCode);
 			var lines = new TextFile(log.FullName).Lines;
-			Assert.Equal("-jar", lines[0]);
-			Assert.EndsWith("plantuml.jar", lines[1]);
-			Assert.Equal("-tsvg", lines[2]);
-			Assert.Equal("diagram.puml", lines[3]);
+			Assert.Equal("-Djava.awt.headless=true", lines[0]);
+			Assert.Equal("-jar", lines[1]);
+			Assert.EndsWith("plantuml.jar", lines[2]);
+			Assert.Equal("-config", lines[3]);
+			Assert.Equal("diagram_config.puml", lines[4]);
+			Assert.Equal("-tsvg", lines[5]);
+			Assert.Equal("diagram.puml", lines[6]);
 		}
 		finally
 		{
@@ -105,9 +147,24 @@ public class PlantUmlRenderingTests : IDisposable
 		}
 	}
 
+	[Fact]
+	public void CreateSiblingWithNameExt_PreservesSubscriberPlacementAndRejectsPathInjection()
+	{
+		var source = ImageTreeFile.FromName(new RaiPath("/tmp/images/AfricaStage/Tenant-A"), "ScheduleRehearsal");
+
+		var config = source.CreateSiblingWithNameExt("config", "puml");
+
+		Assert.Equal(source.SubdirRoot.FullPath, config.SubdirRoot.FullPath);
+		Assert.Equal("config", config.NameExt);
+		Assert.Equal("puml", config.Ext);
+		Assert.EndsWith("ScheduleRehearsal_config.puml", config.FullName);
+		Assert.Throws<ArgumentException>(() => source.CreateSiblingWithExtension("../outside"));
+		Assert.Throws<ArgumentException>(() => source.CreateSiblingWithNameExt("../outside", "puml"));
+	}
+
 	private static RaiPath NewTestRoot([CallerMemberName] string testName = "")
 	{
-		var root = new RaiPath(Path.GetTempPath()) / "RAIkeep" / "raiimage-tests" / "plantuml" / testName;
+		var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "plantuml" / testName;
 		Cleanup(root);
 		root.mkdir();
 		return root;
@@ -165,6 +222,9 @@ public class PlantUmlRenderingTests : IDisposable
 				$">> \"{logPath}\" echo %2\r\n" +
 				$">> \"{logPath}\" echo %3\r\n" +
 				$">> \"{logPath}\" echo %4\r\n" +
+				$">> \"{logPath}\" echo %5\r\n" +
+				$">> \"{logPath}\" echo %6\r\n" +
+				$">> \"{logPath}\" echo %7\r\n" +
 				"exit /b 0\r\n").FullName;
 		}
 
@@ -174,6 +234,9 @@ public class PlantUmlRenderingTests : IDisposable
 			$"printf '%s\\n' \"$2\" >> \"{logPath}\"\n" +
 			$"printf '%s\\n' \"$3\" >> \"{logPath}\"\n" +
 			$"printf '%s\\n' \"$4\" >> \"{logPath}\"\n" +
+			$"printf '%s\\n' \"$5\" >> \"{logPath}\"\n" +
+			$"printf '%s\\n' \"$6\" >> \"{logPath}\"\n" +
+			$"printf '%s\\n' \"$7\" >> \"{logPath}\"\n" +
 			"exit 0\n").FullName;
 	}
 }

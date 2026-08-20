@@ -11,7 +11,7 @@ namespace RaiImage.Tests
 	{
 		private static RaiPath CreateTempRootDir([CallerMemberName] string testName = "")
 		{
-			var root = new RaiPath(Path.GetTempPath()) / "RAIkeep" / "raiimage-tests" / "command" / SanitizeSegment(testName);
+			var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "command" / SanitizeSegment(testName);
 			Cleanup(root);
 			root.mkdir();
 			//return root.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -106,6 +106,71 @@ namespace RaiImage.Tests
 
 			Assert.False(string.IsNullOrWhiteSpace(sut.GetInstallCommand()));
 			Assert.False(string.IsNullOrWhiteSpace(sut.GetUpdateCommand()));
+		}
+
+		[Fact]
+		public void OptiPngCommand_PassesImagePathAsOneArgument()
+		{
+			var root = CreateTempRootDir();
+			try
+			{
+				var log = new RaiFile(root, "optipng", "log");
+				var script = CreateArgumentCaptureScript(root, "optipng-capture", log.FullName);
+				var image = new RaiFile(root / "images with spaces", "Schedule Rehearsal", "png");
+
+				var result = new OptiPngCommand(script).Optimize(image);
+
+				Assert.Equal(0, result.ExitCode);
+				Assert.Equal(new[] { image.FullName }, new TextFile(log.FullName).Lines);
+			}
+			finally
+			{
+				Cleanup(root);
+			}
+		}
+
+		[Fact]
+		public void JpegTranCommand_PassesOptionsAndPathsAsSeparateArguments()
+		{
+			var root = CreateTempRootDir();
+			try
+			{
+				var log = new RaiFile(root, "jpegtran", "log");
+				var script = CreateArgumentCaptureScript(root, "jpegtran-capture", log.FullName);
+				var source = new RaiFile(root / "images with spaces", "source image", "jpg");
+				var destination = new RaiFile(root / "images with spaces", "final image", "jpg");
+
+				var result = new JpegTranCommand(script).Transform(
+					new[] { "-optimize", "-progressive" },
+					source,
+					destination);
+
+				Assert.Equal(0, result.ExitCode);
+				Assert.Equal(
+					new[] { "-optimize", "-progressive", source.FullName, destination.FullName },
+					new TextFile(log.FullName).Lines);
+			}
+			finally
+			{
+				Cleanup(root);
+			}
+		}
+
+		private static string CreateArgumentCaptureScript(RaiPath root, string name, string log)
+		{
+			if (OperatingSystem.IsWindows())
+			{
+				return CreateExecutableScript(
+					root,
+					name,
+					$"@echo off\r\n> \"{log}\" (for %%a in (%*) do @echo %%~a)\r\n",
+					"cmd");
+			}
+
+			return CreateExecutableScript(
+				root,
+				name,
+				$"#!/bin/sh\n: > \"{log}\"\nfor argument in \"$@\"; do printf '%s\\n' \"$argument\" >> \"{log}\"; done\n");
 		}
 	}
 }

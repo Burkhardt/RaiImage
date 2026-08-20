@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using OsLib;
@@ -37,6 +38,13 @@ namespace RaiImage
 			return $"{subcommand} {args}".Trim();
 		}
 
+		public IReadOnlyList<string> BuildArguments(string subcommand, IEnumerable<string> arguments)
+		{
+			if (string.IsNullOrWhiteSpace(subcommand))
+				throw new System.ArgumentException("An ImageMagick subcommand is required.", nameof(subcommand));
+			return new[] { subcommand }.Concat(arguments ?? Enumerable.Empty<string>()).ToArray();
+		}
+
 		public RaiSystemResult RunSubcommand(string subcommand, string args = "")
 		{
 			return Run(BuildArguments(subcommand, args));
@@ -45,6 +53,19 @@ namespace RaiImage
 		public Task<RaiSystemResult> RunSubcommandAsync(string subcommand, string args = "", CancellationToken cancellationToken = default)
 		{
 			return RunAsync(BuildArguments(subcommand, args), cancellationToken);
+		}
+
+		public RaiSystemResult RunSubcommand(string subcommand, IEnumerable<string> arguments)
+		{
+			return Run(BuildArguments(subcommand, arguments));
+		}
+
+		public Task<RaiSystemResult> RunSubcommandAsync(
+			string subcommand,
+			IEnumerable<string> arguments,
+			CancellationToken cancellationToken = default)
+		{
+			return RunAsync(BuildArguments(subcommand, arguments), cancellationToken);
 		}
 	}
 }
