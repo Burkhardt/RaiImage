@@ -1,10 +1,11 @@
 # Testing RaiImage
 
-## 4.2.3 scope note
+## 4.2.4 scope note
 
 - The packaged `RAIkeep` support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, `ICloudDrive`, and `Dropbox`.
 - RaiImage test expectations should stay aligned with the same OsLib/JsonPit package line and configuration contract.
-- Fallback package validation for release builds assumes `OsLibCore 4.2.3` and `RaiUtils 4.2.3`.
+- Fallback package validation for release builds assumes `OsLibCore 4.2.4` and `RaiUtils 4.2.4`.
+- CR016 coverage includes German umlauts, Portuguese `ã`/`é`/`ç`, an African orthography combining sequence, Unicode text-element boundaries, mixed NFC/NFD directory levels, and canonically equivalent source filenames.
 - `/p:UseLocalRAIkeepSources=false` forces those package references even from an umbrella checkout.
 
 ## Test projects

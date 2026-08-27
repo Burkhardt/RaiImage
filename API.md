@@ -2,9 +2,14 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.3 scope note
+## 4.2.4 scope note
 
-- RaiImage participates in the coordinated `4.2.3` release with fallback package references aligned to `OsLibCore 4.2.3` and `RaiUtils 4.2.3`.
+- RaiImage implements accepted CR016 and aligns fallback package references to `OsLibCore 4.2.4` and `RaiUtils 4.2.4`.
+- ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
+- `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
+- `FromImageTree(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
+- Ambiguous canonical-equivalent directories or source files fail with `RaiImageIOException`.
+- SVG is included in `DefaultSourceExtensions`.
 - `RaiImageIOException` and `RaiImageNotFoundException` provide image-domain failures; missing paths remain `RaiPathNotFoundException`, and missing external tools remain `ToolNotFoundException`.
 - `WriteFromAsync(IAsyncEnumerable<byte[]>, CancellationToken)` provides stream-free asynchronous image ingestion.
 
@@ -25,6 +30,15 @@ This document provides a detailed, foldable API overview.
 	</details>
 
 ## naming and parsing helpers
+
+- <details>
+	<summary>ItemTreePath / ImageTreeFile Unicode path contract</summary>
+
+	- Subscriber names, item ids, name extensions, route values, and typed ImageTree text artifacts use Unicode Normalization Form C.
+	- Bucket widths count user-perceived Unicode text elements, keeping combining sequences and surrogate-pair/emoji clusters intact.
+	- Existing decomposed or mixed-normalization trees remain readable without renaming or mutating them during lookup.
+	- Newly authored ImageTree names use the canonical NFC spelling supplied to the filesystem.
+	</details>
 
 - <details>
 	<summary>StringHelper: convenience methods for title/camel handling.</summary>

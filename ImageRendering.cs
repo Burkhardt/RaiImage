@@ -243,7 +243,7 @@ namespace RaiImage
 	public partial class ImageTreeFile
 	{
 		public static string DefaultSourceExtensions { get; set; } =
-			"webp,jpg,jpeg,png,heic,heif,tif,tiff,gif,bmp,psd";
+			"webp,jpg,jpeg,png,heic,heif,tif,tiff,gif,bmp,psd,svg";
 
 		public static ImageTreeFile FromName(RaiPath rootPath, string name,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
@@ -264,7 +264,7 @@ namespace RaiImage
 			if (name.Contains('/') || name.Contains('\\'))
 				throw new ArgumentException("Name must be a plain file name or stem.", nameof(name));
 
-			var stem = TemplateSetting.StripKnownExtension(name);
+			var stem = ImageTreeUnicode.Normalize(TemplateSetting.StripKnownExtension(name));
 			if (string.IsNullOrWhiteSpace(stem))
 				throw new ArgumentException("Name is required.", nameof(name));
 			return new ImageTreeFile(rootPath, stem, string.Empty, string.Empty, convention, namingConvention);
@@ -303,13 +303,13 @@ namespace RaiImage
 		{
 			if (imageTreeRoot == null)
 				throw new ArgumentNullException(nameof(imageTreeRoot));
-			ValidatePlainSegment(subscriber, nameof(subscriber));
+			var canonicalSubscriber = ValidatePlainSegment(subscriber, nameof(subscriber));
 			if (string.IsNullOrWhiteSpace(itemId))
 				throw new ArgumentException("ItemId is required.", nameof(itemId));
 			if (itemId.Contains('/') || itemId.Contains('\\'))
 				throw new ArgumentException("ItemId must be a plain file stem.", nameof(itemId));
 
-			var subscriberRoot = imageTreeRoot / new RaiRelPath(subscriber);
+			var subscriberRoot = ImageTreeUnicode.ResolveEquivalentDirectory(imageTreeRoot, canonicalSubscriber);
 			var source = FromName(subscriberRoot, itemId, namingConvention, convention);
 			if (!TryExtendToFirstExistingFile(source, sourceExtensions ?? DefaultSourceExtensions, convention))
 				throw new RaiImageNotFoundException(
@@ -715,12 +715,13 @@ namespace RaiImage
 			throw new FormatException($"External link does not match the {routeConvention.GetType().Name} format.");
 		}
 
-		private static void ValidatePlainSegment(string value, string parameterName)
+		private static string ValidatePlainSegment(string value, string parameterName)
 		{
 			if (string.IsNullOrWhiteSpace(value))
 				throw new ArgumentException("Value is required.", parameterName);
 			if (value.Contains('/') || value.Contains('\\'))
 				throw new ArgumentException("Value must be a plain path segment.", parameterName);
+			return ImageTreeUnicode.NormalizeTrimmed(value);
 		}
 
 		private static void ValidateTemplateName(string value, string parameterName)

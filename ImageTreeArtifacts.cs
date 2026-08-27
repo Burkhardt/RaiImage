@@ -103,36 +103,40 @@ public class ImageTreeTextFile : TextFile
 	{
 		if (string.IsNullOrEmpty(nameExt))
 			return string.Empty;
-		if (nameExt.Any(character => !char.IsLetterOrDigit(character) && character is not ('-' or '_')))
+		var canonical = ImageTreeUnicode.Normalize(nameExt);
+		if (canonical.Any(character => !char.IsLetterOrDigit(character) && character is not ('-' or '_')))
 			throw new ArgumentException("An ImageTree artifact NameExt contains unsupported characters.", nameof(nameExt));
-		return nameExt;
+		return canonical;
 	}
 
 	protected static string ValidateFileStem(string fileStem)
 	{
-		if (string.IsNullOrWhiteSpace(fileStem)
-			|| fileStem is "." or ".."
-			|| fileStem.Contains('/')
-			|| fileStem.Contains('\\'))
+		var canonical = ImageTreeUnicode.Normalize(fileStem);
+		if (string.IsNullOrWhiteSpace(canonical)
+			|| canonical is "." or ".."
+			|| canonical.Contains('/')
+			|| canonical.Contains('\\'))
 			throw new ArgumentException("An ImageTree artifact filename stem is invalid.", nameof(fileStem));
-		return fileStem;
+		return canonical;
 	}
 
 	protected static string ValidateExtension(string ext)
 	{
-		if (string.IsNullOrWhiteSpace(ext)
-			|| ext.Any(character => !char.IsLetterOrDigit(character)))
+		var canonical = ImageTreeUnicode.Normalize(ext);
+		if (string.IsNullOrWhiteSpace(canonical)
+			|| canonical.Any(character => !char.IsLetterOrDigit(character)))
 			throw new ArgumentException("An ImageTree artifact extension must be one file-type token.", nameof(ext));
-		return ext;
+		return canonical;
 	}
 
 	private static string ValidateItemId(string itemId)
 	{
-		if (string.IsNullOrWhiteSpace(itemId)
-			|| itemId is "." or ".."
-			|| itemId.Contains('/')
-			|| itemId.Contains('\\'))
+		var canonical = ImageTreeUnicode.NormalizeTrimmed(itemId);
+		if (string.IsNullOrWhiteSpace(canonical)
+			|| canonical is "." or ".."
+			|| canonical.Contains('/')
+			|| canonical.Contains('\\'))
 			throw new ArgumentException("An ImageTree artifact item id must be a plain file stem.", nameof(itemId));
-		return itemId.Trim();
+		return canonical;
 	}
 }

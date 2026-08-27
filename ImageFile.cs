@@ -83,16 +83,17 @@ namespace RaiImage
 		/// </summary>
 		private void ParseItemTemplateName()
 		{
-			var rawName = name ?? string.Empty;
+			var rawName = ImageTreeUnicode.Normalize(name);
+			name = rawName;
 			var pos = rawName.IndexOf('_');
 			if (pos >= 0)
 			{
-				itemId = rawName[..pos];
-				nameExt = rawName[(pos + 1)..];
+				itemId = ImageTreeUnicode.Normalize(rawName[..pos]);
+				nameExt = ImageTreeUnicode.Normalize(rawName[(pos + 1)..]);
 			}
 			else
 			{
-				itemId = rawName;
+				itemId = ImageTreeUnicode.Normalize(rawName);
 				nameExt = string.Empty;
 			}
 			imageNumber = NoImageNumber;
@@ -107,14 +108,15 @@ namespace RaiImage
 		/// </summary>
 		private void ParseStructuredName()
 		{
-			var rawName = name ?? string.Empty;
+			var rawName = ImageTreeUnicode.Normalize(name);
+			name = rawName;
 			// Split positional prefix from metadata at first comma
 			var commaPos = rawName.IndexOf(',');
 			var positional = commaPos >= 0 ? rawName[..commaPos] : rawName;
 			var metadata = commaPos >= 0 ? rawName[(commaPos + 1)..] : string.Empty;
 			// Positional: ItemId[_ImageNumber[_NameExt]]
 			var parts = positional.Split('_');
-			itemId = parts[0];
+			itemId = ImageTreeUnicode.Normalize(parts[0]);
 			imageNumber = NoImageNumber;
 			nameExt = string.Empty;
 			if (parts.Length == 2)
@@ -292,10 +294,10 @@ namespace RaiImage
 			get => itemId;
 			set => itemId = string.IsNullOrEmpty(value)
 				? string.Empty
-				: Regex.Replace(value, @"[,\- _]+(.)?", m =>
+				: ImageTreeUnicode.Normalize(Regex.Replace(ImageTreeUnicode.Normalize(value), @"[,\- _]+(.)?", m =>
 					m.Groups[1].Success
 						? m.Groups[1].Value.ToUpperInvariant()
-						: string.Empty);
+						: string.Empty));
 		}
 		protected string itemId = string.Empty;
 		public virtual string Sku
@@ -311,7 +313,7 @@ namespace RaiImage
 		public virtual string NameExt
 		{
 			get => nameExt;
-			set => nameExt = string.IsNullOrEmpty(value) ? string.Empty : value;
+			set => nameExt = ImageTreeUnicode.Normalize(value);
 		}
 		protected string nameExt = string.Empty;
 		/// <summary>
@@ -321,7 +323,7 @@ namespace RaiImage
 		public string TemplateName
 		{
 			get => nameExt;
-			set => nameExt = value ?? string.Empty;
+			set => nameExt = ImageTreeUnicode.Normalize(value);
 		}
 		public int ImageNumber
 		{
@@ -332,13 +334,13 @@ namespace RaiImage
 		public string TileTemplate
 		{
 			get => string.IsNullOrEmpty(tileTemplate) ? string.Empty : tileTemplate;
-			set => tileTemplate = value;
+			set => tileTemplate = ImageTreeUnicode.Normalize(value);
 		}
 		protected string tileTemplate = string.Empty;
 		public string TileNumber
 		{
 			get => tileNumber;
-			set => tileNumber = string.IsNullOrEmpty(value) ? string.Empty : value;
+			set => tileNumber = ImageTreeUnicode.Normalize(value);
 		}
 		protected string tileNumber = string.Empty;
 		public ColorInfo Color { get; set; }
@@ -507,6 +509,7 @@ namespace RaiImage
 		/// <example>"c:/temp/kill/308024_01_200x300,4x4tile-17.tiff"</example>
 		protected void Parse()
 		{
+			base.name = ImageTreeUnicode.Normalize(base.Name);
 			#region translate special phone and camera naming conventions
 			base.name = BlankToCamelCase(
 				base.Name
@@ -617,58 +620,58 @@ namespace RaiImage
 		public bool ExtendToFirstExistingFile(string extensions, PathConventionType splitMode = PathConventionType.ItemIdTree8x2, ColorInfo colorInfo = null)
 		{
 			var searchRoot = this is ImageTreeFile treeFile
-				? treeFile.SubdirRoot
+				? ImageTreeUnicode.ResolveExistingBucket(treeFile)
 				: Path;
 			if (!searchRoot.Exists())
 				throw new RaiPathNotFoundException(
 					$"Image lookup path does not exist: {searchRoot.FullPath}", searchRoot.FullPath);
-			string[] dirEntries;
-			try
-			{
-				dirEntries = Directory.GetFileSystemEntries(searchRoot.FullPath, $"{ItemId}*");
-			}
-			catch (DirectoryNotFoundException ex)
-			{
-				throw new RaiPathNotFoundException(
-					$"Image lookup path disappeared: {searchRoot.FullPath}", searchRoot.FullPath, ex);
-			}
+			var dirEntries = searchRoot.EnumerateFiles("*").ToList();
 			string[] extArray = extensions.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries);
 			if (extArray.Length > 0)
 			{
 				foreach (string extension in extArray)
 				{
+					var matches = new List<(RaiFile File, ImageFile Image)>();
 					foreach (var dirEntry in dirEntries)
 					{
-						var foundItf = new ImageTreeFile(dirEntry, splitMode, NamingConvention);
+						var foundImage = new ImageFile(dirEntry.FullName, NamingConvention);
 
 						// 1. Matches ItemId (case-insensitive)
-						if (!string.Equals(foundItf.ItemId, ItemId, StringComparison.OrdinalIgnoreCase))
+						if (!ImageTreeUnicode.CanonicalEquals(foundImage.ItemId, ItemId, StringComparison.OrdinalIgnoreCase))
 							continue;
 
 						// 2. Matches ImageNumber exactly (both NoImageNumber or specific match)
-						if (foundItf.ImageNumber != ImageNumber)
+						if (foundImage.ImageNumber != ImageNumber)
 							continue;
 
 						// 3. Must be a real source (no NameExt/Template name)
-						if (!string.IsNullOrEmpty(foundItf.NameExt))
+						if (!string.IsNullOrEmpty(foundImage.NameExt))
 							continue;
 
 						// 4. Matches requested color if colorInfo is provided
 						if (colorInfo != null)
 						{
-							if (foundItf.Color == null || !string.Equals(foundItf.Color.Code, colorInfo.Code, StringComparison.OrdinalIgnoreCase))
+							if (foundImage.Color == null || !string.Equals(foundImage.Color.Code, colorInfo.Code, StringComparison.OrdinalIgnoreCase))
 								continue;
 						}
 
 						// 5. Matches target extension (case-insensitive)
-						if (string.Equals(extension, foundItf.Ext, StringComparison.OrdinalIgnoreCase))
-						{
-							Ext = foundItf.Ext;
-							Color = foundItf.Color;
-							if (ImageNumber == NoImageNumber)
-								ImageNumber = foundItf.ImageNumber;
-							return true;
-						}
+						if (string.Equals(extension, foundImage.Ext, StringComparison.OrdinalIgnoreCase))
+							matches.Add((dirEntry, foundImage));
+					}
+					if (matches.Count > 1)
+						throw new RaiImageIOException(
+							$"Multiple canonically equivalent source images match '{ItemId}.{extension}' under '{searchRoot.FullPath}'.");
+					if (matches.Count == 1)
+					{
+						var match = matches[0];
+						Ext = match.Image.Ext;
+						Color = match.Image.Color;
+						if (ImageNumber == NoImageNumber)
+							ImageNumber = match.Image.ImageNumber;
+						if (this is ImageTreeFile resolvedTreeFile)
+							resolvedTreeFile.BindResolvedFile(match.File);
+						return true;
 					}
 				}
 			}
@@ -720,6 +723,7 @@ namespace RaiImage
 	/// </summary>
 	public partial class ImageTreeFile : ImageFile, IPathConvention
 	{
+		private string resolvedFullName;
 		#region path convention — directory tree layout
 		public PathConventionType Convention
 		{
@@ -733,27 +737,24 @@ namespace RaiImage
 		public void ApplyPathConvention()
 		{
 			var (tLen, sLen) = ItemTreePath.ConventionSplit(Convention, ItemId);
-			var id = ItemId ?? string.Empty;
+			var id = ImageTreeUnicode.Normalize(ItemId);
 			// strip any existing topdir/subdir segments from Path
 			if (id.Length > 0)
 			{
-				var top = ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen)]);
+				var top = ItemTreePath.SanitizeSegment(ImageTreeUnicode.TakeTextElements(id, tLen));
 				var sub = sLen > 0
-					? ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen + sLen)])
+					? ItemTreePath.SanitizeSegment(ImageTreeUnicode.TakeTextElements(id, tLen + sLen))
 					: string.Empty;
-				var marker = string.IsNullOrEmpty(sub)
-					? Os.DIR + top
-					: Os.DIR + top + Os.DIR + sub;
 				var pathStr = base.Path.ToString();
-				var pos = pathStr.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-				if (pos >= 0)
-					base.Path = new RaiPath(pathStr.Remove(pos + 1));
+				base.Path = new RaiPath(string.IsNullOrEmpty(sub)
+					? ImageTreeUnicode.RemoveEquivalentBucketSuffix(pathStr, top)
+					: ImageTreeUnicode.RemoveEquivalentBucketSuffix(pathStr, top, sub));
 			}
 			topdir = id.Length > 0
-				? new RaiRelPath(ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen)]))
+				? new RaiRelPath(ItemTreePath.SanitizeSegment(ImageTreeUnicode.TakeTextElements(id, tLen)))
 				: new RaiRelPath();
 			subdir = sLen > 0 && id.Length > 0
-				? new RaiRelPath(ItemTreePath.SanitizeSegment(id[..Math.Min(id.Length, tLen + sLen)]))
+				? new RaiRelPath(ItemTreePath.SanitizeSegment(ImageTreeUnicode.TakeTextElements(id, tLen + sLen)))
 				: new RaiRelPath();
 		}
 		#endregion
@@ -765,11 +766,18 @@ namespace RaiImage
 		{
 			get
 			{
+				if (!string.IsNullOrEmpty(resolvedFullName))
+					return resolvedFullName;
 				string n = SubdirRoot + Name;
 				if (!string.IsNullOrEmpty(Ext))
 					n += "." + Ext;
 				return n;
 			}
+		}
+		internal void BindResolvedFile(RaiFile file)
+		{
+			ArgumentNullException.ThrowIfNull(file);
+			resolvedFullName = file.FullName;
 		}
 		private RaiRelPath topdir = new RaiRelPath();
 		public RaiRelPath Topdir => topdir;

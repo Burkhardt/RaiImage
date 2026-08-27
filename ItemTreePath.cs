@@ -31,7 +31,7 @@ namespace RaiImage
 			get => itemId;
 			set
 			{
-				itemId = string.IsNullOrEmpty(value) ? string.Empty : value;
+				itemId = ImageTreeUnicode.Normalize(value);
 				ApplyPathConvention();
 			}
 		}
@@ -73,7 +73,7 @@ namespace RaiImage
 		{
 			PathConventionType.ItemIdTree3x3   => (3, 3),
 			PathConventionType.ItemIdTree8x2   => (8, 2),
-			PathConventionType.CanonicalByName => (string.IsNullOrEmpty(itemId) ? 0 : itemId.Length, 0),
+			PathConventionType.CanonicalByName => (string.IsNullOrEmpty(itemId) ? 0 : ImageTreeUnicode.TextElementCount(itemId), 0),
 			_ => throw new ArgumentOutOfRangeException(nameof(convention), convention, "Unknown path convention")
 		};
 		public void ApplyPathConvention()
@@ -84,11 +84,11 @@ namespace RaiImage
 			base.Path = NormalizeRootPath(base.Path, ItemId, tLen, sLen);
 			Topdir = string.IsNullOrEmpty(ItemId) || tLen <= 0
 				? new RaiRelPath()
-				: new RaiRelPath(SanitizeSegment(ItemId[..Math.Min(ItemId.Length, tLen)]));
+				: new RaiRelPath(SanitizeSegment(ImageTreeUnicode.TakeTextElements(ItemId, tLen)));
 			// subdir is cumulative: first (tLen + sLen) chars of ItemId, so it always starts with topdir
 			Subdir = string.IsNullOrEmpty(ItemId) || sLen <= 0
 				? new RaiRelPath()
-				: new RaiRelPath(SanitizeSegment(ItemId[..Math.Min(ItemId.Length, tLen + sLen)]));
+				: new RaiRelPath(SanitizeSegment(ImageTreeUnicode.TakeTextElements(ItemId, tLen + sLen)));
 		}
 		private static string NormalizeRootPath(string rootCandidate, string itemId, int tLen, int sLen)
 		{
@@ -97,15 +97,13 @@ namespace RaiImage
 				: new RaiFile(rootCandidate).Path.ToString();
 			if (string.IsNullOrEmpty(normalized) || string.IsNullOrEmpty(itemId))
 				return normalized;
-			var top = SanitizeSegment(itemId[..Math.Min(itemId.Length, tLen)]);
+			var top = SanitizeSegment(ImageTreeUnicode.TakeTextElements(itemId, tLen));
 			var sub = sLen > 0
-				? SanitizeSegment(itemId[..Math.Min(itemId.Length, tLen + sLen)])
+				? SanitizeSegment(ImageTreeUnicode.TakeTextElements(itemId, tLen + sLen))
 				: string.Empty;
-			var marker = string.IsNullOrEmpty(sub)
-				? Os.DIR + top
-				: Os.DIR + top + Os.DIR + sub;
-			var pos = normalized.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-			return pos >= 0 ? normalized.Remove(pos + 1) : normalized;
+			return string.IsNullOrEmpty(sub)
+				? ImageTreeUnicode.RemoveEquivalentBucketSuffix(normalized, top)
+				: ImageTreeUnicode.RemoveEquivalentBucketSuffix(normalized, top, sub);
 		}
 		/// <summary>
 		/// DOS reserved device name: "con" as a directory kills Windows; replace 'o' with '0'.
@@ -117,7 +115,7 @@ namespace RaiImage
 		{
 			Convention = convention;
 			Split = ConventionSplit(convention, itemId);
-			this.itemId = string.IsNullOrEmpty(itemId) ? string.Empty : itemId;
+			this.itemId = ImageTreeUnicode.Normalize(itemId);
 			base.Path = NormalizeRootPath(rootPath?.ToString(), this.itemId, Split.tLen, Split.sLen);
 			ApplyPathConvention();
 		}

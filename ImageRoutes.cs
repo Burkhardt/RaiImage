@@ -45,7 +45,7 @@ namespace RaiImage
 				throw new ArgumentException("Value is required.", parameterName);
 			if (trimmed.Contains('/') || trimmed.Contains('\\') || trimmed.Contains('?') || trimmed.Contains('#'))
 				throw new ArgumentException("Value must be a plain route segment.", parameterName);
-			return trimmed;
+			return ImageTreeUnicode.Normalize(trimmed);
 		}
 	}
 
