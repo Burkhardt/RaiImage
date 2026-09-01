@@ -2,9 +2,9 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.4 scope note
+## 4.2.5 scope note
 
-- RaiImage implements accepted CR016 and aligns fallback package references to `OsLibCore 4.2.4` and `RaiUtils 4.2.4`.
+- RaiImage carries forward accepted CR016 and aligns fallback package references to `OsLibCore 4.2.5` and `RaiUtils 4.2.5` for the coordinated CR017 line.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
 - `FromImageTree(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.

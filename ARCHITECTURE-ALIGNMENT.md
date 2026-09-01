@@ -2,13 +2,13 @@
 
 This repository aligns with private internal architecture decisions maintained outside this public repository.
 
-## 4.2.4 release alignment
+## 4.2.5 release alignment
 
-- Coordinated release: prepares RaiImage `4.2.4` with fallback dependencies aligned to the current `4.2.4` OsLib/RaiUtils package line.
+- Coordinated release: prepares RaiImage `4.2.5` with fallback dependencies aligned to the current `4.2.5` OsLib/RaiUtils package line.
 - CR016 canonicalizes ImageTree-owned logical names to NFC, derives buckets by Unicode text elements, and reads legacy normalization variants without changing caller roots.
 - The packaged support claim for cloud-backed paths is `OneDrive`, `GoogleDrive`, `ICloudDrive`, and `Dropbox`.
 - Cross-package wording now reflects JsonPit's `Id`-based identifier contract.
-- The aligned fallback dependencies are `OsLibCore 4.2.4` and `RaiUtils 4.2.4` in the current package line.
+- The aligned fallback dependencies are `OsLibCore 4.2.5` and `RaiUtils 4.2.5` in the current package line.
 - RaiDiagram consumes RaiImage as the supported rendering boundary; RaiImage does not depend on RaiDiagram.
 - The active RaiImage patch behavior is smarter filename normalization for trailing image numbers and uppercase tokens used by structured tree workflows.
 - `WordCase` is the supported word-case helper; the old `CamelCase` class is retired and should not appear in current diagrams.

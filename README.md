@@ -4,6 +4,12 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.2.5
+
+- Aligns RaiImage with the coordinated seven-package RAIkeep 4.2.5 release implementing accepted CR017.
+- Aligns fallback dependencies on `OsLibCore 4.2.5` and `RaiUtils 4.2.5`; image behavior is unchanged from 4.2.4.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.2.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.5.md)
+
 ## 4.2.4
 
 - Implements accepted CR016 Unicode normalization for ImageTree-owned subscriber names, item identifiers, templates, filenames, and typed text artifacts.
@@ -13,7 +19,7 @@ Classes to manage image files in directory trees across local and cloud-backed f
 - Rejects ambiguous canonically equivalent directory or source-file matches with `RaiImageIOException`.
 - Adds SVG to the default source lookup extensions.
 - Aligns fallback dependencies on `OsLibCore 4.2.4` and `RaiUtils 4.2.4`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.4.md)
+- 4.2.4 release notes: [RaiImage_RELEASE_NOTES_4.2.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.4.md)
 
 ## 4.2.3
 
@@ -193,4 +199,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Release notes: [RaiImage_RELEASE_NOTES_4.2.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.4.md)
+- Release notes: [RaiImage_RELEASE_NOTES_4.2.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.5.md)
