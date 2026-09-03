@@ -1,82 +1,38 @@
+using System.Runtime.CompilerServices;
+
 namespace RaiImage.Tests;
 
-public class WordCaseTests
+public class WordCaseCompatibilityTests
 {
-	private const string PascalName = "NomsaConcert167";
-	private const string CamelName = "nomsaConcert167";
-	private const string SnakeName = "nomsa_concert_167";
-	private const string KebabName = "nomsa-concert-167";
-
-	[Theory]
-	[InlineData("San-Diego-State-09.24-212", "SanDiegoState0924212", "sanDiegoState0924212", "san_diego_state_09_24_212", "san-diego-state-09-24-212")]
-	[InlineData("SD-State-Sony-149", "SDStateSony149", "sdStateSony149", "sd_state_sony_149", "sd-state-sony-149")]
-	[InlineData("nomsa-concert-167", PascalName, CamelName, SnakeName, KebabName)]
-	[InlineData("Mixed_Snake.AndPascal-and-kebabCase", "MixedSnakeAndPascalAndKebabCase", "mixedSnakeAndPascalAndKebabCase", "mixed_snake_and_pascal_and_kebab_case", "mixed-snake-and-pascal-and-kebab-case")]
-	public void StringConstructor_DetectsInputCaseAndConvertsToAllOutputCases(
-		string name,
-		string expectedPascalCase,
-		string expectedLowerCamelCase,
-		string expectedSnakeCase,
-		string expectedKebabCase)
+	[Fact]
+	public void RaiImageWordCase_DelegatesToRaiUtilsImplementation()
 	{
-		var sut = new WordCase(name);
+#pragma warning disable CS0618
+		var legacy = new RaiImage.WordCase("nomsa-concert-167");
+#pragma warning restore CS0618
 
-		Assert.Equal(expectedPascalCase, sut.PascalCase);
-		Assert.Equal(expectedLowerCamelCase, sut.LowerCamelCase);
-		Assert.Equal(expectedSnakeCase, sut.SnakeCase);
-		Assert.Equal(expectedKebabCase, sut.KebabCase);
+		Assert.IsAssignableFrom<RaiUtils.WordCase>(legacy);
+		Assert.Equal("NomsaConcert167", legacy.PascalCase);
+		Assert.Equal("nomsa_concert_167", legacy.SnakeCase);
 	}
 
 	[Fact]
-	public void ArrayConstructor_ConvertsWordsToAllOutputCases()
+	public void RaiImageStringHelper_PreservesStaticBinarySignaturesWithoutExtensionCollisions()
 	{
-		var sut = new WordCase(["nomsa", "concert", "167"]);
+#pragma warning disable CS0618
+		Assert.Equal("Nomsa", RaiImage.StringHelper.ToTitle("nomsa"));
+		Assert.Equal(["nomsa", "Concert", "11"], RaiImage.StringHelper.WordSplit("nomsa-Concert_11"));
+		Assert.Equal(["nomsa", "Concert", "11"], RaiImage.StringHelper.CamelSplit("nomsa-Concert_11"));
+		var legacyMethods = typeof(RaiImage.StringHelper).GetMethods();
+#pragma warning restore CS0618
 
-		Assert.Equal(PascalName, sut.PascalCase);
-		Assert.Equal(CamelName, sut.LowerCamelCase);
-		Assert.Equal(SnakeName, sut.SnakeCase);
-		Assert.Equal(KebabName, sut.KebabCase);
+		Assert.DoesNotContain(legacyMethods, method => method.IsDefined(typeof(ExtensionAttribute), inherit: false));
 	}
 
 	[Fact]
-	public void CamelCaseString_RemainsCompatibilityAliasForLowerCamelCase()
+	public void RaiUtilsExtensions_AreAvailableToRaiImageConsumers()
 	{
-		var sut = new WordCase(SnakeName);
-
-		Assert.Equal(CamelName, sut.CamelCaseString);
-		Assert.Equal(sut.LowerCamelCase, sut.CamelCaseString);
-	}
-
-	[Fact]
-	public void DashCase_RemainsAliasForKebabCase()
-	{
-		var sut = new WordCase(SnakeName);
-
-		Assert.Equal(KebabName, sut.DashCase);
-		Assert.Equal(sut.KebabCase, sut.DashCase);
-	}
-
-	[Fact]
-	public void WordSplit_SplitsMixedCaseAndSeparatorInputIntoWords()
-	{
-		var words = "nomsa-Concert_11".WordSplit();
-
-		Assert.Equal(["nomsa", "Concert", "11"], words);
-	}
-
-	[Fact]
-	public void CamelSplit_RemainsCompatibilityAliasForWordSplit()
-	{
-		var name = "nomsa-Concert_11";
-
-		Assert.Equal(name.WordSplit(), name.CamelSplit());
-	}
-
-	[Fact]
-	public void StringProperty_DefaultsToPascalCaseForLegacyCallers()
-	{
-		var sut = new WordCase(SnakeName);
-
-		Assert.Equal(PascalName, sut.String);
+		Assert.Equal([8, 18], RaiUtils.StringHelper.WordSeams("ScheduleRehearsal_Nomsa"));
+		Assert.Equal(["Schedule", "Rehearsal", "Nomsa"], RaiUtils.StringHelper.WordSplit("ScheduleRehearsal_Nomsa"));
 	}
 }

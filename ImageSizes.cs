@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using OsLib;
+using RaiUtils;
 
 namespace RaiImage
 {

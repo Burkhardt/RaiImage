@@ -1,5 +1,5 @@
 @startuml RaiImage-Type-Overview
-' Release: 4.0.0
+' Release: 4.2.6
 
 title RaiImage Type Overview
 
@@ -34,13 +34,13 @@ show fields
 show methods
 
 package "RaiImage" {
-	class "<size:18>StringHelper</size>" as StringHelper {
+	class "<size:18>StringHelper</size>" as StringHelper <<deprecated compatibility facade>> {
 		+ToTitle(anyCase : string) : string
 		+WordSplit(anyCase : string) : string[]
 		+CamelSplit(anyCase : string) : string[]
 	}
 
-	class "<size:18>WordCase</size>" as WordCase {
+	class "<size:18>WordCase</size>" as WordCase <<deprecated compatibility facade>> {
 		+Array : string[]
 		+String : string
 		+PascalCase : string
@@ -287,8 +287,10 @@ abstract class "CliCommand" as CliCommand <<external OsLib>>
 class "RaiSystemResult" as RaiSystemResult <<external OsLib>>
 interface "IComparable<T>" as IComparableT <<external>>
 class "RaiPath" as RaiPath <<external OsLib>>
+class "WordCase" as RaiUtilsWordCase <<external RaiUtils>>
 
-StringHelper ..> WordCase : creates
+StringHelper ..> RaiUtilsWordCase : delegates
+WordCase --|> RaiUtilsWordCase
 Extensions ..> Size : parse
 ImageFile --|> RaiFile
 ImageTreeFile --|> ImageFile

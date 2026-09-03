@@ -415,7 +415,7 @@ namespace RaiImage
 					sourceName = "0";
 			}
 			var (itemName, discoveredImageNumber) = SplitTrailingImageNumber(sourceName);
-			var itemId = new WordCase(itemName).PascalCase;
+			var itemId = new RaiUtils.WordCase(itemName).PascalCase;
 			var imgFile = new ImageFile(sourceFile.Path, itemId, string.Empty, sourceFile.Ext);
 			if (discoveredImageNumber != NoImageNumber)
 				imgFile.ImageNumber = discoveredImageNumber;

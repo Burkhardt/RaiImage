@@ -4,6 +4,14 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.2.6
+
+- Implements accepted CR019's package placement by consuming all word-case behavior from RaiUtils.
+- Retains deprecated `RaiImage.WordCase` and ordinary static `RaiImage.StringHelper` compatibility facades for pre-4.2.6 compiled callers; no independent implementation remains here.
+- Recompiled callers should import `RaiUtils` for `WordCase`, `WordSplit`, `CamelSplit`, `ToTitle`, and the new Unicode-safe `WordSeams` API.
+- Aligns fallback dependencies on `OsLibCore 4.2.6` and `RaiUtils 4.2.6`.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.2.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.6.md)
+
 ## 4.2.5
 
 - Aligns RaiImage with the coordinated seven-package RAIkeep 4.2.5 release implementing accepted CR017.
@@ -56,14 +64,14 @@ RaiImage
 
 ## classes
 
-### StringHelper: helper methods for title casing and word splitting.
+### StringHelper: deprecated binary compatibility facade for pre-4.2.6 static callers.
 
-- StringHelper: `ToTitle`, `WordSplit`, `CamelSplit`
+- Canonical extension methods now live in `RaiUtils.StringHelper`.
+- The RaiImage facade methods are intentionally ordinary static methods, preventing duplicate extension discovery.
 
-### WordCase: converts between PascalCase, lower camelCase, snake_case, kebab-case, and token arrays.
+### WordCase: deprecated binary compatibility facade over `RaiUtils.WordCase`.
 
-- WordCase: `Array`, `String`, `PascalCase`, `LowerCamelCase`, `SnakeCase`, `KebabCase`
-- The older `CamelCase` class is retired; use `WordCase` for new and migrated code.
+- Use `RaiUtils.WordCase` for new and recompiled code.
 
 ### ColorInfo: ImageMagick-compatible color descriptor with optional named-color lookup.
 
@@ -199,4 +207,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Release notes: [RaiImage_RELEASE_NOTES_4.2.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.5.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.6.md)

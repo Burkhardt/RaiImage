@@ -2,9 +2,12 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.5 scope note
+## 4.2.6 scope note
 
-- RaiImage carries forward accepted CR016 and aligns fallback package references to `OsLibCore 4.2.5` and `RaiUtils 4.2.5` for the coordinated CR017 line.
+- RaiImage implements accepted CR019's package placement by consuming canonical word-case behavior from RaiUtils.
+- `RaiImage.WordCase` and `RaiImage.StringHelper` remain deprecated binary compatibility facades; no independent word-case implementation remains in RaiImage.
+- Recompiled extension-method callers import `RaiUtils` for `WordSplit`, `CamelSplit`, `ToTitle`, and Unicode-safe `WordSeams`.
+- Fallback package references align to `OsLibCore 4.2.6` and `RaiUtils 4.2.6`.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
 - `FromImageTree(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
@@ -41,30 +44,24 @@ This document provides a detailed, foldable API overview.
 	</details>
 
 - <details>
-	<summary>StringHelper: convenience methods for title/camel handling.</summary>
+	<summary>StringHelper: deprecated static binary compatibility facade.</summary>
 
 	- <details>
-		<summary>ToTitle(value): normalize word casing with first letter uppercase.</summary>
+		<summary>ToTitle(value), WordSplit(value), and CamelSplit(value).</summary>
 
-		- Converts `abc` to `Abc` and lowercases the remaining characters.
-		</details>
-	- <details>
-		<summary>WordSplit(value): split mixed case/separator tokens.</summary>
-
-		- Uses `WordCase` tokenization rules and returns a token array.
-		- `CamelSplit(value)` remains as a compatibility alias.
+		- Preserve pre-4.2.6 static CLR call signatures by delegating to `RaiUtils.StringHelper`.
+		- They are intentionally ordinary static methods rather than extension methods, avoiding ambiguity with the canonical RaiUtils extensions.
 		</details>
 	</details>
 
 - <details>
-	<summary>WordCase: bidirectional word-case representation.</summary>
+	<summary>WordCase: deprecated binary compatibility facade over `RaiUtils.WordCase`.</summary>
 
 	- <details>
 		<summary>Array / String / case properties: synchronized token and formatted forms.</summary>
 
-		- `Array` stores parsed word tokens; `String` returns `PascalCase` for legacy callers.
-		- Use `PascalCase`, `LowerCamelCase`, `SnakeCase`, or `KebabCase` for explicit output.
-		- The old `CamelCase` class is retired; use `WordCase` instead.
+		- Inherits the canonical RaiUtils implementation so existing compiled constructor and member calls continue to resolve.
+		- New and recompiled code should use `RaiUtils.WordCase` directly.
 		</details>
 	</details>
 
