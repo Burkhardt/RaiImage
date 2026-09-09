@@ -30,7 +30,7 @@ dotnet test RaiImage.Tests/RaiImage.Tests.csproj
 
 - Item tree path partitioning and normalization (`ItemTreePath`)
 - Filename normalization defaults (`ImageFile.EasyFileName`) including separated and compact trailing image numbers
-- Naming-aware rooted short-name construction (`ImageTreeFile.FromName`)
+- Naming-aware rooted short-name construction (`new ImageTreeFile(root, name)`)
 - ImageMagick wrapper constructor behavior with and without configured executable paths
 
 ## Planned coverage expansion

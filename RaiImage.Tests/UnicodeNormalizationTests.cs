@@ -73,9 +73,9 @@ public sealed class UnicodeNormalizationTests
 	}
 
 	[Fact]
-	public void ImageTreeTextFile_AuthorsCanonicalNfcNamesAndBuckets()
+	public void ItemTreeTextFile_AuthorsCanonicalNfcNamesAndBuckets()
 	{
-		var file = new ImageTreeTextFile(
+		var file = new ItemTreeTextFile(
 			new RaiPath("/tmp/images/AIA/"),
 			NfdItemId,
 			"Pra\u0308sentation",
@@ -113,7 +113,7 @@ public sealed class UnicodeNormalizationTests
 	}
 
 	[Fact]
-	public void FromImageTree_ResolvesLegacyMixedNormalizationAtEveryLevel()
+	public void SelectFirstExistingFile_ResolvesLegacyMixedNormalizationAtEveryLevel()
 	{
 		var root = NewTestRoot();
 		try
@@ -128,11 +128,8 @@ public sealed class UnicodeNormalizationTests
 			physicalBucket.mkdir();
 			new TextFile(physicalBucket, NfdItemId, "svg", "svg-source");
 
-			var resolved = ImageTreeFile.FromImageTree(
-				imageTreeRoot,
-				subscriberNfc,
-				NfcItemId,
-				"svg");
+			var resolved = new ImageTreeFile(new ItemTreePath(imageTreeRoot, subscriberNfc, NfcItemId))
+				.SelectFirstExistingFile("svg");
 
 			Assert.Equal(NfcItemId, resolved.ItemId);
 			Assert.Equal("svg", resolved.Ext);
@@ -148,7 +145,7 @@ public sealed class UnicodeNormalizationTests
 	[Theory]
 	[InlineData("Sa\u0303oTome\u0301Concert", "SãoToméConcert")]
 	[InlineData("Moc\u0327ambiqueFestival", "MoçambiqueFestival")]
-	public void FromImageTree_ResolvesPortugueseDiacriticsInBucketsAndFilename(
+	public void SelectFirstExistingFile_ResolvesPortugueseDiacriticsInBucketsAndFilename(
 		string decomposedItemId,
 		string canonicalItemId)
 	{
@@ -161,11 +158,8 @@ public sealed class UnicodeNormalizationTests
 			physicalBucket.mkdir();
 			new TextFile(physicalBucket, decomposedItemId, "svg", "portuguese-source");
 
-			var resolved = ImageTreeFile.FromImageTree(
-				root / "images",
-				"AIA",
-				canonicalItemId,
-				"svg");
+			var resolved = new ImageTreeFile(new ItemTreePath(root / "images", "AIA", canonicalItemId))
+				.SelectFirstExistingFile("svg");
 
 			Assert.Equal(canonicalItemId, resolved.ItemId);
 			Assert.True(resolved.Exists());
@@ -178,7 +172,7 @@ public sealed class UnicodeNormalizationTests
 	}
 
 	[Fact]
-	public void FromImageTree_RejectsAmbiguousCanonicalEquivalentFiles_WhenFilesystemAllowsBoth()
+	public void SelectFirstExistingFile_RejectsAmbiguousCanonicalEquivalentFiles_WhenFilesystemAllowsBoth()
 	{
 		var root = NewTestRoot();
 		try
@@ -194,7 +188,8 @@ public sealed class UnicodeNormalizationTests
 				return;
 
 			Assert.Throws<RaiImageIOException>(() =>
-				ImageTreeFile.FromImageTree(root / "images", "AIA", NfcItemId, "svg"));
+				new ImageTreeFile(new ItemTreePath(root / "images", "AIA", NfcItemId))
+					.SelectFirstExistingFile("svg"));
 		}
 		finally
 		{

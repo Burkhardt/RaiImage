@@ -2,6 +2,13 @@ using OsLib;
 namespace RaiImage.Tests;
 public class ItemTreePathTests
 {
+	private static RaiPath NewRoot()
+	{
+		var root = Os.TempDir / "RAIkeep" / "raiimage-tests" / "item-tree-path" / Guid.NewGuid().ToString("N");
+		root.mkdir();
+		return root;
+	}
+
 	[Fact]
 	public void Apply_BuildsTopdirAndSubdirPath()
 	{
@@ -42,6 +49,7 @@ public class ItemTreePathTests
 		Assert.Equal((8, 2), ItemTreePath.ConventionSplit(PathConventionType.ItemIdTree8x2));
 		Assert.Equal((7, 0), ItemTreePath.ConventionSplit(PathConventionType.CanonicalByName, "hello12"));
 		Assert.Equal((0, 0), ItemTreePath.ConventionSplit(PathConventionType.CanonicalByName));
+		Assert.Equal((0, 0), ItemTreePath.ConventionSplit(PathConventionType.Flat));
 	}
 	[Fact]
 	public void FullPath_ReturnsComposedString()
@@ -88,5 +96,161 @@ public class ItemTreePathTests
 		var itp2 = new ItemTreePath(itp.FullPath, itemId, convention);
 		Assert.Equal(itp.FullPath, itp2.FullPath);
 		Assert.Equal(root.FullPath, itp2.RootPath.FullPath);
+	}
+
+	[Fact]
+	public void SelectFiles_ReturnsEveryFileForExactItemId_AndExcludesBucketSibling()
+	{
+		var root = NewRoot();
+		try
+		{
+			var item = new ItemTreePath(root / "Nomsa", "AfricanBrisket");
+			string[] expected =
+			[
+				"AfricanBrisket_01.png",
+				"AfricanBrisket_02.webp",
+				"AfricanBrisket.svg",
+				"AfricanBrisket.puml",
+				"AfricanBrisket_config.puml",
+				"AfricanBrisket.raid"
+			];
+			foreach (var name in expected)
+				Write(item.SubdirRoot, name);
+
+			var sibling = new ItemTreePath(root / "Nomsa", "AfricanBrigadine");
+			Assert.Equal(item.SubdirRoot.FullPath, sibling.SubdirRoot.FullPath);
+			Write(sibling.SubdirRoot, "AfricanBrigadine.png");
+
+			var selected = item.SelectFiles();
+
+			Assert.Equal(expected.Order(), selected.Select(file => file.NameWithExtension).Order());
+			Assert.DoesNotContain(selected, file => file.NameWithExtension == "AfricanBrigadine.png");
+		}
+		finally
+		{
+			root.rmdir(depth: 8, deleteFiles: true);
+		}
+	}
+
+	[Fact]
+	public void Move_RenamesCompleteMixedFileFamily_AndLeavesBucketSiblingUntouched()
+	{
+		var root = NewRoot();
+		try
+		{
+			var source = new ItemTreePath(root / "Nomsa", "AfricanBrisket");
+			Write(source.SubdirRoot, "AfricanBrisket_01.png");
+			Write(source.SubdirRoot, "AfricanBrisket_02.webp");
+			Write(source.SubdirRoot, "AfricanBrisket.svg");
+			Write(source.SubdirRoot, "AfricanBrisket.puml");
+			Write(source.SubdirRoot, "AfricanBrisket_config.puml");
+			Write(source.SubdirRoot, "AfricanBrisket.raid");
+			var sibling = Write(source.SubdirRoot, "AfricanBrigadine.png");
+			var destination = new ItemTreePath(root / "Nomsa", "AfricanDinner");
+
+			var moved = destination.mv(source);
+
+			Assert.Equal(6, moved.Count);
+			Assert.Empty(source.SelectFiles());
+			Assert.True(sibling.Exists());
+			Assert.Equal(
+				new[]
+				{
+					"AfricanDinner.raid",
+					"AfricanDinner.puml",
+					"AfricanDinner.svg",
+					"AfricanDinner_01.png",
+					"AfricanDinner_02.webp",
+					"AfricanDinner_config.puml"
+				}.Order(),
+				destination.SelectFiles().Select(file => file.NameWithExtension).Order().ToArray());
+		}
+		finally
+		{
+			root.rmdir(depth: 8, deleteFiles: true);
+		}
+	}
+
+	[Fact]
+	public void Move_ChangesSubscriberWithoutRenamingItem()
+	{
+		var root = NewRoot();
+		try
+		{
+			var source = new ItemTreePath(root / "Nomsa", "AfricanBrisket");
+			Write(source.SubdirRoot, "AfricanBrisket.png");
+			Write(source.SubdirRoot, "AfricanBrisket.raid");
+			var destination = new ItemTreePath(root / "AIA", source.ItemId);
+
+			destination.mv(source);
+
+			Assert.Empty(source.SelectFiles());
+			Assert.Equal(2, destination.SelectFiles().Count);
+		}
+		finally
+		{
+			root.rmdir(depth: 8, deleteFiles: true);
+		}
+	}
+
+	[Fact]
+	public void Move_MigratesBetween8x2_3x3_AndFlatConventions()
+	{
+		var root = NewRoot();
+		try
+		{
+			var eightByTwo = new ItemTreePath(root / "Nomsa", "AfricanBrisket", PathConventionType.ItemIdTree8x2);
+			Write(eightByTwo.SubdirRoot, "AfricanBrisket.png");
+			Write(eightByTwo.SubdirRoot, "AfricanBrisket.puml");
+			var threeByThree = new ItemTreePath(root / "Nomsa", "AfricanBrisket", PathConventionType.ItemIdTree3x3);
+
+			threeByThree.mv(eightByTwo);
+			Assert.Equal(2, threeByThree.SelectFiles().Count);
+			Assert.Empty(eightByTwo.SelectFiles());
+
+			var flat = new ItemTreePath(root / "Nomsa", "AfricanBrisket", PathConventionType.Flat);
+			flat.mv(threeByThree);
+			Assert.Equal((root / "Nomsa").FullPath, flat.SubdirRoot.FullPath);
+			Assert.Equal(2, flat.SelectFiles().Count);
+			Assert.Empty(threeByThree.SelectFiles());
+
+			eightByTwo.mv(flat);
+			Assert.Equal(2, eightByTwo.SelectFiles().Count);
+			Assert.Empty(flat.SelectFiles());
+		}
+		finally
+		{
+			root.rmdir(depth: 8, deleteFiles: true);
+		}
+	}
+
+	[Fact]
+	public void ImageTreeFile_ConstructedFromItemPath_ExtendsToFirstExistingImageOnly()
+	{
+		var root = NewRoot();
+		try
+		{
+			var item = new ItemTreePath(root / "Nomsa", "AfricanBrisket");
+			Write(item.SubdirRoot, "AfricanBrisket.raid");
+			Write(item.SubdirRoot, "AfricanBrisket.png");
+			var image = new ImageTreeFile(item);
+
+			var found = image.ExtendToFirstExistingFile("jpg,png,webp,svg");
+
+			Assert.True(found);
+			Assert.Equal("png", image.Ext);
+			Assert.Equal("AfricanBrisket.png", image.NameWithExtension);
+		}
+		finally
+		{
+			root.rmdir(depth: 8, deleteFiles: true);
+		}
+	}
+
+	private static RaiFile Write(RaiPath directory, string name)
+	{
+		var file = new TextFile(directory, name);
+		file.DeleteAll().Append(name).Save();
+		return new RaiFile(file.FullName);
 	}
 }

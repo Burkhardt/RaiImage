@@ -15,23 +15,23 @@ namespace RaiImage.Tests;
 ///
 /// <para>The observed bug: with <c>GageElementary.png</c> as the only source and
 /// <c>GageElementary_Large.webp</c> / <c>GageElementary_Small.webp</c> sitting in
-/// the bucket, <see cref="ImageTreeFile.FromImageTree(RaiPath,string,string,string,PathConventionType)"/>
+/// the bucket, <see cref="ImageTreeFile.SelectFirstExistingFile(string,string)"/>
 /// adopted the derivative's <c>webp</c> extension and resolved to the
 /// non-existent <c>GageElementary.webp</c>, throwing <see cref="RaiImageNotFoundException"/>.</para>
 /// </summary>
 public class ImageTreeFileSourceResolutionTests
 {
 	[Fact]
-	public void FromImageTree_MissingSource_ThrowsRaiImageDomainException()
+	public void SelectFirstExistingFile_MissingSource_ThrowsRaiImageDomainException()
 	{
 		var root = NewTestRoot();
 		try
 		{
 			var imageTreeRoot = root / "images";
-			var missing = ImageTreeFile.FromName(imageTreeRoot / "Dr2RAI", "MissingSource");
+			var missing = new ImageTreeFile(new ItemTreePath(imageTreeRoot, "Dr2RAI", "MissingSource"));
 			missing.SubdirRoot.mkdir();
 			var exception = Assert.Throws<RaiImageNotFoundException>(() =>
-				ImageTreeFile.FromImageTree(imageTreeRoot, "Dr2RAI", "MissingSource"));
+				missing.SelectFirstExistingFile());
 
 			Assert.IsAssignableFrom<RaiUtils.RaiException>(exception);
 			Assert.Contains("MissingSource", exception.Message);
@@ -44,15 +44,16 @@ public class ImageTreeFileSourceResolutionTests
 	}
 
 	[Fact]
-	public void FromImageTree_MissingLookupPath_ThrowsRaiPathDomainException()
+	public void SelectFirstExistingFile_MissingLookupPath_ThrowsRaiPathDomainException()
 	{
 		var root = NewTestRoot();
 		try
 		{
 			var imageTreeRoot = root / "missing-images";
-			var expectedPath = ImageTreeFile.FromName(imageTreeRoot / "Dr2RAI", "MissingSource").SubdirRoot.FullPath;
+			var missing = new ImageTreeFile(new ItemTreePath(imageTreeRoot, "Dr2RAI", "MissingSource"));
+			var expectedPath = missing.SubdirRoot.FullPath;
 			var exception = Assert.Throws<RaiPathNotFoundException>(() =>
-				ImageTreeFile.FromImageTree(imageTreeRoot, "Dr2RAI", "MissingSource"));
+				missing.SelectFirstExistingFile());
 
 			Assert.Equal(expectedPath, exception.PathName);
 		}
@@ -63,7 +64,7 @@ public class ImageTreeFileSourceResolutionTests
 	}
 
 	[Fact]
-	public void FromImageTree_ResolvesPngSource_IgnoringWebpDerivatives()
+	public void SelectFirstExistingFile_ResolvesPngSource_IgnoringWebpDerivatives()
 	{
 		var root = NewTestRoot();
 		try
@@ -82,7 +83,8 @@ public class ImageTreeFileSourceResolutionTests
 			var source = new ImageTreeFile(subscriberRoot, itemId, string.Empty, "png");
 			SeedFile(source, "png-source");
 
-			var resolved = ImageTreeFile.FromImageTree(imageTreeRoot, subscriber, itemId);
+			var resolved = new ImageTreeFile(new ItemTreePath(imageTreeRoot, subscriber, itemId))
+				.SelectFirstExistingFile();
 
 			Assert.Equal(itemId, resolved.ItemId);
 			Assert.Equal("png", resolved.Ext);
@@ -96,7 +98,7 @@ public class ImageTreeFileSourceResolutionTests
 	}
 
 	[Fact]
-	public void FromImageTree_ResolvesPngSource_WhenNoDerivativesPresent()
+	public void SelectFirstExistingFile_ResolvesPngSource_WhenNoDerivativesPresent()
 	{
 		var root = NewTestRoot();
 		try
@@ -109,7 +111,8 @@ public class ImageTreeFileSourceResolutionTests
 			var source = new ImageTreeFile(subscriberRoot, itemId, string.Empty, "png");
 			SeedFile(source, "png-source");
 
-			var resolved = ImageTreeFile.FromImageTree(imageTreeRoot, subscriber, itemId);
+			var resolved = new ImageTreeFile(new ItemTreePath(imageTreeRoot, subscriber, itemId))
+				.SelectFirstExistingFile();
 
 			Assert.Equal("png", resolved.Ext);
 			Assert.Equal(source.FullName, resolved.FullName);

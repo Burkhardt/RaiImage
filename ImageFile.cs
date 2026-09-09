@@ -724,6 +724,10 @@ namespace RaiImage
 	public partial class ImageTreeFile : ImageFile, IPathConvention
 	{
 		private string resolvedFullName;
+		/// <summary>The current ItemId-derived tree home for this image file.</summary>
+		public ItemTreePath ItemPath => new(Path, ItemId, Convention);
+		/// <summary>The subscriber root before ItemId bucket segments are appended.</summary>
+		public RaiPath SubscriberRoot => ItemPath.RootPath;
 		#region path convention — directory tree layout
 		public PathConventionType Convention
 		{
@@ -886,6 +890,66 @@ namespace RaiImage
 		/// </summary>
 		public void rmdir() => SubdirRoot.rmdir(2, true);
 		#region constructors
+		/// <summary>
+		/// Construct an image file in an existing item tree home. The extension can
+		/// remain empty until <see cref="ImageFile.ExtendToFirstExistingFile"/> resolves
+		/// the first available image source.
+		/// </summary>
+		public ImageTreeFile(
+			ItemTreePath itemPath,
+			string nameExt = "",
+			string ext = "",
+			ImageNamingConvention naming = ImageNamingConvention.ItemTemplate)
+			: this(
+				(itemPath ?? throw new ArgumentNullException(nameof(itemPath))).RootPath,
+				itemPath.ItemId,
+				nameExt,
+				ext,
+				itemPath.Convention,
+				naming)
+		{
+		}
+
+		/// <summary>
+		/// Construct an unresolved image from a plain file name or stem below a
+		/// subscriber root. Call <see cref="ImageFile.ExtendToFirstExistingFile"/>
+		/// to select the first existing physical image extension.
+		/// </summary>
+		public ImageTreeFile(
+			RaiPath rootPath,
+			string name,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			: this(rootPath, name, InferSourceNamingConvention(name), convention)
+		{
+		}
+
+		public ImageTreeFile(
+			RaiPath rootPath,
+			string name,
+			ImageNamingConvention naming,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			: this(
+				rootPath ?? throw new ArgumentNullException(nameof(rootPath)),
+				ValidatedStem(name),
+				string.Empty,
+				string.Empty,
+				convention,
+				naming)
+		{
+		}
+
+		private static string ValidatedStem(string name)
+		{
+			if (string.IsNullOrWhiteSpace(name)
+				|| name.Contains('/')
+				|| name.Contains('\\'))
+				throw new ArgumentException("Name must be a plain file name or stem.", nameof(name));
+			var stem = ImageTreeUnicode.Normalize(TemplateSetting.StripKnownExtension(name));
+			return string.IsNullOrWhiteSpace(stem)
+				? throw new ArgumentException("Name is required.", nameof(name))
+				: stem;
+		}
+
 		/// <summary>
 		/// Construct from a full file path string.
 		/// Parse() runs the legacy parser, then the naming convention is applied.

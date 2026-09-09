@@ -5,29 +5,78 @@ using OsLib;
 namespace RaiImage;
 
 /// <summary>
-/// A non-image text file placed with the existing ImageTree subscriber root,
+/// A non-image text file placed with the existing ItemTree subscriber root,
 /// item id, and <see cref="ItemTreePath"/> convention.
 /// </summary>
-public class ImageTreeTextFile : TextFile
+public class ItemTreeTextFile : TextFile
 {
-	public ImageTreeTextFile(
+	public ItemTreeTextFile(
+		ItemTreePath itemPath,
+		string nameExt,
+		string ext)
+		: this(
+			itemPath ?? throw new ArgumentNullException(nameof(itemPath)),
+			itemPath.ItemId,
+			ComposeStem(itemPath.ItemId, nameExt),
+			nameExt,
+			ext)
+	{
+	}
+
+	public ItemTreeTextFile(
 		RaiPath subscriberRoot,
 		string itemId,
 		string nameExt,
 		string ext,
 		PathConventionType convention = PathConventionType.ItemIdTree8x2)
-		: this(CreateItemPath(subscriberRoot, itemId, convention), itemId, nameExt, ext)
+		: this(
+			CreateItemPath(subscriberRoot, itemId, convention),
+			itemId,
+			ComposeStem(itemId, nameExt),
+			nameExt,
+			ext)
 	{
 	}
 
-	private ImageTreeTextFile(
+	protected ItemTreeTextFile(
+		RaiPath subscriberRoot,
+		string itemId,
+		string fileStem,
+		string nameExt,
+		string ext,
+		PathConventionType convention)
+		: this(
+			CreateItemPath(subscriberRoot, itemId, convention),
+			itemId,
+			fileStem,
+			nameExt,
+			ext)
+	{
+	}
+
+	protected ItemTreeTextFile(
+		ItemTreePath itemPath,
+		string fileStem,
+		string nameExt,
+		string ext)
+		: this(
+			itemPath ?? throw new ArgumentNullException(nameof(itemPath)),
+			itemPath.ItemId,
+			fileStem,
+			nameExt,
+			ext)
+	{
+	}
+
+	private ItemTreeTextFile(
 		ItemTreePath itemPath,
 		string itemId,
+		string fileStem,
 		string nameExt,
 		string ext)
 		: base(
 			itemPath.SubdirRoot,
-			ComposeStem(itemId, nameExt),
+			ValidateFileStem(fileStem),
 			ValidateExtension(ext))
 	{
 		ItemPath = itemPath;
@@ -35,31 +84,14 @@ public class ImageTreeTextFile : TextFile
 		NameExt = ValidateNameExt(nameExt);
 	}
 
-	protected ImageTreeTextFile(
-		RaiPath subscriberRoot,
-		string itemId,
-		string fileStem,
-		string nameExt,
-		string ext,
-		PathConventionType convention)
-		: base(
-			CreateItemPath(subscriberRoot, itemId, convention).SubdirRoot,
-			ValidateFileStem(fileStem),
-			ValidateExtension(ext))
-	{
-		ItemPath = CreateItemPath(subscriberRoot, itemId, convention);
-		ItemId = ValidateItemId(itemId);
-		NameExt = ValidateNameExt(nameExt);
-	}
-
 	/// <summary>Standalone authoring file outside an ImageTree subscriber location.</summary>
-	protected ImageTreeTextFile(string fullName)
+	protected ItemTreeTextFile(string fullName)
 		: base(fullName)
 	{
 	}
 
 	/// <summary>Standalone authoring file outside an ImageTree subscriber location.</summary>
-	protected ImageTreeTextFile(RaiPath path, string itemId, string nameExt, string ext)
+	protected ItemTreeTextFile(RaiPath path, string itemId, string nameExt, string ext)
 		: base(
 			path ?? throw new ArgumentNullException(nameof(path)),
 			ComposeStem(itemId, nameExt),
@@ -76,11 +108,11 @@ public class ImageTreeTextFile : TextFile
 	public string ItemId { get; } = string.Empty;
 	public string NameExt { get; } = string.Empty;
 
-	public ImageTreeTextFile CreateSibling(string nameExt, string ext)
+	public ItemTreeTextFile CreateSibling(string nameExt, string ext)
 	{
 		if (ItemPath is null)
 			throw new InvalidOperationException("A standalone text file has no subscriber ItemTreePath for sibling creation.");
-		return new ImageTreeTextFile(SubscriberRoot, ItemId, nameExt, ext, Convention);
+		return new ItemTreeTextFile(SubscriberRoot, ItemId, nameExt, ext, Convention);
 	}
 
 	private static ItemTreePath CreateItemPath(
@@ -105,7 +137,7 @@ public class ImageTreeTextFile : TextFile
 			return string.Empty;
 		var canonical = ImageTreeUnicode.Normalize(nameExt);
 		if (canonical.Any(character => !char.IsLetterOrDigit(character) && character is not ('-' or '_')))
-			throw new ArgumentException("An ImageTree artifact NameExt contains unsupported characters.", nameof(nameExt));
+			throw new ArgumentException("An ItemTree artifact NameExt contains unsupported characters.", nameof(nameExt));
 		return canonical;
 	}
 
@@ -116,7 +148,7 @@ public class ImageTreeTextFile : TextFile
 			|| canonical is "." or ".."
 			|| canonical.Contains('/')
 			|| canonical.Contains('\\'))
-			throw new ArgumentException("An ImageTree artifact filename stem is invalid.", nameof(fileStem));
+			throw new ArgumentException("An ItemTree artifact filename stem is invalid.", nameof(fileStem));
 		return canonical;
 	}
 
@@ -125,7 +157,7 @@ public class ImageTreeTextFile : TextFile
 		var canonical = ImageTreeUnicode.Normalize(ext);
 		if (string.IsNullOrWhiteSpace(canonical)
 			|| canonical.Any(character => !char.IsLetterOrDigit(character)))
-			throw new ArgumentException("An ImageTree artifact extension must be one file-type token.", nameof(ext));
+			throw new ArgumentException("An ItemTree artifact extension must be one file-type token.", nameof(ext));
 		return canonical;
 	}
 
@@ -136,7 +168,7 @@ public class ImageTreeTextFile : TextFile
 			|| canonical is "." or ".."
 			|| canonical.Contains('/')
 			|| canonical.Contains('\\'))
-			throw new ArgumentException("An ImageTree artifact item id must be a plain file stem.", nameof(itemId));
+			throw new ArgumentException("An ItemTree artifact item id must be a plain file stem.", nameof(itemId));
 		return canonical;
 	}
 }

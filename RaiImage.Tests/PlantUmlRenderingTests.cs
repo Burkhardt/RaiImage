@@ -150,7 +150,7 @@ public class PlantUmlRenderingTests : IDisposable
 	[Fact]
 	public void CreateSiblingWithNameExt_PreservesSubscriberPlacementAndRejectsPathInjection()
 	{
-		var source = ImageTreeFile.FromName(new RaiPath("/tmp/images/AfricaStage/Tenant-A"), "ScheduleRehearsal");
+		var source = new ImageTreeFile(new RaiPath("/tmp/images/AfricaStage/Tenant-A"), "ScheduleRehearsal");
 
 		var config = source.CreateSiblingWithNameExt("config", "puml");
 

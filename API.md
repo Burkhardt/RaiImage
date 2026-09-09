@@ -2,15 +2,22 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.6 scope note
+## 4.2.7 scope note
+
+- RaiImage implements accepted CR020's shared item-file architecture.
+- `ItemTreePath` owns exact-ItemId file selection and aggregate destination-oriented movement across image and diagram extensions.
+- `PathConventionType.Flat` joins the existing canonical, 3x3, and 8x2 layouts without changing earlier enum values.
+- `ItemTreeTextFile` replaces the contradictory `ImageTreeTextFile` name.
+- `ImageTreeFile` and diagram artifact construction now accept `ItemTreePath`; procedural `FromName`, `FromImageTree`, `FromItemTree`, and `FromExternalLink` factories are removed.
+- `SelectFirstExistingFile(...)` provides fluent source-image selection while retaining domain-specific missing-path and missing-image failures.
 
 - RaiImage implements accepted CR019's package placement by consuming canonical word-case behavior from RaiUtils.
 - `RaiImage.WordCase` and `RaiImage.StringHelper` remain deprecated binary compatibility facades; no independent word-case implementation remains in RaiImage.
 - Recompiled extension-method callers import `RaiUtils` for `WordSplit`, `CamelSplit`, `ToTitle`, and Unicode-safe `WordSeams`.
-- Fallback package references align to `OsLibCore 4.2.6` and `RaiUtils 4.2.6`.
+- Fallback package references align to `OsLibCore 4.2.7` and `RaiUtils 4.2.7`.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
-- `FromImageTree(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
+- `SelectFirstExistingFile(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
 - Ambiguous canonical-equivalent directories or source files fail with `RaiImageIOException`.
 - SVG is included in `DefaultSourceExtensions`.
 - `RaiImageIOException` and `RaiImageNotFoundException` provide image-domain failures; missing paths remain `RaiPathNotFoundException`, and missing external tools remain `ToolNotFoundException`.
@@ -169,10 +176,16 @@ This document provides a detailed, foldable API overview.
 		- Builds destination tree from file names and moves files into partitioned folders.
 		</details>
 	- <details>
-		<summary>FromName(rootPath, name, ...): parse a rooted short name without needing a source file extension.</summary>
+		<summary>ImageTreeFile(rootPath, name, ...): parse a rooted short name without needing a source file extension.</summary>
 
 		- Supports route values such as `AfricanPicnic_04`, `AfricanPicnic_04_Small`, `GageElementary`, and `GageElementary_Huge`.
 		- Can auto-infer `ImageNamingConvention` from the supplied name or accept it explicitly.
+		</details>
+	- <details>
+		<summary>ImageTreeFile(ItemTreePath, nameExt, ext, naming): construct within an existing item home.</summary>
+
+		- Keeps image objects on the same subscriber, ItemId, and path convention as related diagram artifacts.
+		- `SelectFirstExistingFile(...)` mutates and returns the same object after selecting the first matching source extension; missing images throw `RaiImageNotFoundException`.
 		</details>
 	- <details>
 		<summary>CopyTo(destDirs), mkdir(), rmdir(): tree-aware file/folder operations.</summary>
@@ -197,7 +210,17 @@ This document provides a detailed, foldable API overview.
 	</details>
 
 - <details>
-	<summary>ImageTreeTextFile: text content placed by the existing ImageTree contract.</summary>
+	<summary>ItemTreePath: one subscriber-local ItemId tree home.</summary>
+
+	- `SelectFiles()` returns every physical `RaiFile` owned by the exact ItemId, including numbered images, derivatives, SVG, PUML, config PUML, and RAID files.
+	- Similar ItemIds sharing the same bucket are excluded by the filename ownership rule.
+	- `destination.mv(source)` moves the complete selected family, optionally changing subscriber, ItemId, and path convention while preserving suffixes and extensions.
+	- The move preflights collisions, attempts rollback after a partial failure, and prunes empty source buckets.
+	- `Flat` maps the item home directly to the subscriber root; the same move operation migrates between Flat, 3x3, and 8x2.
+	</details>
+
+- <details>
+	<summary>ItemTreeTextFile: text content placed by the existing ImageTree contract.</summary>
 
 	- Derives from OsLib `TextFile`, not `ImageFile`, and carries `ItemPath`, `SubscriberRoot`, `ItemId`, `NameExt`, `Convention`, and `SubdirRoot`.
 	- `CreateSibling(nameExt, ext)` retains the subscriber, item id, convention, and item bucket while producing a truthful text artifact type.

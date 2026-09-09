@@ -4,6 +4,14 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.2.7
+
+- Implements accepted CR020 with `ItemTreePath.SelectFiles()` for exact-ItemId selection across images, `.puml`, `_config.puml`, and `.raid` files.
+- Adds destination-oriented aggregate movement through `destinationItemPath.mv(sourceItemPath)`, including rename, subscriber relocation, path-convention migration, collision preflight, rollback, and empty-bucket pruning.
+- Adds `PathConventionType.Flat` and renames the truthful non-image tree type to `ItemTreeTextFile`.
+- Replaces the procedural `ImageTreeFile.From...` construction surface with constructors accepting `ItemTreePath` plus fluent `SelectFirstExistingFile(...)` resolution.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.2.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.7.md)
+
 ## 4.2.6
 
 - Implements accepted CR019's package placement by consuming all word-case behavior from RaiUtils.
@@ -103,17 +111,17 @@ RaiImage
 ### ItemTreePath: root path plus tree split convention for item-based directory partitioning.
 
 - ItemTreePath: `Convention`, `RootPath`, `ItemId`, `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`, `Path`, `FullPath`
-- ItemTreePath: `ConventionSplit`, `ApplyPathConvention`, `ToString`
+- ItemTreePath: `ConventionSplit`, `ApplyPathConvention`, `SelectFiles`, destination-oriented `mv`, `PruneEmptyDirectories`, `ToString`
 
 ### ImageTreeFile: `ImageFile` variant with tree-based path partitioning.
 
 - ImageTreeFile: `Convention`, `Topdir`, `Subdir`, `TopdirRoot`, `SubdirRoot`
-- ImageTreeFile: `ApplyPathConvention`, `mkdir`, `CopyTo`, `MoveToTree`, `rmdir`, `RenderPlantUml`
+- ImageTreeFile: ItemTreePath-aware constructors, `SelectFirstExistingFile`, `ApplyPathConvention`, `mkdir`, `CopyTo`, `MoveToTree`, `rmdir`, `RenderPlantUml`
 - Split behavior is driven by `PathConventionType`; `Subdir` is cumulative, for example `3x3 => 123/123456` and `8x2 => 12345678/1234567890`. See [PATH_CONVENTION_SPLITTING.md](https://github.com/Burkhardt/RaiImage/blob/main/PATH_CONVENTION_SPLITTING.md).
 
-### ImageTreeTextFile: truthful text-file placement in an ImageTree item bucket.
+### ItemTreeTextFile: truthful text-file placement in an ItemTree bucket.
 
-- ImageTreeTextFile: `SubscriberRoot`, `ItemPath`, `ItemId`, `NameExt`, `Convention`, `SubdirRoot`, `CreateSibling`
+- ItemTreeTextFile: `SubscriberRoot`, `ItemPath`, `ItemId`, `NameExt`, `Convention`, `SubdirRoot`, `CreateSibling`
 - It derives from OsLib `TextFile`, not `ImageFile`, while sharing the same subscriber root, item id, `ItemTreePath`, and `PathConventionType` placement as an `ImageTreeFile`.
 - A resolved PlantUML config uses `NameExt = "config"` and `Ext = "puml"`, producing names such as `ScheduleRehearsal_config.puml` beside `.raid`, clean `.puml`, and rendered `.svg` artifacts.
 
@@ -207,4 +215,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.6.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.7.md)

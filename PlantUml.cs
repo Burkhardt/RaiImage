@@ -12,8 +12,8 @@ namespace RaiImage
 		/// <summary>Compatibility image-shaped handle retained from RaiImage 4.2.0.</summary>
 		public ImageTreeFile Config { get; }
 		public ImageTreeFile Svg { get; }
-		public ImageTreeTextFile SourceArtifact { get; }
-		public ImageTreeTextFile ConfigArtifact { get; }
+		public ItemTreeTextFile SourceArtifact { get; }
+		public ItemTreeTextFile ConfigArtifact { get; }
 
 		public PlantUmlRenderResult(ImageTreeFile source, ImageTreeFile svg)
 			: this(source, null, svg)
@@ -28,8 +28,8 @@ namespace RaiImage
 		}
 
 		public PlantUmlRenderResult(
-			ImageTreeTextFile source,
-			ImageTreeTextFile config,
+			ItemTreeTextFile source,
+			ItemTreeTextFile config,
 			ImageTreeFile svg)
 		{
 			SourceArtifact = source ?? throw new ArgumentNullException(nameof(source));
@@ -37,20 +37,16 @@ namespace RaiImage
 			Svg = svg ?? throw new ArgumentNullException(nameof(svg));
 			if (source.ItemPath is null)
 				throw new ArgumentException("PlantUML source requires subscriber ItemTree placement.", nameof(source));
-			Source = ImageTreeFile.FromItemTree(
-				source.SubscriberRoot,
-				source.ItemId,
+			Source = new ImageTreeFile(
+				source.ItemPath,
 				source.NameExt,
-				source.Ext,
-				source.Convention);
+				source.Ext);
 			Config = config is null
 				? null
-				: ImageTreeFile.FromItemTree(
-					config.SubscriberRoot,
-					config.ItemId,
+				: new ImageTreeFile(
+					config.ItemPath,
 					config.NameExt,
-					config.Ext,
-					config.Convention);
+					config.Ext);
 		}
 	}
 
