@@ -47,6 +47,21 @@ public class ImageMagickTests
 		return root;
 	}
 
+	private static RaiPath CreateConfiguredCloudRoot([CallerMemberName] string testName = "")
+	{
+		foreach (var provider in new[] { "OneDrive", "Dropbox", "GoogleDrive", "ICloudDrive" })
+		{
+			string? configured = Os.Config?.Cloud?[provider];
+			if (string.IsNullOrWhiteSpace(configured)) continue;
+			var providerRoot = new RaiPath(configured);
+			if (!providerRoot.Exists()) continue;
+			return (providerRoot / "RAIkeep" / "raiimage-tests" / "cr022" /
+				$"{SanitizeSegment(testName)}-{Guid.NewGuid():N}").mkdir();
+		}
+		Assert.Skip("No configured CloudDrive is available for the CR022 RaiImage pathname test.");
+		throw new InvalidOperationException("Assert.Skip did not terminate the test.");
+	}
+
 	private static void Cleanup(RaiPath root)
 	{
 		if (root?.Exists() == true)
@@ -365,7 +380,7 @@ public class ImageMagickTests
 	}
 
 	[Fact]
-	public void JpegTran_ExecutesConfiguredTool_AndRestoresOutputFile()
+	public void JpegTran_ExecutesConfiguredTool_AndPreservesOutputPath()
 	{
 		var root = CreateTempRoot();
 		try
@@ -386,11 +401,71 @@ public class ImageMagickTests
 			Assert.Equal(0, exitCode);
 			Assert.True(new RaiFile(image).Exists());
 			Assert.Equal("jpgdata", new TextFile(image).ReadAllText().Trim());
-			Assert.Contains(new RaiFile(image).NameWithExtension, new TextFile(log).ReadAllText());
+			var arguments = new TextFile(log).ReadAllText();
+			Assert.Contains(Os.TempDir.FullPath, arguments);
+			Assert.DoesNotContain(image, arguments);
 		}
 		finally
 		{
 			Cleanup(root);
+		}
+	}
+
+	[Fact]
+	public void JpegTran_ConfiguredCloudImage_NeverDeletesRenamesOrMovesOriginalPath()
+	{
+		var tools = CreateTempRoot();
+		var cloudRoot = CreateConfiguredCloudRoot();
+		try
+		{
+			var log = FilePath(tools, "jpegtran-cloud.log");
+			var scriptPath = CreateFakeCopyScript(
+				tools,
+				OperatingSystem.IsWindows() ? "fake jpegtran cloud.cmd" : "fake jpegtran cloud.sh",
+				log);
+			var image = new ImageFile(FilePath(cloudRoot, "continuous.jpg"));
+			new TextFile(image.FullName, "cloud image content");
+			var pathEvents = new List<string>();
+
+			using var watcher = new FileSystemWatcher(cloudRoot.FullPath, image.NameWithExtension)
+			{
+				NotifyFilter = NotifyFilters.FileName,
+				IncludeSubdirectories = false,
+				EnableRaisingEvents = true
+			};
+			watcher.Deleted += (_, e) => { lock (pathEvents) pathEvents.Add($"Deleted:{e.Name}"); };
+			watcher.Renamed += (_, e) => { lock (pathEvents) pathEvents.Add($"Renamed:{e.OldName}->{e.Name}"); };
+			var stop = false;
+			var alwaysPresent = true;
+			var observer = new Thread(() =>
+			{
+				while (!Volatile.Read(ref stop))
+					if (!image.Exists()) alwaysPresent = false;
+			});
+			observer.Start();
+
+			using var scope = new ImageMagickStateScope();
+			ImageMagick.JpegTranCommand = scriptPath;
+			try
+			{
+				Assert.Equal(0, new ImageMagick().JpegTran(image.FullName));
+			}
+			finally
+			{
+				Volatile.Write(ref stop, true);
+				observer.Join();
+				watcher.EnableRaisingEvents = false;
+			}
+
+			Assert.True(alwaysPresent);
+			lock (pathEvents) Assert.Empty(pathEvents);
+			Assert.Equal("cloud image content", new TextFile(image.FullName).ReadAllText().Trim());
+			Assert.DoesNotContain(image.FullName, new TextFile(log).ReadAllText());
+		}
+		finally
+		{
+			Cleanup(cloudRoot);
+			Cleanup(tools);
 		}
 	}
 
@@ -481,11 +556,76 @@ public class ImageMagickTests
 			Assert.Contains("jpegtran failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
 			Assert.True(new RaiFile(image).Exists());
 			Assert.Equal("jpgdata", new TextFile(image).ReadAllText().Trim());
-			Assert.Contains(new RaiFile(image).NameWithExtension, new TextFile(log).ReadAllText());
+			var arguments = new TextFile(log).ReadAllText();
+			Assert.Contains(Os.TempDir.FullPath, arguments);
+			Assert.DoesNotContain(image, arguments);
 		}
 		finally
 		{
 			Cleanup(root);
+		}
+	}
+
+	[Fact]
+	public void JpegTran_WhenToolFailsForConfiguredCloudImage_LeavesPathContinuouslyPresent()
+	{
+		var cloudRoot = CreateConfiguredCloudRoot();
+		var tools = CreateTempRoot();
+		try
+		{
+			var log = FilePath(tools, "jpegtran-failure.log");
+			var scriptPath = CreateFailingScript(
+				tools,
+				OperatingSystem.IsWindows() ? "fake jpegtran failure.cmd" : "fake jpegtran failure.sh",
+				"jpegtran failed on purpose",
+				9,
+				log);
+			var image = new TextFile(cloudRoot, "continuous", "jpg", new string('o', 256_000));
+			var originalContent = image.ReadAllText();
+			var events = new System.Collections.Concurrent.ConcurrentQueue<string>();
+
+			using var watcher = new FileSystemWatcher(cloudRoot.FullPath, image.NameWithExtension)
+			{
+				NotifyFilter = NotifyFilters.FileName,
+				IncludeSubdirectories = false,
+				EnableRaisingEvents = true
+			};
+			watcher.Deleted += (_, e) => events.Enqueue($"Deleted:{e.Name}");
+			watcher.Renamed += (_, e) => events.Enqueue($"Renamed:{e.OldName}->{e.Name}");
+
+			var stop = false;
+			var alwaysPresent = true;
+			var observer = new Thread(() =>
+			{
+				while (!Volatile.Read(ref stop))
+					if (!File.Exists(image.FullName)) alwaysPresent = false;
+			});
+			observer.Start();
+			try
+			{
+				using var scope = new ImageMagickStateScope();
+				ImageMagick.JpegTranCommand = scriptPath;
+				var sut = new ImageMagick();
+				Assert.Equal(9, sut.JpegTran(image.FullName));
+				Assert.Contains("jpegtran failed on purpose", sut.Message, StringComparison.OrdinalIgnoreCase);
+			}
+			finally
+			{
+				Volatile.Write(ref stop, true);
+				observer.Join();
+				watcher.EnableRaisingEvents = false;
+			}
+
+			Assert.True(alwaysPresent);
+			Assert.Empty(events);
+			Assert.True(image.Exists());
+			Assert.Equal(originalContent, image.ReadAllText());
+			Assert.DoesNotContain(image.FullName, new TextFile(log).ReadAllText());
+		}
+		finally
+		{
+			Cleanup(cloudRoot);
+			Cleanup(tools);
 		}
 	}
 

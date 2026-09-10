@@ -215,36 +215,35 @@ namespace RaiImage
 			}
 			if (result != 0)
 				return result;
-			var tempFile = new ImageFile(GetTempFileName(image.FullName));
-			tempFile.mv(image);
-			var transformed = new JpegTranCommand(JpegTranCommand).Transform(
-				JpegTranOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries),
-				tempFile,
-				image);
-			result = transformed.ExitCode;
-			message = transformed.Output;
-			if (result != 0 || !image.Exists()) // TODO Rainer — File.Exists → RaiFile.Exists; verify rollback logic uses OsLib throughout
+			// CR022: the established image pathname must remain continuously present.
+			// jpegtran works on isolated local copies; only validated result bytes are
+			// written back through RaiFile.cp's in-place overwrite contract.
+			var workingInput = new TmpFile(Os.TempDir, ext: image.Ext);
+			TmpFile workingOutput = null;
+			try
 			{
-				if (image.Exists())
-					image.rm();
-				if (tempFile.Exists())
-					image.mv(tempFile, replace: true, keepBackup: false);
+				workingInput.cp(image);
+				workingOutput = new TmpFile(Os.TempDir, ext: image.Ext);
+				var transformed = new JpegTranCommand(JpegTranCommand).Transform(
+					JpegTranOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries),
+					workingInput,
+					workingOutput);
+				result = transformed.ExitCode;
+				message = transformed.Output;
+				if (result == 0 && workingOutput.Exists())
+					image.cp(workingOutput);
+				else if (result == 0)
+				{
+					result = 1;
+					message = "jpegtran reported success but did not create an output file.";
+				}
+				return result;
 			}
-			if (tempFile.Exists())
-				tempFile.rm();
-			return result;
-		}
-		/// <summary>
-		/// creates a name from a passed-in fileName in the system's TempDir and assures that the name is different from all other names in that directory
-		/// </summary>
-		/// <param name="fromFile"></param>
-		private string GetTempFileName(string fromFile)
-		{
-			var tempFile = new ImageFile(fromFile);
-			tempFile.Path = Os.TempDir;
-			while (tempFile.Exists())
-				tempFile.NameExt = DateTimeOffset.UtcNow.UtcTicks.ToString("x");
-			return tempFile.FullName;
+			finally
+			{
+				if (workingOutput?.Exists() == true) workingOutput.rm();
+				if (workingInput.Exists()) workingInput.rm();
+			}
 		}
 		#region some specialized methods
 		public System.Drawing.Size GetSize(string imageFileName)

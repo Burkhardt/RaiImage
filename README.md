@@ -4,6 +4,15 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.2.9
+
+- Implements accepted incident corrective action CR022 for JPEG transformation.
+- `ImageMagick.JpegTran` keeps an established image pathname continuously present: the external tool uses isolated `TmpFile` input/output and only validated result bytes are written back in place.
+- Failure before the in-place write leaves the original image unchanged; no delete-and-move rollback remains.
+- Fallback dependencies align to `OsLibCore 4.2.9` and `RaiUtils 4.2.9`.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.2.9.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.9.md)
+- Mandatory storage contract: [Cloud-Storage-In-Place-Invariant.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/Cloud-Storage-In-Place-Invariant.md)
+
 ## 4.2.8
 
 - Aligns RaiImage with the coordinated seven-package RAIkeep 4.2.8 release implementing accepted CR021.
@@ -221,4 +230,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.8.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.9.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.9.md)

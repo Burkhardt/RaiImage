@@ -2,7 +2,14 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.8 scope note
+## 4.2.9 scope note
+
+- CR022 changes `ImageMagick.JpegTran` so an established image pathname remains continuously present.
+- The typed `JpegTranCommand` receives isolated local `TmpFile` input/output paths; validated result bytes are copied through OsLibCore's in-place overwrite boundary.
+- Failure before result application leaves the original image unchanged, and rollback never deletes then moves a temporary file into the original pathname.
+- Fallback package references align to `OsLibCore 4.2.9` and `RaiUtils 4.2.9`.
+
+## Carried-forward API
 
 - RaiImage implements accepted CR020's shared item-file architecture.
 - `ItemTreePath` owns exact-ItemId file selection and aggregate destination-oriented movement across image and diagram extensions.
@@ -14,7 +21,7 @@ This document provides a detailed, foldable API overview.
 - RaiImage implements accepted CR019's package placement by consuming canonical word-case behavior from RaiUtils.
 - `RaiImage.WordCase` and `RaiImage.StringHelper` remain deprecated binary compatibility facades; no independent word-case implementation remains in RaiImage.
 - Recompiled extension-method callers import `RaiUtils` for `WordSplit`, `CamelSplit`, `ToTitle`, and Unicode-safe `WordSeams`.
-- Fallback package references align to `OsLibCore 4.2.8` and `RaiUtils 4.2.8`.
+- The CR020/CR019/CR016 public API remains available on the coordinated v4.2.9 dependency line.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
 - `SelectFirstExistingFile(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
@@ -252,6 +259,7 @@ This document provides a detailed, foldable API overview.
 
 		- Includes histogram generation and format-specific optimization pipelines.
 		- ImageMagick subcommands delegate to `ImageMagickCommand`; PNG and JPEG optimization delegate to `OptiPngCommand` and `JpegTranCommand`.
+		- `JpegTran` never moves the live image into `Os.TempDir`; tool output is validated locally and its bytes overwrite the continuously present destination through `RaiFile.cp`.
 		</details>
 	</details>
 
