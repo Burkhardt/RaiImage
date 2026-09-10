@@ -4,6 +4,12 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.2.8
+
+- Aligns RaiImage with the coordinated seven-package RAIkeep 4.2.8 release implementing accepted CR021.
+- Public image and ItemTree behavior remains unchanged from 4.2.7.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.2.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.8.md)
+
 ## 4.2.7
 
 - Implements accepted CR020 with `ItemTreePath.SelectFiles()` for exact-ItemId selection across images, `.puml`, `_config.puml`, and `.raid` files.
@@ -215,4 +221,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.7.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.8.md)

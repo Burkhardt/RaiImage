@@ -2,7 +2,7 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.7 scope note
+## 4.2.8 scope note
 
 - RaiImage implements accepted CR020's shared item-file architecture.
 - `ItemTreePath` owns exact-ItemId file selection and aggregate destination-oriented movement across image and diagram extensions.
@@ -14,7 +14,7 @@ This document provides a detailed, foldable API overview.
 - RaiImage implements accepted CR019's package placement by consuming canonical word-case behavior from RaiUtils.
 - `RaiImage.WordCase` and `RaiImage.StringHelper` remain deprecated binary compatibility facades; no independent word-case implementation remains in RaiImage.
 - Recompiled extension-method callers import `RaiUtils` for `WordSplit`, `CamelSplit`, `ToTitle`, and Unicode-safe `WordSeams`.
-- Fallback package references align to `OsLibCore 4.2.7` and `RaiUtils 4.2.7`.
+- Fallback package references align to `OsLibCore 4.2.8` and `RaiUtils 4.2.8`.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
 - `SelectFirstExistingFile(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
