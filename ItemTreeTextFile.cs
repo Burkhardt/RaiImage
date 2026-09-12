@@ -10,14 +10,26 @@ namespace RaiImage;
 /// </summary>
 public class ItemTreeTextFile : TextFile
 {
+	public const int NoItemNumber = -1;
+
 	public ItemTreeTextFile(
 		ItemTreePath itemPath,
+		string nameExt,
+		string ext)
+		: this(itemPath, NoItemNumber, nameExt, ext)
+	{
+	}
+
+	public ItemTreeTextFile(
+		ItemTreePath itemPath,
+		int itemNumber,
 		string nameExt,
 		string ext)
 		: this(
 			itemPath ?? throw new ArgumentNullException(nameof(itemPath)),
 			itemPath.ItemId,
-			ComposeStem(itemPath.ItemId, nameExt),
+			ComposeStem(itemPath.ItemId, itemNumber, nameExt),
+			itemNumber,
 			nameExt,
 			ext)
 	{
@@ -29,10 +41,22 @@ public class ItemTreeTextFile : TextFile
 		string nameExt,
 		string ext,
 		PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		: this(subscriberRoot, itemId, NoItemNumber, nameExt, ext, convention)
+	{
+	}
+
+	public ItemTreeTextFile(
+		RaiPath subscriberRoot,
+		string itemId,
+		int itemNumber,
+		string nameExt,
+		string ext,
+		PathConventionType convention = PathConventionType.ItemIdTree8x2)
 		: this(
 			CreateItemPath(subscriberRoot, itemId, convention),
 			itemId,
-			ComposeStem(itemId, nameExt),
+			ComposeStem(itemId, itemNumber, nameExt),
+			itemNumber,
 			nameExt,
 			ext)
 	{
@@ -49,6 +73,7 @@ public class ItemTreeTextFile : TextFile
 			CreateItemPath(subscriberRoot, itemId, convention),
 			itemId,
 			fileStem,
+			NoItemNumber,
 			nameExt,
 			ext)
 	{
@@ -63,6 +88,7 @@ public class ItemTreeTextFile : TextFile
 			itemPath ?? throw new ArgumentNullException(nameof(itemPath)),
 			itemPath.ItemId,
 			fileStem,
+			NoItemNumber,
 			nameExt,
 			ext)
 	{
@@ -72,6 +98,7 @@ public class ItemTreeTextFile : TextFile
 		ItemTreePath itemPath,
 		string itemId,
 		string fileStem,
+		int itemNumber,
 		string nameExt,
 		string ext)
 		: base(
@@ -81,6 +108,7 @@ public class ItemTreeTextFile : TextFile
 	{
 		ItemPath = itemPath;
 		ItemId = ValidateItemId(itemId);
+		ItemNumber = ValidateItemNumber(itemNumber);
 		NameExt = ValidateNameExt(nameExt);
 	}
 
@@ -106,13 +134,14 @@ public class ItemTreeTextFile : TextFile
 	public RaiPath SubdirRoot => ItemPath?.SubdirRoot ?? Path;
 	public PathConventionType Convention => ItemPath?.Convention ?? PathConventionType.ItemIdTree8x2;
 	public string ItemId { get; } = string.Empty;
+	public int ItemNumber { get; } = NoItemNumber;
 	public string NameExt { get; } = string.Empty;
 
 	public ItemTreeTextFile CreateSibling(string nameExt, string ext)
 	{
 		if (ItemPath is null)
 			throw new InvalidOperationException("A standalone text file has no subscriber ItemTreePath for sibling creation.");
-		return new ItemTreeTextFile(SubscriberRoot, ItemId, nameExt, ext, Convention);
+		return new ItemTreeTextFile(SubscriberRoot, ItemId, ItemNumber, nameExt, ext, Convention);
 	}
 
 	private static ItemTreePath CreateItemPath(
@@ -125,11 +154,20 @@ public class ItemTreeTextFile : TextFile
 			convention);
 
 	protected static string ComposeStem(string itemId, string nameExt)
+		=> ComposeStem(itemId, NoItemNumber, nameExt);
+
+	protected static string ComposeStem(string itemId, int itemNumber, string nameExt)
 	{
 		var id = ValidateItemId(itemId);
+		var number = ValidateItemNumber(itemNumber);
 		var normalized = ValidateNameExt(nameExt);
-		return string.IsNullOrEmpty(normalized) ? id : $"{id}_{normalized}";
+		var stem = number == NoItemNumber ? id : $"{id}_{number:D2}";
+		return string.IsNullOrEmpty(normalized) ? stem : $"{stem}_{normalized}";
 	}
+
+	private static int ValidateItemNumber(int itemNumber) => itemNumber < NoItemNumber
+		? throw new ArgumentOutOfRangeException(nameof(itemNumber), "ItemNumber must be -1 (unset) or zero and greater.")
+		: itemNumber;
 
 	protected static string ValidateNameExt(string nameExt)
 	{

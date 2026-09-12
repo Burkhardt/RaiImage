@@ -86,6 +86,41 @@ public class PlantUmlRenderingTests : IDisposable
 	}
 
 	[Fact]
+	public void RenderPlantUmlArtifact_UsesBaseItemIdNumberAndNameExtForEverySibling()
+	{
+		var root = NewTestRoot();
+		try
+		{
+			var tools = root / "tools";
+			tools.mkdir();
+			var log = new RaiFile(root, "plantuml-numbered", "log");
+			var script = CreateFakePlantUmlScript(tools, log.FullName);
+			PlantUml.PlantUmlPath = tools;
+			PlantUml.CommandName = new RaiFile(script).NameWithExtension;
+
+			var result = ImageTreeFile.RenderPlantUmlArtifactAtSubscriber(
+				root / "images" / new RaiRelPath("AfricaStage"),
+				"SignContract",
+				2,
+				"UCD",
+				"@startuml\nusecase SignContract\n@enduml",
+				"' config");
+
+			Assert.Equal("SignContract", result.SourceArtifact.ItemId);
+			Assert.Equal(2, result.SourceArtifact.ItemNumber);
+			Assert.Equal("UCD", result.SourceArtifact.NameExt);
+			Assert.EndsWith("/SignCont/SignContra/SignContract_02_UCD.puml", result.Source.FullName);
+			Assert.EndsWith("/SignCont/SignContra/SignContract_02_UCD_config.puml", result.Config.FullName);
+			Assert.EndsWith("/SignCont/SignContra/SignContract_02_UCD.svg", result.Svg.FullName);
+			Assert.True(result.Svg.Exists());
+		}
+		finally
+		{
+			Cleanup(root);
+		}
+	}
+
+	[Fact]
 	public async Task PlantUmlCommand_RunAsync_UsesJavaForJarCommands()
 	{
 		var root = NewTestRoot();

@@ -2,12 +2,13 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.2.11 scope note
+## 4.3.0 scope note
 
 - CR022 changes `ImageMagick.JpegTran` so an established image pathname remains continuously present.
 - The typed `JpegTranCommand` receives isolated local `TmpFile` input/output paths; validated result bytes are copied through OsLibCore's in-place overwrite boundary.
 - Failure before result application leaves the original image unchanged, and rollback never deletes then moves a temporary file into the original pathname.
-- Fallback package references align to `OsLibCore 4.2.11` and `RaiUtils 4.2.11`; the RaiImage public API is unchanged from 4.2.10.
+- Fallback package references align to `OsLibCore 4.3.0` and `RaiUtils 4.3.0`.
+- CR025 adds numbered, archetype-aware `ItemTreeTextFile` naming and the public subscriber artifact rendering boundary used by RaiDiagram.
 
 ## Carried-forward API
 
@@ -21,7 +22,7 @@ This document provides a detailed, foldable API overview.
 - RaiImage implements accepted CR019's package placement by consuming canonical word-case behavior from RaiUtils.
 - `RaiImage.WordCase` and `RaiImage.StringHelper` remain deprecated binary compatibility facades; no independent word-case implementation remains in RaiImage.
 - Recompiled extension-method callers import `RaiUtils` for `WordSplit`, `CamelSplit`, `ToTitle`, and Unicode-safe `WordSeams`.
-- The CR020/CR019/CR016 public API remains available on the coordinated v4.2.11 dependency line.
+- The CR020/CR019/CR016 public API remains available on the coordinated v4.3.0 dependency line.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
 - `SelectFirstExistingFile(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
@@ -117,6 +118,24 @@ This document provides a detailed, foldable API overview.
 	</details>
 
 ## image identity and storage
+
+- <details>
+	<summary>ItemTreeTextFile and diagram artifact naming.</summary>
+
+	- `ItemId` remains the base domain identity used for cumulative ItemTree bucketing.
+	- `ItemNumber` is optional and symmetric with `ImageTreeFile.ImageNumber`; `NoItemNumber` omits it.
+	- `NameExt` carries the diagram archetype, such as `UCD`, rather than becoming part of `ItemId`.
+	- Filenames compose as `ItemId[_NN][_NameExt].ext`, for example `SignContract_UCD.puml` and `SignContract_02_UCD.raid`.
+	- `CreateSibling(...)` preserves `ItemId`, `ItemNumber`, `NameExt`, subscriber, and bucket path while changing only the requested extension.
+	</details>
+
+- <details>
+	<summary>ImageRendering.RenderPlantUmlArtifactAtSubscriber(...).</summary>
+
+	- Renders or saves co-located `.puml`, `_config.puml`, and `.svg` artifacts under one subscriber ItemTree path.
+	- Overloads accept the base `ItemId`, optional `ItemNumber`, and archetype `NameExt` independently.
+	- The server-side PlantUML path remains an optional compatibility boundary; manifest building and PUML compilation do not require Java.
+	</details>
 
 - <details>
 	<summary>Size and Extensions.Parse: image size value helpers.</summary>

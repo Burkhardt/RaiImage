@@ -37,16 +37,22 @@ namespace RaiImage
 			Svg = svg ?? throw new ArgumentNullException(nameof(svg));
 			if (source.ItemPath is null)
 				throw new ArgumentException("PlantUML source requires subscriber ItemTree placement.", nameof(source));
-			Source = new ImageTreeFile(
-				source.ItemPath,
-				source.NameExt,
-				source.Ext);
+			Source = ToCompatibilityImage(source);
 			Config = config is null
 				? null
-				: new ImageTreeFile(
-					config.ItemPath,
-					config.NameExt,
-					config.Ext);
+				: ToCompatibilityImage(config);
+		}
+
+		private static ImageTreeFile ToCompatibilityImage(ItemTreeTextFile artifact)
+		{
+			var image = new ImageTreeFile(
+				artifact.ItemPath,
+				artifact.NameExt,
+				artifact.Ext,
+				ImageNamingConvention.Structured);
+			if (artifact.ItemNumber != ItemTreeTextFile.NoItemNumber)
+				image.ImageNumber = artifact.ItemNumber;
+			return image;
 		}
 	}
 

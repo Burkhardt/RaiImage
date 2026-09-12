@@ -494,6 +494,46 @@ namespace RaiImage
 				plantUmlConfigContent);
 		}
 
+		/// <summary>
+		/// Render a named PlantUML artifact whose base ItemId determines its tree
+		/// home and whose NameExt identifies the diagram archetype.
+		/// </summary>
+		public static PlantUmlRenderResult RenderPlantUmlArtifactAtSubscriber(
+			RaiPath subscriberRoot,
+			string itemId,
+			string nameExt,
+			string plantUmlContent,
+			string plantUmlConfigContent = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+			=> RenderPlantUmlArtifactAtSubscriber(
+				subscriberRoot,
+				itemId,
+				ItemTreeTextFile.NoItemNumber,
+				nameExt,
+				plantUmlContent,
+				plantUmlConfigContent,
+				convention);
+
+		public static PlantUmlRenderResult RenderPlantUmlArtifactAtSubscriber(
+			RaiPath subscriberRoot,
+			string itemId,
+			int itemNumber,
+			string nameExt,
+			string plantUmlContent,
+			string plantUmlConfigContent = null,
+			PathConventionType convention = PathConventionType.ItemIdTree8x2)
+		{
+			ArgumentNullException.ThrowIfNull(subscriberRoot);
+			return RenderPlantUmlAtSubscriber(
+				subscriberRoot,
+				itemId,
+				itemNumber,
+				nameExt,
+				convention,
+				plantUmlContent,
+				plantUmlConfigContent);
+		}
+
 		public static PlantUmlRenderResult RenderPlantUml(string imageTreeRoot, string subscriber, string itemId,
 			string plantUmlContent, ImageNamingConvention namingConvention,
 			PathConventionType convention = PathConventionType.ItemIdTree8x2)
@@ -522,18 +562,39 @@ namespace RaiImage
 			PathConventionType convention,
 			string plantUmlContent,
 			string plantUmlConfigContent)
+			=> RenderPlantUmlAtSubscriber(
+				subscriberRoot,
+				itemId,
+				ItemTreeTextFile.NoItemNumber,
+				string.Empty,
+				convention,
+				plantUmlContent,
+				plantUmlConfigContent);
+
+		private static PlantUmlRenderResult RenderPlantUmlAtSubscriber(
+			RaiPath subscriberRoot,
+			string itemId,
+			int itemNumber,
+			string nameExt,
+			PathConventionType convention,
+			string plantUmlContent,
+			string plantUmlConfigContent)
 		{
 			if (string.IsNullOrWhiteSpace(plantUmlContent))
 				throw new ArgumentException("PlantUML content is required.", nameof(plantUmlContent));
 
-			var source = new ItemTreeTextFile(subscriberRoot, itemId, string.Empty, "puml", convention);
+			var itemPath = new ItemTreePath(subscriberRoot, itemId, convention);
+			var source = new ItemTreeTextFile(itemPath, itemNumber, nameExt, "puml");
 			source.DeleteAll().Append(plantUmlContent).Save();
 
-			var svg = new ImageTreeFile(new ItemTreePath(subscriberRoot, itemId, convention), ext: "svg");
+			var svg = new ImageTreeFile(itemPath, nameExt, "svg", ImageNamingConvention.Structured);
+			if (itemNumber != ItemTreeTextFile.NoItemNumber)
+				svg.ImageNumber = itemNumber;
 			ItemTreeTextFile config = null;
 			if (!string.IsNullOrWhiteSpace(plantUmlConfigContent))
 			{
-				config = new ItemTreeTextFile(subscriberRoot, itemId, "config", "puml", convention);
+				var configNameExt = string.IsNullOrEmpty(nameExt) ? "config" : $"{nameExt}_config";
+				config = new ItemTreeTextFile(itemPath, itemNumber, configNameExt, "puml");
 				config.DeleteAll().Append(plantUmlConfigContent).Save();
 			}
 			var plantUml = new PlantUml();
@@ -607,7 +668,7 @@ namespace RaiImage
 			if (exitCode == 0 && target.Exists())
 				return;
 			throw new ImageRenderingException(
-				$"ImageMagick {operation} render failed for '{settingName}' to '{target.FullName}' " +
+				$"{operation} render failed for '{settingName}' to '{target.FullName}' " +
 				$"(exit {exitCode}). {message}".Trim());
 		}
 
@@ -617,7 +678,7 @@ namespace RaiImage
 			if (exitCode == 0 && target.Exists())
 				return;
 			throw new ImageRenderingException(
-				$"ImageMagick {operation} render failed for '{settingName}' to '{target.FullName}' " +
+				$"{operation} render failed for '{settingName}' to '{target.FullName}' " +
 				$"(exit {exitCode}). {message}".Trim());
 		}
 

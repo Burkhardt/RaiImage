@@ -4,9 +4,17 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## 4.2.11
+## 4.3.0
 
-- Participates unchanged in the coordinated seven-package RAIkeep v4.2.11 release.
+- Adds optional `ItemTreeTextFile.ItemNumber` with canonical `ItemId[_NN][_NameExt].ext` composition while keeping buckets derived only from `ItemId`.
+- Adds typed PlantUML artifact rendering that keeps `.puml`, `_config.puml`, and `.svg` siblings aligned on one base ItemId, optional number, and NameExt.
+- Supports CR025's `_UCD`, `_RFD`/`_OD`, `_CD`, `_AD`, and `_SD` diagram artifact families without treating their archetype NameExt as part of ItemId.
+- Fallback dependencies align to `OsLibCore 4.3.0` and `RaiUtils 4.3.0`.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.3.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.3.0.md)
+
+## 4.2.11 (superseded before publication)
+
+- This prepared line was not published; its changes are carried by v4.3.0.
 - Fallback dependencies align to `OsLibCore 4.2.11` and `RaiUtils 4.2.11`.
 - Current release notes: [RaiImage_RELEASE_NOTES_4.2.11.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.11.md)
 
@@ -242,4 +250,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.2.11.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.11.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.3.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.3.0.md)
