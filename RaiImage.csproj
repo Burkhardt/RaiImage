@@ -16,7 +16,7 @@
 		<IsPackable>true</IsPackable>
 		<ProjectURL>https://github.com/Burkhardt/RaiImage</ProjectURL>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<Copyright>© Rainer Burkhardt. All rights reserved.</Copyright>
+		<Copyright>© Rainer Burkhardt</Copyright>
 		<RepositoryUrl>https://github.com/Burkhardt/RaiImage</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
 		<PackageReleaseNotes>4.3.2 coordinated RAIkeep release; RaiImage behavior is unchanged.</PackageReleaseNotes>
