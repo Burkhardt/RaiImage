@@ -4,6 +4,12 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.4.5
+
+- Participates unchanged in the synchronized nine-package CR047 release.
+- Fallback dependencies align to `OsLibCore 4.4.5` and `RaiUtils 4.4.5`.
+- Current release notes: [RaiImage_RELEASE_NOTES_4.4.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.5.md)
+
 ## 4.4.4
 
 - Participates unchanged in the synchronized nine-package CR044 release.
@@ -280,4 +286,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.4.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.4.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.4.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.5.md)
