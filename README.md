@@ -1,5 +1,12 @@
 # RaiImage
 
+## 4.4.8
+
+Coordinated 4.4.8 dependency alignment; image behavior is unchanged.
+
+Release notes: [RaiImage_RELEASE_NOTES_4.4.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.8.md).
+
+
 RaiImage change requests and release notes are centralized in the RAIkeep [`doc/`](https://github.com/Burkhardt/RAIkeep/tree/main/doc) directory under `RaiImage_...` filenames; they are not stored separately in this child repository.
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
