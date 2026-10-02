@@ -4,6 +4,12 @@ RaiImage change requests and release notes are centralized in the RAIkeep [`doc/
 
 Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
+## 4.4.6
+
+Adds selectable EXIF reads through ImageMagick and structured `ExifMetadata`: date/offset pairs become `DateTimeOffset`, related fields are grouped, and exact rational values are retained. ImageTree naming conventions remain unchanged.
+
+Release notes: [RaiImage_RELEASE_NOTES_4.4.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.6.md).
+
 ## 4.4.5
 
 - Participates unchanged in the synchronized nine-package CR047 release.
