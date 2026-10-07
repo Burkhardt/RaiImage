@@ -485,7 +485,13 @@ namespace RaiImage
 			ImageNamingConvention namingConvention = ImageNamingConvention.ItemTemplate)
 		{
 			ArgumentNullException.ThrowIfNull(subscriberRoot);
-			_ = namingConvention; // retained for parity with the compatibility overloads
+			if (namingConvention == ImageNamingConvention.Structured)
+			{
+				ValidatePlainSegment(itemId, nameof(itemId));
+				var identity = new ImageFile(itemId, ImageNamingConvention.Structured);
+				return RenderPlantUmlAtSubscriber(subscriberRoot, identity.ItemId,
+					identity.ImageNumber, identity.NameExt, convention, plantUmlContent, plantUmlConfigContent);
+			}
 			return RenderPlantUmlAtSubscriber(
 				subscriberRoot,
 				itemId,
@@ -587,6 +593,7 @@ namespace RaiImage
 			var source = new ItemTreeTextFile(itemPath, itemNumber, nameExt, "puml");
 			source.DeleteAll().Append(plantUmlContent).Save();
 
+			// Diagram siblings and Structured images use the same D3 numbering.
 			var svg = new ImageTreeFile(itemPath, nameExt, "svg", ImageNamingConvention.Structured);
 			if (itemNumber != ItemTreeTextFile.NoItemNumber)
 				svg.ImageNumber = itemNumber;
@@ -611,7 +618,7 @@ namespace RaiImage
 			if (ImageNumber == NoImageNumber)
 				return new ImageTreeFile(Path, ItemId, renderingName, normalizedExt, Convention);
 
-			var targetStem = ItemId + "_" + ImageNumber.ToString("D2") + "_" + renderingName;
+			var targetStem = ItemId + "_" + ImageNumber.ToString("D3") + "_" + renderingName;
 			return new ImageTreeFile(Path.FullPath + targetStem + "." + normalizedExt,
 				Convention, ImageNamingConvention.Structured);
 		}

@@ -1,5 +1,25 @@
 # RaiImage
 
+## 4.5.5
+
+Coordinated 4.5.5 release; public behavior is aligned with the synchronized platform.
+
+Release notes: [RaiImage_RELEASE_NOTES_4.5.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.5.md).
+
+### Structured filename compatibility
+
+CR054 normalizes a trailing numeric token run such as
+`Customer-Order-Sheet-26-10.jpg` into base `CustomerOrderSheet`, image number 10,
+and Structured filename `CustomerOrderSheet_010.jpg`. Separated uppercase words
+are PascalCased: `Order_SHEET_001.jpg` becomes `OrderSheet_001.jpg`.
+
+Structured numbers now use D3 minimum width; Legacy keeps D2. Existing two-digit
+names still parse, but their recomposed Structured path changes. No stored files
+are renamed automatically. Migrate existing paths and references together before
+reimporting into an older tree. Values above 999 retain every digit; D3 does not
+promise lexicographic ordering across the next width boundary. Numbered diagram siblings and `ItemTreeTextFile` also use D3 so source, manifest,
+and SVG names stay aligned. Include these numbered paths in migration.
+
 ## 4.5.4
 
 Coordinated 4.5.4 release; public behavior is aligned with the synchronized platform.
@@ -323,4 +343,4 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.5.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.4.md)
+- Latest release notes: [RaiImage_RELEASE_NOTES_4.5.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.5.md)

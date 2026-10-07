@@ -80,8 +80,8 @@ public sealed class ItemTreeTextFileTests
 		Assert.Equal("SignContract", first.ItemId);
 		Assert.Equal(1, first.ItemNumber);
 		Assert.Equal("UCD", first.NameExt);
-		Assert.Equal("SignContract_01_UCD.raid", first.NameWithExtension);
-		Assert.Equal("SignContract_02_UCD.raid", second.NameWithExtension);
+		Assert.Equal("SignContract_001_UCD.raid", first.NameWithExtension);
+		Assert.Equal("SignContract_002_UCD.raid", second.NameWithExtension);
 		Assert.Equal(first.SubdirRoot.FullPath, second.SubdirRoot.FullPath);
 	}
 }

@@ -32,7 +32,7 @@ public class ImageTreeFileConstructionTests
 		Assert.Equal("AfricanPicnic", sut.ItemId);
 		Assert.Equal(4, sut.ImageNumber);
 		Assert.Equal(string.Empty, sut.TemplateName);
-		Assert.Equal("AfricanPicnic_04", sut.ShortName);
+		Assert.Equal("AfricanPicnic_004", sut.ShortName);
 	}
 
 	[Fact]
@@ -44,7 +44,7 @@ public class ImageTreeFileConstructionTests
 		Assert.Equal("AfricanPicnic", deriv.ItemId);
 		Assert.Equal(4, deriv.ImageNumber);
 		Assert.Equal("Small", deriv.TemplateName);
-		Assert.Equal("AfricanPicnic_04", deriv.ShortName);
+		Assert.Equal("AfricanPicnic_004", deriv.ShortName);
 		// Source and derivative live in the same 8x2 bucket.
 		Assert.Equal(src.SubdirRoot.FullPath, deriv.SubdirRoot.FullPath);
 	}
@@ -81,7 +81,7 @@ public class ImageTreeFileConstructionTests
 		Assert.Equal("AfricanPicnic", sut.ItemId);
 		Assert.Equal(4, sut.ImageNumber);
 		Assert.Equal(string.Empty, sut.TemplateName);
-		Assert.Equal("AfricanPicnic_04", sut.ShortName);
+		Assert.Equal("AfricanPicnic_004", sut.ShortName);
 	}
 
 	[Fact]
@@ -102,7 +102,7 @@ public class ImageTreeFileConstructionTests
 		Assert.Equal("AfricanPicnic", sut.ItemId);
 		Assert.Equal(4, sut.ImageNumber);
 		Assert.Equal("Small", sut.TemplateName);
-		Assert.Equal("AfricanPicnic_04", sut.ShortName);
+		Assert.Equal("AfricanPicnic_004", sut.ShortName);
 		Assert.Equal(new ImageTreeFile(Root, "AfricanPicnic_04").SubdirRoot.FullPath,
 			sut.SubdirRoot.FullPath);
 	}

@@ -197,7 +197,7 @@ namespace RaiImage
 				if (!string.IsNullOrEmpty(ItemId))
 					n += ItemId;
 				if (imageNumber >= 0)
-					n += "_" + ImageNumber.ToString("D2");
+					n += "_" + ImageNumber.ToString(namingConvention == ImageNamingConvention.Structured ? "D3" : "D2");
 				return n.Length > 0 ? n : base.Name;
 			}
 		}
@@ -262,7 +262,7 @@ namespace RaiImage
 		{
 			var n = ItemId ?? string.Empty;
 			if (imageNumber >= 0)
-				n += "_" + imageNumber.ToString("D2");
+				n += "_" + imageNumber.ToString("D3");
 			if (!string.IsNullOrEmpty(NameExt))
 				n += "_" + NameExt;
 			// Metadata section after comma
@@ -415,8 +415,10 @@ namespace RaiImage
 					sourceName = "0";
 			}
 			var (itemName, discoveredImageNumber) = SplitTrailingImageNumber(sourceName);
-			var itemId = new RaiUtils.WordCase(itemName).PascalCase;
-			var imgFile = new ImageFile(sourceFile.Path, itemId, string.Empty, sourceFile.Ext);
+			var words = Regex.Split(itemName, @"[\s_-]+").Select(word =>
+				word.Any(char.IsLetter) && word.Where(char.IsLetter).All(char.IsUpper) ? word.ToLowerInvariant() : word);
+			var itemId = new RaiUtils.WordCase(string.Join(" ", words)).PascalCase;
+			var imgFile = new ImageFile(System.IO.Path.Combine(sourceFile.Path.FullPath, itemId + "." + sourceFile.Ext), ImageNamingConvention.Structured);
 			if (discoveredImageNumber != NoImageNumber)
 				imgFile.ImageNumber = discoveredImageNumber;
 			if (imgFile.ImageNumber == NoImageNumber)
@@ -476,7 +478,12 @@ namespace RaiImage
 		}
 		private static (string itemName, int imageNumber) SplitTrailingImageNumber(string sourceName)
 		{
-			var match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)(?<imageNumber>[0-9]+)$");
+			// A terminal run of delimiter-separated numeric tokens is sequence/date metadata.
+			// Keep the final token as the image number; do not fold earlier tokens into the stem.
+			// Numeric-only identifiers and digits embedded in descriptive words retain their existing meaning.
+			var match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)(?:[-_][0-9]+)*[-_](?<imageNumber>[0-9]+)$");
+			if (!match.Success)
+				match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)(?<imageNumber>[0-9]+)$");
 			var itemName = match.Groups["itemName"].Value;
 			if (!match.Success
 				|| string.IsNullOrWhiteSpace(itemName)

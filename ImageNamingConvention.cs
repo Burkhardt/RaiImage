@@ -27,10 +27,11 @@ namespace RaiImage
 		/// Positional (underscore-separated): ItemId_ImageNumber_NameExt
 		/// Metadata (comma-separated): ,Color,TileTemplate-TileNumber
 		/// Full: ItemId_ImageNumber_NameExt,Color,TileTemplate-TileNumber.Ext
-		/// Example: "471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp"
+		/// Example: "471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp"
+		/// ImageNumber uses at least three digits (D3). Legacy retains its two-digit format.
 		/// Components are omitted when empty/unset. The comma marks the boundary
 		/// between the searchable positional prefix and optional metadata.
-		/// Search pattern: "471100_03_Fullsizehq,*" finds all color/tile variants.
+		/// Search pattern: "471100_003_Fullsizehq,*" finds all color/tile variants.
 		/// </summary>
 		Structured
 	}

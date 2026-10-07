@@ -52,8 +52,8 @@ public class ImageRenderingTests : IDisposable
 			Assert.True(rendered02.Exists());
 			Assert.True(renderedNoNumber.Exists());
 			Assert.NotEqual(rendered01.FullName, rendered02.FullName);
-			Assert.EndsWith("AfricanPicnic_01_Huge.webp", rendered01.FullName);
-			Assert.EndsWith("AfricanPicnic_02_Huge.webp", rendered02.FullName);
+			Assert.EndsWith("AfricanPicnic_001_Huge.webp", rendered01.FullName);
+			Assert.EndsWith("AfricanPicnic_002_Huge.webp", rendered02.FullName);
 			Assert.EndsWith("GageElementary_Huge.webp", renderedNoNumber.FullName);
 		}
 		finally

@@ -161,7 +161,7 @@ public class ItemTreeTextFile : TextFile
 		var id = ValidateItemId(itemId);
 		var number = ValidateItemNumber(itemNumber);
 		var normalized = ValidateNameExt(nameExt);
-		var stem = number == NoItemNumber ? id : $"{id}_{number:D2}";
+		var stem = number == NoItemNumber ? id : $"{id}_{number:D3}";
 		return string.IsNullOrEmpty(normalized) ? stem : $"{stem}_{normalized}";
 	}
 

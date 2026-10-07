@@ -38,8 +38,8 @@ public class PlantUmlRenderingTests : IDisposable
 
 			Assert.True(result.Source.Exists());
 			Assert.True(result.Svg.Exists());
-			Assert.EndsWith("AfricanPicnic_01.puml", result.Source.FullName);
-			Assert.EndsWith("AfricanPicnic_01.svg", result.Svg.FullName);
+			Assert.EndsWith("AfricanPicnic_001.puml", result.Source.FullName);
+			Assert.EndsWith("AfricanPicnic_001.svg", result.Svg.FullName);
 			Assert.Contains("@startuml", new TextFile(result.Source.FullName).ReadAllText());
 			Assert.Contains("-tsvg", string.Join("\n", new TextFile(log.FullName).Lines));
 		}
@@ -71,7 +71,7 @@ public class PlantUmlRenderingTests : IDisposable
 				ImageNamingConvention.Structured);
 
 			Assert.True(result.Config.Exists());
-			Assert.EndsWith("AfricanPicnic_01_config.puml", result.Config.FullName);
+			Assert.EndsWith("AfricanPicnic_001_config.puml", result.Config.FullName);
 			Assert.Equal("config", result.ConfigArtifact.NameExt);
 			Assert.Equal("puml", result.ConfigArtifact.Ext);
 			Assert.Equal("!theme cerulean", new TextFile(result.Config.FullName).ReadAllText().Trim());
@@ -109,9 +109,9 @@ public class PlantUmlRenderingTests : IDisposable
 			Assert.Equal("SignContract", result.SourceArtifact.ItemId);
 			Assert.Equal(2, result.SourceArtifact.ItemNumber);
 			Assert.Equal("UCD", result.SourceArtifact.NameExt);
-			Assert.EndsWith("/SignCont/SignContra/SignContract_02_UCD.puml", result.Source.FullName);
-			Assert.EndsWith("/SignCont/SignContra/SignContract_02_UCD_config.puml", result.Config.FullName);
-			Assert.EndsWith("/SignCont/SignContra/SignContract_02_UCD.svg", result.Svg.FullName);
+			Assert.EndsWith("/SignCont/SignContra/SignContract_002_UCD.puml", result.Source.FullName);
+			Assert.EndsWith("/SignCont/SignContra/SignContract_002_UCD_config.puml", result.Config.FullName);
+			Assert.EndsWith("/SignCont/SignContra/SignContract_002_UCD.svg", result.Svg.FullName);
 			Assert.True(result.Svg.Exists());
 		}
 		finally

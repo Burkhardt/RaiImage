@@ -91,10 +91,10 @@ public class ImageFileTests
 		Assert.Equal("308024_01", sut.ShortName);
 	}
 	[Theory]
-	[InlineData("nomsa-concert-11.jpg", "NomsaConcert_11.jpg")]
-	[InlineData("SD-State-Sony-149.jpg", "SDStateSony_149.jpg")]
-	[InlineData("San-Diego-State-09.24-232.jpg", "SanDiegoState0924_232.jpg")]
-	[InlineData("SD-State-Fuji-unedited-87.jpg", "SDStateFujiUnedited_87.jpg")]
+	[InlineData("customer-order-11.jpg", "CustomerOrder_011.jpg")]
+	[InlineData("ORDER-Sheet-Sony-149.jpg", "OrderSheetSony_149.jpg")]
+	[InlineData("Customer-Order-Sheet-09.24-232.jpg", "CustomerOrderSheet0924_232.jpg")]
+	[InlineData("ORDER-Sheet-Fuji-unedited-87.jpg", "OrderSheetFujiUnedited_087.jpg")]
 	public void EasyFileName_ConvertsSeparatedTrailingNumberToImageNumber(string sourceName, string expectedName)
 	{
 		var root = new RaiPath("/tmp/root/");
@@ -107,8 +107,8 @@ public class ImageFileTests
 	public void EasyFileName_ConvertsCompactTrailingDigitsToImageNumber()
 	{
 		var root = new RaiPath("/tmp/root/");
-		var source = new RaiFile(root, "NomsaConcert167.jpg");
-		var expected = new RaiFile(root, "NomsaConcert_167.jpg");
+		var source = new RaiFile(root, "CustomerOrder167.jpg");
+		var expected = new RaiFile(root, "CustomerOrder_167.jpg");
 
 		Assert.Equal(expected.FullName, ImageFile.EasyFileName(source.FullName));
 	}
@@ -117,7 +117,7 @@ public class ImageFileTests
 	{
 		var root = new RaiPath("/tmp/root/");
 		var source = new RaiFile(root, "12345.jpg");
-		var expected = new RaiFile(root, "12345_01.jpg");
+		var expected = new RaiFile(root, "12345_001.jpg");
 
 		Assert.Equal(expected.FullName, ImageFile.EasyFileName(source.FullName));
 	}
@@ -126,7 +126,7 @@ public class ImageFileTests
 	public void StructuredConvention_ParsesAllComponents()
 	{
 		var sut = new ImageFile(
-			"/tmp/root/471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp",
+			"/tmp/root/471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp",
 			ImageNamingConvention.Structured);
 		Assert.Equal("471100", sut.ItemId);
 		Assert.Equal(3, sut.ImageNumber);
@@ -140,23 +140,23 @@ public class ImageFileTests
 	public void StructuredConvention_ComposesAllComponents()
 	{
 		var sut = new ImageFile(
-			"/tmp/root/471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp",
+			"/tmp/root/471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp",
 			ImageNamingConvention.Structured);
-		Assert.Equal("471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37", sut.Name);
-		Assert.Equal("471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp", sut.NameWithExtension);
+		Assert.Equal("471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37", sut.Name);
+		Assert.Equal("471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp", sut.NameWithExtension);
 	}
 	[Fact]
 	public void StructuredConvention_ParsesPositionalOnly()
 	{
 		var sut = new ImageFile(
-			"/tmp/root/471100_03_FullSizeHQ.webp",
+			"/tmp/root/471100_003_FullSizeHQ.webp",
 			ImageNamingConvention.Structured);
 		Assert.Equal("471100", sut.ItemId);
 		Assert.Equal(3, sut.ImageNumber);
 		Assert.Equal("FullSizeHQ", sut.NameExt);
 		Assert.Null(sut.Color);
 		Assert.Equal(string.Empty, sut.TileTemplate);
-		Assert.Equal("471100_03_FullSizeHQ", sut.Name);
+		Assert.Equal("471100_003_FullSizeHQ", sut.Name);
 	}
 	[Fact]
 	public void StructuredConvention_ParsesItemIdOnly()
@@ -173,12 +173,12 @@ public class ImageFileTests
 	public void StructuredConvention_ParsesItemIdAndNumber()
 	{
 		var sut = new ImageFile(
-			"/tmp/root/471100_03.webp",
+			"/tmp/root/471100_003.webp",
 			ImageNamingConvention.Structured);
 		Assert.Equal("471100", sut.ItemId);
 		Assert.Equal(3, sut.ImageNumber);
 		Assert.Equal(string.Empty, sut.NameExt);
-		Assert.Equal("471100_03", sut.Name);
+		Assert.Equal("471100_003", sut.Name);
 	}
 	[Fact]
 	public void StructuredConvention_ParsesItemIdAndNameExt()
@@ -195,19 +195,19 @@ public class ImageFileTests
 	public void StructuredConvention_ParsesColorWithoutTile()
 	{
 		var sut = new ImageFile(
-			"/tmp/root/471100_03_FullSizeHQ,Himmelblau.webp",
+			"/tmp/root/471100_003_FullSizeHQ,Himmelblau.webp",
 			ImageNamingConvention.Structured);
 		Assert.Equal("471100", sut.ItemId);
 		Assert.Equal(3, sut.ImageNumber);
 		Assert.Equal("FullSizeHQ", sut.NameExt);
 		Assert.Equal("Himmelblau", sut.Color.Name);
 		Assert.Equal(string.Empty, sut.TileTemplate);
-		Assert.Equal("471100_03_FullSizeHQ,Himmelblau", sut.Name);
+		Assert.Equal("471100_003_FullSizeHQ,Himmelblau", sut.Name);
 	}
 	[Fact]
 	public void StructuredConvention_RoundTrips()
 	{
-		var original = "471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37";
+		var original = "471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37";
 		var sut = new ImageFile(
 			$"/tmp/root/{original}.webp",
 			ImageNamingConvention.Structured);
@@ -218,11 +218,11 @@ public class ImageFileTests
 	{
 		// The positional prefix before the comma is the glob-searchable part
 		var sut = new ImageFile(
-			"/tmp/root/471100_03_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp",
+			"/tmp/root/471100_003_FullSizeHQ,Himmelblau,TilesZoomLevel3-37.webp",
 			ImageNamingConvention.Structured);
-		var prefix = $"{sut.ItemId}_{sut.ImageNumber:D2}_{sut.NameExt}";
-		Assert.Equal("471100_03_FullSizeHQ", prefix);
-		// A glob of "471100_03_FullSizeHQ,*" would match any color/tile variant
+		var prefix = $"{sut.ItemId}_{sut.ImageNumber:D3}_{sut.NameExt}";
+		Assert.Equal("471100_003_FullSizeHQ", prefix);
+		// A glob of "471100_003_FullSizeHQ,*" would match any color/tile variant
 		Assert.StartsWith(prefix + ",", sut.NameWithExtension);
 	}
 	#endregion
