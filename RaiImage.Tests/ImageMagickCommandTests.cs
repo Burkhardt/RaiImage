@@ -109,6 +109,15 @@ namespace RaiImage.Tests
 		}
 
 		[Fact]
+		public void ImageMagickCommand_OverSsh_PreservesTheTypedFluentSurface()
+		{
+			var sut = new ImageMagickCommand();
+
+			Assert.Same(sut, sut.OverSsh("worker@mdlaka"));
+			Assert.Equal("worker@mdlaka", sut.RemoteTarget);
+		}
+
+		[Fact]
 		public void OptiPngCommand_PassesImagePathAsOneArgument()
 		{
 			var root = CreateTempRootDir();

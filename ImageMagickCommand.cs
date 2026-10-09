@@ -19,6 +19,9 @@ namespace RaiImage
 			this.commandName = commandName ?? ImageMagick.MagickCommand;
 		}
 
+		/// <summary>Routes subsequent ImageMagick calls through the named SSH target.</summary>
+		public ImageMagickCommand OverSsh(string remoteTarget) => base.OverSsh<ImageMagickCommand>(remoteTarget);
+
 		public override IEnumerable<string> CandidateExecutables
 		{
 			get
