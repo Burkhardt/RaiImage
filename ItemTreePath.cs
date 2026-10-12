@@ -136,6 +136,32 @@ namespace RaiImage
 		}
 
 		/// <summary>
+		/// Select rendered variants for one numbered image in this ItemId's bucket.
+		/// The unadorned source, other image numbers, and non-image artifacts are excluded.
+		/// </summary>
+		public IReadOnlyList<RaiFile> SelectRenderedDerivatives(int imageNumber)
+		{
+			if (imageNumber < 0)
+				throw new ArgumentOutOfRangeException(nameof(imageNumber));
+			var imageExtensions = ImageTypes.Default.Array
+				.Select(extension => extension.Trim().TrimStart('.'))
+				.Append("avif")
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+			return SelectFiles().Where(file =>
+			{
+				if (!imageExtensions.Contains(file.Ext.TrimStart('.')))
+					return false;
+				var image = new ImageFile(file.FullName, ImageNamingConvention.Structured);
+				return image.ImageNumber == imageNumber
+					&& string.Equals(image.ItemId, ItemId, StringComparison.OrdinalIgnoreCase)
+					&& (!string.IsNullOrWhiteSpace(image.NameExt)
+						|| !string.IsNullOrWhiteSpace(image.TileTemplate)
+						|| !string.IsNullOrWhiteSpace(image.TileNumber)
+						|| image.Color is not null);
+			}).ToList();
+		}
+
+		/// <summary>
 		/// Move all files owned by <paramref name="from"/> into this item home.
 		/// When the ItemIds differ, only the leading ItemId portion of each filename
 		/// is renamed; image numbers, NameExt values, diagram config suffixes and

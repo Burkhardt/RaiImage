@@ -133,6 +133,31 @@ public class ItemTreePathTests
 	}
 
 	[Fact]
+	public void SelectRenderedDerivatives_UsesExactItemAndImageNumberWithoutSelectingSources()
+	{
+		var root = NewRoot();
+		try
+		{
+			var item = new ItemTreePath(root / "Customer", "OrderSheet");
+			foreach (var name in new[]
+			{
+				"OrderSheet_002.jpg", "OrderSheet_002.webp", "OrderSheet_002_Thumb.webp",
+				"OrderSheet_002_Small.jpg", "OrderSheet_002.raid", "OrderSheet_001_Thumb.webp",
+				"OrderSheetExtra_002_Thumb.webp"
+			}) Write(item.SubdirRoot, name);
+
+			var selected = item.SelectRenderedDerivatives(2);
+
+			Assert.Equal(new[] { "OrderSheet_002_Small.jpg", "OrderSheet_002_Thumb.webp" },
+				selected.Select(file => file.NameWithExtension).Order().ToArray());
+		}
+		finally
+		{
+			root.rmdir(depth: 8, deleteFiles: true);
+		}
+	}
+
+	[Fact]
 	public void Move_RenamesCompleteMixedFileFamily_AndLeavesBucketSiblingUntouched()
 	{
 		var root = NewRoot();
