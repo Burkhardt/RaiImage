@@ -1,10 +1,10 @@
 # RaiImage
 
-## 4.5.8
+## 4.5.9
 
-Coordinated 4.5.8 release; public behavior is aligned with the synchronized platform.
+CR060 keeps intermediate numeric tokens in image stems while treating only the final separated number as the image sequence.
 
-Latest release notes: [RaiImage 4.5.8 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#458).
+Latest release notes: [RaiImage 4.5.9 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#459).
 
 ## Previous Versions
 
@@ -15,18 +15,18 @@ For release notes and changelogs of earlier releases, see the [RaiImage 4.x Rele
 ### .NET CLI
 
 ```bash
-dotnet add package RaiImage --version 4.5.8
+dotnet add package RaiImage --version 4.5.9
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiImage" Version="4.5.8" />
+<PackageReference Include="RaiImage" Version="4.5.9" />
 ```
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## Structured filename compatibility (CR060, pending release)
+## Structured filename compatibility (CR060)
 
 CR060 retains intermediate numeric tokens: `Customer-Order-Sheet-26-10.jpg`
 becomes base `CustomerOrderSheet26`, image number 10, and Structured filename
