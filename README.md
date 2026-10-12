@@ -26,11 +26,12 @@ dotnet add package RaiImage --version 4.5.8
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-## Structured filename compatibility
+## Structured filename compatibility (CR060, pending release)
 
-CR054 normalizes a trailing numeric token run such as
-`Customer-Order-Sheet-26-10.jpg` into base `CustomerOrderSheet`, image number 10,
-and Structured filename `CustomerOrderSheet_010.jpg`. Separated uppercase words
+CR060 retains intermediate numeric tokens: `Customer-Order-Sheet-26-10.jpg`
+becomes base `CustomerOrderSheet26`, image number 10, and Structured filename
+`CustomerOrderSheet26_010.jpg`. A single trailing number remains the sequence
+number: `Customer-Order-Sheet-26.jpg` becomes `CustomerOrderSheet_026.jpg`. Separated uppercase words
 are PascalCased: `Order_SHEET_001.jpg` becomes `OrderSheet_001.jpg`.
 
 Structured numbers now use D3 minimum width; Legacy keeps D2. Existing two-digit

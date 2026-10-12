@@ -18,10 +18,14 @@ public sealed class FilenameNormalizationTests
     }
 
     [Theory]
-    [InlineData("Customer-Order-Sheet-26-10.jpg", "CustomerOrderSheet", 10)]
-    [InlineData("Customer_Order_Sheet_26_10.jpg", "CustomerOrderSheet", 10)]
+    [InlineData("Customer-Order-Sheet-26-1.jpg", "CustomerOrderSheet26", 1)]
+    [InlineData("Customer-Order-Sheet-26-10.jpg", "CustomerOrderSheet26", 10)]
+    [InlineData("Customer-Order-Sheet-26-100.jpg", "CustomerOrderSheet26", 100)]
+    [InlineData("Customer-Order-Sheet-26-101.jpg", "CustomerOrderSheet26", 101)]
+    [InlineData("Customer_Order_Sheet_26_10.jpg", "CustomerOrderSheet26", 10)]
+    [InlineData("Customer-Order-Sheet-26.jpg", "CustomerOrderSheet", 26)]
     [InlineData("Order_SHEET_001.jpg", "OrderSheet", 1)]
-    [InlineData("Order-2026-Sheet-26-10.jpg", "Order2026Sheet", 10)]
+    [InlineData("Order-2026-Sheet-26-10.jpg", "Order2026Sheet26", 10)]
     [InlineData("CustomerOrder10.jpg", "CustomerOrder", 10)]
     public void NumericSuffixIsSeparatedFromPascalCaseStem(string source, string stem, int number)
     {

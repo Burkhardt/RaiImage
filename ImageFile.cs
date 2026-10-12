@@ -478,10 +478,10 @@ namespace RaiImage
 		}
 		private static (string itemName, int imageNumber) SplitTrailingImageNumber(string sourceName)
 		{
-			// A terminal run of delimiter-separated numeric tokens is sequence/date metadata.
-			// Keep the final token as the image number; do not fold earlier tokens into the stem.
+			// Only the final delimiter-separated numeric token is the image number.
+			// Earlier numeric tokens remain part of the item identity.
 			// Numeric-only identifiers and digits embedded in descriptive words retain their existing meaning.
-			var match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)(?:[-_][0-9]+)*[-_](?<imageNumber>[0-9]+)$");
+			var match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)[-_](?<imageNumber>[0-9]+)$");
 			if (!match.Success)
 				match = Regex.Match(sourceName ?? string.Empty, @"^(?<itemName>.*?)(?<imageNumber>[0-9]+)$");
 			var itemName = match.Groups["itemName"].Value;
