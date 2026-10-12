@@ -4,27 +4,29 @@
 
 Coordinated 4.5.8 release; public behavior is aligned with the synchronized platform.
 
-Release notes: [RaiImage_RELEASE_NOTES_4.5.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.8.md).
+Latest release notes: [RaiImage 4.5.8 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#458).
 
-## 4.5.7
+## Previous Versions
 
-Coordinated 4.5.7 release; public behavior is aligned with the synchronized platform.
+For release notes and changelogs of earlier releases, see the [RaiImage 4.x Release Notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md).
 
-Release notes: [RaiImage_RELEASE_NOTES_4.5.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.7.md).
+## Installation
 
-## 4.5.6
+### .NET CLI
 
-Coordinated 4.5.6 release; public behavior is aligned with the synchronized platform.
+```bash
+dotnet add package RaiImage --version 4.5.8
+```
 
-Release notes: [RaiImage_RELEASE_NOTES_4.5.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.6.md).
+### PackageReference
 
-## 4.5.5
+```xml
+<PackageReference Include="RaiImage" Version="4.5.8" />
+```
 
-Coordinated 4.5.5 release; public behavior is aligned with the synchronized platform.
+RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
 
-Release notes: [RaiImage_RELEASE_NOTES_4.5.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.5.md).
-
-### Structured filename compatibility
+## Structured filename compatibility
 
 CR054 normalizes a trailing numeric token run such as
 `Customer-Order-Sheet-26-10.jpg` into base `CustomerOrderSheet`, image number 10,
@@ -37,169 +39,6 @@ are renamed automatically. Migrate existing paths and references together before
 reimporting into an older tree. Values above 999 retain every digit; D3 does not
 promise lexicographic ordering across the next width boundary. Numbered diagram siblings and `ItemTreeTextFile` also use D3 so source, manifest,
 and SVG names stay aligned. Include these numbered paths in migration.
-
-## 4.5.4
-
-Coordinated 4.5.4 release; public behavior is aligned with the synchronized platform.
-
-Release notes: [RaiImage_RELEASE_NOTES_4.5.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.4.md).
-
-## 4.5.3
-
-Coordinated 4.5.3 release; public behavior is aligned with the synchronized platform.
-
-Release notes: [RaiImage_RELEASE_NOTES_4.5.3.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.3.md).
-
-## 4.5.2
-
-Coordinated 4.5.2 release; public behavior is aligned with the synchronized platform.
-
-Release notes: [RaiImage_RELEASE_NOTES_4.5.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.2.md).
-
-## 4.5.0
-
-Coordinated 4.5.0 dependency alignment; image behavior is unchanged.
-
-Release notes: [RaiImage_RELEASE_NOTES_4.5.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.0.md).
-
-## 4.4.8
-
-Coordinated 4.4.8 dependency alignment; image behavior is unchanged.
-
-Release notes: [RaiImage_RELEASE_NOTES_4.4.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.8.md).
-
-
-RaiImage change requests and release notes are centralized in the RAIkeep [`doc/`](https://github.com/Burkhardt/RAIkeep/tree/main/doc) directory under `RaiImage_...` filenames; they are not stored separately in this child repository.
-
-Classes to manage image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
-
-## 4.4.6
-
-Adds selectable EXIF reads through ImageMagick and structured `ExifMetadata`: date/offset pairs become `DateTimeOffset`, related fields are grouped, and exact rational values are retained. ImageTree naming conventions remain unchanged.
-
-Release notes: [RaiImage_RELEASE_NOTES_4.4.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.6.md).
-
-## 4.4.5
-
-- Participates unchanged in the synchronized nine-package CR047 release.
-- Fallback dependencies align to `OsLibCore 4.4.5` and `RaiUtils 4.4.5`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.4.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.5.md)
-
-## 4.4.4
-
-- Participates unchanged in the synchronized nine-package CR044 release.
-- Fallback dependencies align to `OsLibCore 4.4.4` and `RaiUtils 4.4.4`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.4.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.4.md)
-
-## 4.4.2
-
-- Participates unchanged in the synchronized eight-package CR040/CR041 release.
-- Fallback dependencies align to `OsLibCore 4.4.2` and `RaiUtils 4.4.2`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.4.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.2.md)
-
-## 4.4.1
-
-- Participates unchanged in the synchronized eight-package RAIkeep v4.4.1 CR037 release.
-- Fallback dependencies align to `OsLibCore 4.4.1` and `RaiUtils 4.4.1`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.4.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.4.1.md)
-
-## 4.3.2
-
-- Participates unchanged in the coordinated seven-package RAIkeep v4.3.2 CR027 release.
-- Fallback dependencies align to `OsLibCore 4.3.2` and `RaiUtils 4.3.2`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.3.2.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.3.2.md)
-
-## 4.3.1
-
-- Participates unchanged in the coordinated seven-package RAIkeep v4.3.1 CR026 release.
-- Fallback dependencies align to `OsLibCore 4.3.1` and `RaiUtils 4.3.1`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.3.1.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.3.1.md)
-
-## 4.3.0
-
-- Adds optional `ItemTreeTextFile.ItemNumber` with canonical `ItemId[_NN][_NameExt].ext` composition while keeping buckets derived only from `ItemId`.
-- Adds typed PlantUML artifact rendering that keeps `.puml`, `_config.puml`, and `.svg` siblings aligned on one base ItemId, optional number, and NameExt.
-- Supports CR025's `_UCD`, `_RFD`/`_OD`, `_CD`, `_AD`, and `_SD` diagram artifact families without treating their archetype NameExt as part of ItemId.
-- Fallback dependencies align to `OsLibCore 4.3.0` and `RaiUtils 4.3.0`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.3.0.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.3.0.md)
-
-## 4.2.11 (superseded before publication)
-
-- This prepared line was not published; its changes are carried by v4.3.0.
-- Fallback dependencies align to `OsLibCore 4.2.11` and `RaiUtils 4.2.11`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.11.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.11.md)
-
-## 4.2.10
-
-- Participates unchanged in the coordinated seven-package RAIkeep 4.2.10 release.
-- Fallback dependencies align to `OsLibCore 4.2.10` and `RaiUtils 4.2.10`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.10.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.10.md)
-
-## 4.2.9
-
-- Implements accepted incident corrective action CR022 for JPEG transformation.
-- `ImageMagick.JpegTran` keeps an established image pathname continuously present: the external tool uses isolated `TmpFile` input/output and only validated result bytes are written back in place.
-- Failure before the in-place write leaves the original image unchanged; no delete-and-move rollback remains.
-- Fallback dependencies align to `OsLibCore 4.2.9` and `RaiUtils 4.2.9`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.9.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.9.md)
-- Mandatory storage contract: [Cloud-Storage-In-Place-Invariant.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/Cloud-Storage-In-Place-Invariant.md)
-
-## 4.2.8
-
-- Aligns RaiImage with the coordinated seven-package RAIkeep 4.2.8 release implementing accepted CR021.
-- Public image and ItemTree behavior remains unchanged from 4.2.7.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.8.md)
-
-## 4.2.7
-
-- Implements accepted CR020 with `ItemTreePath.SelectFiles()` for exact-ItemId selection across images, `.puml`, `_config.puml`, and `.raid` files.
-- Adds destination-oriented aggregate movement through `destinationItemPath.mv(sourceItemPath)`, including rename, subscriber relocation, path-convention migration, collision preflight, rollback, and empty-bucket pruning.
-- Adds `PathConventionType.Flat` and renames the truthful non-image tree type to `ItemTreeTextFile`.
-- Replaces the procedural `ImageTreeFile.From...` construction surface with constructors accepting `ItemTreePath` plus fluent `SelectFirstExistingFile(...)` resolution.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.7.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.7.md)
-
-## 4.2.6
-
-- Implements accepted CR019's package placement by consuming all word-case behavior from RaiUtils.
-- Retains deprecated `RaiImage.WordCase` and ordinary static `RaiImage.StringHelper` compatibility facades for pre-4.2.6 compiled callers; no independent implementation remains here.
-- Recompiled callers should import `RaiUtils` for `WordCase`, `WordSplit`, `CamelSplit`, `ToTitle`, and the new Unicode-safe `WordSeams` API.
-- Aligns fallback dependencies on `OsLibCore 4.2.6` and `RaiUtils 4.2.6`.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.6.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.6.md)
-
-## 4.2.5
-
-- Aligns RaiImage with the coordinated seven-package RAIkeep 4.2.5 release implementing accepted CR017.
-- Aligns fallback dependencies on `OsLibCore 4.2.5` and `RaiUtils 4.2.5`; image behavior is unchanged from 4.2.4.
-- Current release notes: [RaiImage_RELEASE_NOTES_4.2.5.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.5.md)
-
-## 4.2.4
-
-- Implements accepted CR016 Unicode normalization for ImageTree-owned subscriber names, item identifiers, templates, filenames, and typed text artifacts.
-- Normalizes logical names to NFC before deriving directories or writing files while preserving caller-supplied ImageTree root paths.
-- Derives 3x3, 8x2, and canonical-name buckets by Unicode text elements so combining sequences, surrogate pairs, and emoji clusters are not split.
-- Resolves legacy NFC, NFD, and mixed-normalization trees segment by segment through the OsLib `RaiPath`/`RaiFile` boundary.
-- Rejects ambiguous canonically equivalent directory or source-file matches with `RaiImageIOException`.
-- Adds SVG to the default source lookup extensions.
-- Aligns fallback dependencies on `OsLibCore 4.2.4` and `RaiUtils 4.2.4`.
-- 4.2.4 release notes: [RaiImage_RELEASE_NOTES_4.2.4.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.2.4.md)
-
-## 4.2.3
-
-- Participates unchanged in the coordinated CR015 package line.
-- Implements CR010's truthful `ImageTreeTextFile` placement beside rendered ImageTree images and preserves RaiDiagram's supported PlantUML rendering boundary.
-- Adds resolved `_config.puml` persistence using `NameExt = "config"`, typed source/config handles, and PlantUML `-config` invocation.
-- Aligns fallback dependencies on `OsLibCore 4.2.3` and `RaiUtils 4.2.3`.
-- Adds `RaiImageIOException` and `RaiImageNotFoundException` for image-domain failures.
-- Missing lookup directories throw `RaiPathNotFoundException`; missing images in an existing location throw `RaiImageNotFoundException`.
-- Missing ImageMagick or PlantUML executables throw `ToolNotFoundException`.
-- CR014 routes ImageMagick, PlantUML, OptiPNG, and JPEGTran execution through typed RaiImage wrappers; optimizer paths are passed as discrete process arguments.
-- Image files accept `IAsyncEnumerable<byte[]>` ingestion through the OsLib file boundary.
-- Refreshes the live hierarchy diagram so it no longer advertises the removed `CamelCase` type.
-- `ImageFile.EasyFileName(...)` now converts separated and compact trailing digits into `ImageNumber` while keeping pure numeric names as item ids.
-- `WordCase` now preserves all-uppercase tokens in PascalCase output so names such as `SD-State-Sony-149` normalize as expected.
-- The structured-name flow now stays aligned with the `iorg` CLI when it stages source images into `ImageTreeFile` layouts.
-- Keeps the current packaged cloud-provider claim of `OneDrive`, `GoogleDrive`, `ICloudDrive`, and `Dropbox`.
-- This README is configured to ship inside the RaiImage NuGet package.
 
 ## cloud storage compatibility
 
@@ -361,4 +200,3 @@ https://www.nuget.org/packages/RaiImage/
 - Migration guide: [MIGRATION_3.2.0.md](https://github.com/Burkhardt/RaiImage/blob/main/MIGRATION_3.2.0.md)
 - Architecture alignment: [ARCHITECTURE-ALIGNMENT.md](https://github.com/Burkhardt/RaiImage/blob/main/ARCHITECTURE-ALIGNMENT.md)
 - Testing guide: [TESTING.md](https://github.com/Burkhardt/RaiImage/blob/main/TESTING.md)
-- Latest release notes: [RaiImage_RELEASE_NOTES_4.5.8.md](https://github.com/Burkhardt/RAIkeep/blob/main/doc/RaiImage_RELEASE_NOTES_4.5.8.md)
