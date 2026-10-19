@@ -1,10 +1,10 @@
 # RaiImage
 
-## 4.5.11
+## 4.5.12
 
 CR060 keeps intermediate numeric tokens in image stems while treating only the final separated number as the image sequence.
 
-Latest release notes: [RaiImage 4.5.11 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#4511).
+Latest release notes: [RaiImage 4.5.12 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#4512).
 
 ## Previous Versions
 
@@ -15,13 +15,13 @@ For release notes and changelogs of earlier releases, see the [RaiImage 4.x Rele
 ### .NET CLI
 
 ```bash
-dotnet add package RaiImage --version 4.5.11
+dotnet add package RaiImage --version 4.5.12
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiImage" Version="4.5.11" />
+<PackageReference Include="RaiImage" Version="4.5.12" />
 ```
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
