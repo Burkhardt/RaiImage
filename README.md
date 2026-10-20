@@ -1,10 +1,11 @@
 # RaiImage
 
-## 4.5.12
+## 4.5.13
 
-CR060 keeps intermediate numeric tokens in image stems while treating only the final separated number as the image sequence.
+CR067 adds a media-container registry for video ingestion while preserving
+still-image derivative behavior.
 
-Latest release notes: [RaiImage 4.5.12 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#4512).
+Latest release notes: [RaiImage 4.5.13 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#4513).
 
 ## Previous Versions
 
@@ -15,16 +16,23 @@ For release notes and changelogs of earlier releases, see the [RaiImage 4.x Rele
 ### .NET CLI
 
 ```bash
-dotnet add package RaiImage --version 4.5.12
+dotnet add package RaiImage --version 4.5.13
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiImage" Version="4.5.12" />
+<PackageReference Include="RaiImage" Version="4.5.13" />
 ```
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
+
+`MediaTypes.Default` also identifies the video containers accepted by
+`iorg organize`: `mp4`, `mov`, `webm`, `mkv`, and `avi`, alongside the supported
+still-image formats. `MediaTypes.IsVideo` distinguishes those containers from
+stills. `ImageTypes.Default` remains the still-image set used for rendered
+derivative handling; adding video ingestion does not make videos image
+derivatives.
 
 ## Structured filename compatibility (CR060)
 
