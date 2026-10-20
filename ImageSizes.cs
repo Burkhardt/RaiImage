@@ -25,6 +25,18 @@ namespace RaiImage
 		public ImageTypes(string[] extensions) => Array = extensions;
 	}
 
+	/// <summary>File containers accepted for canonical ImageTree ingestion.</summary>
+	public static class MediaTypes
+	{
+		public static ImageTypes Default { get; } = new([
+			"tiff", "png", "jpg", "psd", "webp", "svg",
+			"mp4", "mov", "webm", "mkv", "avi"
+		]);
+
+		public static bool IsVideo(string extension) => extension?.Trim().TrimStart('.').ToLowerInvariant()
+			is "mp4" or "mov" or "webm" or "mkv" or "avi";
+	}
+
 	public class Pane
 	{
 		public static Pane DefaultPane = new("160x200");
