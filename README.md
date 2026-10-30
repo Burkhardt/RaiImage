@@ -1,11 +1,11 @@
 # RaiImage
 
-## 4.5.14
+## 4.5.15
 
 CR067 adds a media-container registry for video ingestion while preserving
 still-image derivative behavior.
 
-Latest release notes: [RaiImage 4.5.14 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#4514).
+Latest release notes: [RaiImage 4.5.15 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#4515).
 
 ## Previous Versions
 
@@ -16,13 +16,13 @@ For release notes and changelogs of earlier releases, see the [RaiImage 4.x Rele
 ### .NET CLI
 
 ```bash
-dotnet add package RaiImage --version 4.5.14
+dotnet add package RaiImage --version 4.5.15
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiImage" Version="4.5.14" />
+<PackageReference Include="RaiImage" Version="4.5.15" />
 ```
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
