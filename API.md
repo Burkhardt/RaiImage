@@ -2,13 +2,13 @@
 
 This document provides a detailed, foldable API overview.
 
-## 4.5.15 scope note
+## 4.5.16 scope note
 
-- RaiImage's public API is unchanged in the synchronized nine-package 4.5.15 release.
+- RaiImage's public API is unchanged in the synchronized nine-package 4.5.16 release.
 - CR022 changes `ImageMagick.JpegTran` so an established image pathname remains continuously present.
 - The typed `JpegTranCommand` receives isolated local `TmpFile` input/output paths; validated result bytes are copied through OsLibCore's in-place overwrite boundary.
 - Failure before result application leaves the original image unchanged, and rollback never deletes then moves a temporary file into the original pathname.
-- Fallback package references align to `OsLibCore 4.5.15` and `RaiUtils 4.5.15`.
+- Fallback package references align to `OsLibCore 4.5.16` and `RaiUtils 4.5.16`.
 - CR025 adds numbered, archetype-aware `ItemTreeTextFile` naming and the public subscriber artifact rendering boundary used by RaiDiagram.
 
 ## Carried-forward API
@@ -23,7 +23,7 @@ This document provides a detailed, foldable API overview.
 - RaiImage implements accepted CR019's package placement by consuming canonical word-case behavior from RaiUtils.
 - `RaiImage.WordCase` and `RaiImage.StringHelper` remain deprecated binary compatibility facades; no independent word-case implementation remains in RaiImage.
 - Recompiled extension-method callers import `RaiUtils` for `WordSplit`, `CamelSplit`, `ToTitle`, and Unicode-safe `WordSeams`.
-- The CR020/CR019/CR016 public API remains available on the synchronized v4.5.15 dependency line.
+- The CR020/CR019/CR016 public API remains available on the synchronized v4.5.16 dependency line.
 - ImageTree-owned logical names are canonicalized to Unicode NFC before bucket or filename derivation; caller-provided root paths are preserved.
 - `ItemTreePath` and `ImageTreeFile` calculate 3x3, 8x2, and canonical-name prefixes by Unicode text elements rather than UTF-16 code units.
 - `SelectFirstExistingFile(...)` and `ExtendToFirstExistingFile(...)` resolve legacy NFC, NFD, and mixed-normalization directory/file spellings by canonical equivalence through `RaiPath` and `RaiFile` enumeration.
@@ -376,3 +376,16 @@ This document provides a detailed, foldable API overview.
 		- Supports ranking and equality checks for two-size candidates.
 		</details>
 	</details>
+
+## CR075 content comparison
+
+`MediaContent.Sha256Async(RaiFile)` streams a SHA-256 fingerprint, and
+`ByteEqualsAsync` performs bounded-buffer byte confirmation after a size check.
+Both revalidate source metadata and accept cancellation.
+
+`MediaVisualComparison.CompareAsync` returns null for a completed non-match or
+`IorgMatchEvidence` for a visual match. `ValidateAsync` checks decoders and media
+support; errors throw rather than inventing uniqueness. `FfmpegCommand` and
+`FfprobeCommand` execute tokenized commands through OsLib. ImageMagick handles
+still-image pipes; all visual operations exclude audio and do not imply byte
+identity. See the [CR075 operations profile](https://github.com/Burkhardt/RAIkeep/blob/main/doc/IORG-OPERATIONS.md#cr075-structured-inventory-and-content-matching).
