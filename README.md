@@ -1,11 +1,11 @@
 # RaiImage
 
-## 4.6.4
+## 4.6.5
 
 Adds streamed byte identity and complete visual comparison primitives for CR075.
 The strict-v1 visual profile reports its evidence and excludes audio.
 
-Latest release notes: [RaiImage 4.6.4 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#464).
+Latest release notes: [RaiImage 4.6.5 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#465).
 
 ## Previous Versions
 
@@ -16,13 +16,13 @@ For release notes and changelogs of earlier releases, see the [RaiImage 4.x Rele
 ### .NET CLI
 
 ```bash
-dotnet add package RaiImage --version 4.6.4
+dotnet add package RaiImage --version 4.6.5
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiImage" Version="4.6.4" />
+<PackageReference Include="RaiImage" Version="4.6.5" />
 ```
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
