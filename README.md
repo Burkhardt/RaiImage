@@ -1,5 +1,7 @@
 # RaiImage
 
+[Code signing policy](https://github.com/Burkhardt/RAIkeep/blob/main/README_codesigning.md)
+
 ## 4.6.5
 
 Adds streamed byte identity and complete visual comparison primitives for CR075.
