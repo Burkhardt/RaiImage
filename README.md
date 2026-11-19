@@ -1,13 +1,13 @@
 # RaiImage
 
-[Code signing policy](https://github.com/Burkhardt/RAIkeep/blob/main/README_codesigning.md)
+[Code signing policy](https://github.com/Burkhardt/RAIkeep/blob/main/README_codesigning.md) · SignPath Foundation application in preparation; signing is not yet active.
 
-## 4.6.5
+## 4.6.6
 
 Adds streamed byte identity and complete visual comparison primitives for CR075.
 The strict-v1 visual profile reports its evidence and excludes audio.
 
-Latest release notes: [RaiImage 4.6.5 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#465).
+Latest release notes: [RaiImage 4.6.6 release notes](https://github.com/Burkhardt/RAIkeep/blob/main/doc/releases/v4.x/RaiImage_RELEASE_NOTES_4.x.md#466).
 
 ## Previous Versions
 
@@ -18,13 +18,13 @@ For release notes and changelogs of earlier releases, see the [RaiImage 4.x Rele
 ### .NET CLI
 
 ```bash
-dotnet add package RaiImage --version 4.6.5
+dotnet add package RaiImage --version 4.6.6
 ```
 
 ### PackageReference
 
 ```xml
-<PackageReference Include="RaiImage" Version="4.6.5" />
+<PackageReference Include="RaiImage" Version="4.6.6" />
 ```
 
 RaiImage manages image files in directory trees across local and cloud-backed folders on Windows, macOS, and Linux.
