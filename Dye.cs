@@ -2,10 +2,10 @@
 
 namespace RaiImage
 {
-    /// <summary>
-    /// for ImageMagick 
-    /// </summary>
-    public class DyeDelta
+	/// <summary>
+	/// for ImageMagick 
+	/// </summary>
+	public class DyeDelta
 	{
 		public int DeltaB;
 		public int DeltaS;

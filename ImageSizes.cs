@@ -168,7 +168,7 @@ namespace RaiImage
 			var value = src;
 			var route = value.Trim();
 			if (Uri.TryCreate(route, UriKind.Absolute, out var uri)
-			    && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+				&& (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
 			{
 				route = uri.AbsolutePath;
 			}
@@ -290,7 +290,7 @@ namespace RaiImage
 				var r = u.Path.LastIndexOf('/');
 				u.Path = u.Path[r..].Contains('.')
 					? u.Path[..r] + value
-					: u.Path.EndsWith('/') ? u.Path + value : u.Path + "/" + value;
+					: u.Path.EndsWith('/') ? u.Path + value : $"{u.Path}/{value}";
 			}
 		}
 

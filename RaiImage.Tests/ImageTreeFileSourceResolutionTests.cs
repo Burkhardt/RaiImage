@@ -202,6 +202,7 @@ public class ImageTreeFileSourceResolutionTests
 			var imageTreeRoot = root / "images";
 			var subscriberRoot = imageTreeRoot / "Dr2RAI";
 			
+#pragma warning disable RAI016 // Exercise source selection when reading an existing legacy tree.
 			// Seed base/source image: AfricanPicnic_0DEAD0_01.png (under Legacy)
 			var sourceFile = new ImageTreeFile(subscriberRoot.FullPath + "AfricanPicnic_0DEAD0_01.png", PathConventionType.ItemIdTree8x2, ImageNamingConvention.Legacy);
 			SeedFile(sourceFile, "real-source");
@@ -211,6 +212,7 @@ public class ImageTreeFileSourceResolutionTests
 			SeedFile(derivativeFile, "derivative");
 
 			var target = new ImageTreeFile(subscriberRoot.FullPath + "AfricanPicnic_0DEAD0_01.png", PathConventionType.ItemIdTree8x2, ImageNamingConvention.Legacy);
+#pragma warning restore RAI016
 			target.Ext = "*";
 
 			var resolved = target.ExtendToFirstExistingFile("webp,png", PathConventionType.ItemIdTree8x2);
@@ -265,7 +267,7 @@ public class ImageTreeFileSourceResolutionTests
 
 	private static RaiPath NewTestRoot([CallerMemberName] string testName = "")
 	{
-		var root = new RaiPath(Path.GetTempPath()) / "RAIkeep" / "raiimage-tests" / "source-resolution" / testName;
+		var root = new RaiPath(Os.TempDir.FullPath) / "RAIkeep" / "raiimage-tests" / "source-resolution" / testName;
 		Cleanup(root);
 		root.mkdir();
 		return root;

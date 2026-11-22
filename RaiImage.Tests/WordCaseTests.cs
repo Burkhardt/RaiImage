@@ -7,9 +7,9 @@ public class WordCaseCompatibilityTests
 	[Fact]
 	public void RaiImageWordCase_DelegatesToRaiUtilsImplementation()
 	{
-#pragma warning disable CS0618
+#pragma warning disable CS0618, RAI016 // Test the public legacy API for binary compatibility.
 		var legacy = new RaiImage.WordCase("nomsa-concert-167");
-#pragma warning restore CS0618
+#pragma warning restore CS0618, RAI016
 
 		Assert.IsAssignableFrom<RaiUtils.WordCase>(legacy);
 		Assert.Equal("NomsaConcert167", legacy.PascalCase);
@@ -19,12 +19,12 @@ public class WordCaseCompatibilityTests
 	[Fact]
 	public void RaiImageStringHelper_PreservesStaticBinarySignaturesWithoutExtensionCollisions()
 	{
-#pragma warning disable CS0618
+#pragma warning disable CS0618, RAI016 // Test the public legacy API for binary compatibility.
 		Assert.Equal("Nomsa", RaiImage.StringHelper.ToTitle("nomsa"));
 		Assert.Equal(["nomsa", "Concert", "11"], RaiImage.StringHelper.WordSplit("nomsa-Concert_11"));
 		Assert.Equal(["nomsa", "Concert", "11"], RaiImage.StringHelper.CamelSplit("nomsa-Concert_11"));
 		var legacyMethods = typeof(RaiImage.StringHelper).GetMethods();
-#pragma warning restore CS0618
+#pragma warning restore CS0618, RAI016
 
 		Assert.DoesNotContain(legacyMethods, method => method.IsDefined(typeof(ExtensionAttribute), inherit: false));
 	}

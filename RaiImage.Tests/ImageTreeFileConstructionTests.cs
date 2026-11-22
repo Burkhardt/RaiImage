@@ -89,8 +89,10 @@ public class ImageTreeFileConstructionTests
 	{
 		Assert.Equal(ImageNamingConvention.Structured,
 			ImageTreeFile.InferSourceNamingConvention("AfricanPicnic_04_Small.webp"));
+#pragma warning disable RAI016 // Assert detection of the historical naming convention.
 		Assert.Equal(ImageNamingConvention.Legacy,
 			ImageTreeFile.InferSourceNamingConvention("GageElementary_Huge.webp"));
+#pragma warning restore RAI016
 	}
 
 	[Fact]

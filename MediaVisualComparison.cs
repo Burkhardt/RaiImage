@@ -57,7 +57,7 @@ public sealed class MediaVisualComparison
 	{
 		return await tool.RunBinaryAsync(args, async (stream, token) =>
 		{
-			using var reader = new StreamReader(stream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
+			using var reader = RaiSystem.ReadOutput(stream);
 			var text = new char[65537];
 			var n = await reader.ReadBlockAsync(text.AsMemory(), token);
 			if (n > 65536) throw new InvalidOperationException("Media metadata exceeded the bounded response limit.");
@@ -145,7 +145,7 @@ public sealed class MediaVisualComparison
 	}
 	private sealed class FrameReader(Stream stream)
 	{
-		private readonly StreamReader reader = new(stream);
+		private readonly TextReader reader = RaiSystem.ReadOutput(stream);
 		private decimal timeBase;
 		private decimal? origin;
 		public async Task<(decimal Time, decimal Duration, string Hash)?> Next(CancellationToken ct)
@@ -194,7 +194,7 @@ public sealed class MediaVisualComparison
 			"-filter_complex_threads", "1", "-filter_complex", "[0:v:0]format=yuv444p,setpts=PTS-STARTPTS[a];[1:v:0]format=yuv444p,setpts=PTS-STARTPTS[b];[a][b]ssim=stats_file=-:shortest=1[out]",
 			"-map", "[out]", "-an", "-f", "null", "-"], async (stream, token) =>
 		{
-			using var reader = new StreamReader(stream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true); double sum = 0, minimum = 1; long n = 0;
+			using var reader = RaiSystem.ReadOutput(stream); double sum = 0, minimum = 1; long n = 0;
 			while (await reader.ReadLineAsync(token) is { } line)
 			{
 				var all = line.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(f => f.StartsWith("All:", StringComparison.Ordinal));

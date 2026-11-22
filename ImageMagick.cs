@@ -61,13 +61,15 @@ namespace RaiImage
 			{
 				try
 				{
-					var fiIntern = new FileInfo(Path.GetFullPath(from));
+#pragma warning disable RAI002 // The Windows ACL extensions require a FileInfo receiver.
+					var fiIntern = new FileInfo(new RaiFile(from).FullName);
 					var fsec = fiIntern.GetAccessControl();
 					IdentityReference currentIdentity = new NTAccount(System.Security.Principal.WindowsIdentity.GetCurrent().Name);
 					fsec.SetOwner(currentIdentity);
 					var permissions = new FileSystemAccessRule(currentIdentity, FileSystemRights.ReadAndExecute, AccessControlType.Allow);
 					fsec.AddAccessRule(permissions);
 					fiIntern.SetAccessControl(fsec);
+#pragma warning restore RAI002
 					// try it again
 					exitCode = RunMagickSubcommand("convert", options + " " + Os.EscapeParam(from) + " " + Os.EscapeParam(to)).ExitCode;
 				}
@@ -332,7 +334,7 @@ namespace RaiImage
 				}
 			}
 			#endregion
-			else if (File.Exists(destFiles.FullName.Replace("%d", "0"))) // TODO Rainer — File.Exists with string manipulation; needs RaiFile abstraction
+			else if (new RaiFile(destFiles.FullName.Replace("%d", "0")).Exists()) // TODO Rainer — File.Exists with string manipulation; needs RaiFile abstraction
 				return 0;
 			if (size.IsEmpty)
 			{

@@ -195,8 +195,8 @@ namespace RaiImage
 				throw new ArgumentException("Overlay image is required.", nameof(Image));
 
 			var normalized = Os.NormSeperator(Image.Trim());
-			var rooted = System.IO.Path.IsPathRooted(normalized)
-				|| normalized.StartsWith("~" + Os.DIR, StringComparison.Ordinal)
+			var rooted = RaiPath.IsRooted(normalized)
+				|| normalized.StartsWith($"~{Os.DIR}", StringComparison.Ordinal)
 				|| normalized == "~";
 			if (rooted)
 				return new RaiFile(normalized);
@@ -204,7 +204,7 @@ namespace RaiImage
 			var root = OverlayRoot ?? relativeRoot;
 			return root == null
 				? new RaiFile(normalized)
-				: new RaiFile(root.FullPath + normalized.TrimStart(Os.DIR[0]));
+				: new RaiFile(root, normalized);
 		}
 
 		public OverlaySetting()
@@ -619,7 +619,7 @@ namespace RaiImage
 				return new ImageTreeFile(Path, ItemId, renderingName, normalizedExt, Convention);
 
 			var targetStem = ItemId + "_" + ImageNumber.ToString("D3") + "_" + renderingName;
-			return new ImageTreeFile(Path.FullPath + targetStem + "." + normalizedExt,
+			return new ImageTreeFile(new RaiFile(Path, targetStem, normalizedExt).FullName,
 				Convention, ImageNamingConvention.Structured);
 		}
 
@@ -631,7 +631,9 @@ namespace RaiImage
 			var parts = positional.Split('_');
 			return parts.Length >= 2 && int.TryParse(parts[1], out _)
 				? ImageNamingConvention.Structured
+#pragma warning disable RAI016 // Select the parser for an existing legacy asset.
 				: ImageNamingConvention.Legacy;
+#pragma warning restore RAI016
 		}
 
 		private static string AppendRenderingName(string current, string addition)

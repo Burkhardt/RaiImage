@@ -77,10 +77,10 @@ namespace RaiImage
 		/// </summary>
 		public static (int tLen, int sLen) ConventionSplit(PathConventionType convention, string itemId = null) => convention switch
 		{
-			PathConventionType.ItemIdTree3x3   => (3, 3),
-			PathConventionType.ItemIdTree8x2   => (8, 2),
+			PathConventionType.ItemIdTree3x3 => (3, 3),
+			PathConventionType.ItemIdTree8x2 => (8, 2),
 			PathConventionType.CanonicalByName => (string.IsNullOrEmpty(itemId) ? 0 : ImageTreeUnicode.TextElementCount(itemId), 0),
-			PathConventionType.Flat            => (0, 0),
+			PathConventionType.Flat => (0, 0),
 			_ => throw new ArgumentOutOfRangeException(nameof(convention), convention, "Unknown path convention")
 		};
 		public void ApplyPathConvention()
@@ -215,7 +215,9 @@ namespace RaiImage
 					try
 					{
 						if (!SameFile(move.Source, move.Destination) && move.Destination.Exists())
+#pragma warning disable RAI009 // Roll back the completed move by restoring the original source from the destination.
 							move.Source.mv(move.Destination, replace: true, keepBackup: false);
+#pragma warning restore RAI009
 					}
 					catch
 					{

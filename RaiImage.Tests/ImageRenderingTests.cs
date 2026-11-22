@@ -165,7 +165,7 @@ public class ImageRenderingTests : IDisposable
 
 	private static RaiPath NewTestRoot([CallerMemberName] string testName = "")
 	{
-		var root = new RaiPath(Path.GetTempPath()) / "RAIkeep" / "raiimage-tests" / "rendering" / testName;
+		var root = new RaiPath(Os.TempDir.FullPath) / "RAIkeep" / "raiimage-tests" / "rendering" / testName;
 		Cleanup(root);
 		root.mkdir();
 		return root;

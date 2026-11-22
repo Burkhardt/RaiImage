@@ -252,7 +252,7 @@ public class ImageMagickTests
 	public void Constructor_Throws_WhenImPathSetButMagickNotFound()
 	{
 		using var scope = new ImageMagickStateScope();
-		ImageMagick.ImPath = new RaiPath("/tmp/raimage-missing-magick");
+		ImageMagick.ImPath = Os.TempDir / "raimage-missing-magick";
 		var exception = Assert.Throws<RaiUtils.ToolNotFoundException>(() => new ImageMagick());
 		Assert.Equal("ImageMagick", exception.ToolName);
 		Assert.NotEmpty(exception.ExecutablePath);
@@ -598,7 +598,7 @@ public class ImageMagickTests
 			var observer = new Thread(() =>
 			{
 				while (!Volatile.Read(ref stop))
-					if (!File.Exists(image.FullName)) alwaysPresent = false;
+					if (!new RaiFile(image.FullName).Exists()) alwaysPresent = false;
 			});
 			observer.Start();
 			try

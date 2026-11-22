@@ -59,7 +59,10 @@ namespace RaiImage
 				ApplyNamingConvention();
 			}
 		}
-		private ImageNamingConvention namingConvention = ImageNamingConvention.Legacy;
+		#pragma warning disable RAI016 // Historical file constructors retain their published default.
+		internal const ImageNamingConvention DefaultNamingConvention = ImageNamingConvention.Legacy;
+#pragma warning restore RAI016
+		private ImageNamingConvention namingConvention = DefaultNamingConvention;
 		/// <summary>
 		/// True after the constructor has finished and the naming convention
 		/// governs the Name property. During construction, Parse() runs legacy
@@ -363,7 +366,7 @@ namespace RaiImage
 				try
 				{
 					var ms = new MemoryStream();
-					using (var fs = File.Open(fileName, FileMode.Open, FileAccess.Read))	// TODO Rainer: consider using RaiFile.OpenRead and adding retry logic there instead, since this pattern is common for all file access
+					using (var fs = new RaiFile(fileName).OpenRead())
 						fs.CopyTo(ms);	// TODO Rainer: RaiFile could have a method to read the whole file into a MemoryStream with retry logic built in, since this pattern is common for all file access
 					var img = System.Drawing.Image.FromStream(ms);
 					if (clone)
@@ -418,7 +421,7 @@ namespace RaiImage
 			var words = Regex.Split(itemName, @"[\s_-]+").Select(word =>
 				word.Any(char.IsLetter) && word.Where(char.IsLetter).All(char.IsUpper) ? word.ToLowerInvariant() : word);
 			var itemId = new RaiUtils.WordCase(string.Join(" ", words)).PascalCase;
-			var imgFile = new ImageFile(System.IO.Path.Combine(sourceFile.Path.FullPath, itemId + "." + sourceFile.Ext), ImageNamingConvention.Structured);
+			var imgFile = new ImageFile(new RaiFile(new RaiPath(sourceFile.Path.FullPath), itemId + "." + sourceFile.Ext).FullName, ImageNamingConvention.Structured);
 			if (discoveredImageNumber != NoImageNumber)
 				imgFile.ImageNumber = discoveredImageNumber;
 			if (imgFile.ImageNumber == NoImageNumber)
@@ -690,7 +693,7 @@ namespace RaiImage
 		/// structured components. Convention defaults to Legacy.
 		/// </summary>
 		public ImageFile(string filename,
-			ImageNamingConvention naming = ImageNamingConvention.Legacy)
+			ImageNamingConvention naming = DefaultNamingConvention)
 			: base(filename)
 		{
 			Image = null;
@@ -963,7 +966,7 @@ namespace RaiImage
 		/// </summary>
 		public ImageTreeFile(string file,
 			PathConventionType splitMode = PathConventionType.ItemIdTree8x2,
-			ImageNamingConvention naming = ImageNamingConvention.Legacy)
+			ImageNamingConvention naming = DefaultNamingConvention)
 			: base(file, naming)
 		{
 			Convention = splitMode;
@@ -989,7 +992,7 @@ namespace RaiImage
 		/// </summary>
 		public ImageTreeFile(string itemName, RaiPath path, string nameExt, string ext,
 			PathConventionType splitMode = PathConventionType.ItemIdTree8x2,
-			ImageNamingConvention naming = ImageNamingConvention.Legacy)
+			ImageNamingConvention naming = DefaultNamingConvention)
 			: base(itemName, naming)
 		{
 			base.Path = path;

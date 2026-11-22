@@ -6,10 +6,10 @@ using OsLib;
 
 namespace RaiImage
 {
-    /// <summary>
-    /// ImageMagick compatible Color
-    /// </summary>
-    public class ColorInfo
+	/// <summary>
+	/// ImageMagick compatible Color
+	/// </summary>
+	public class ColorInfo
 	{
 		public static string ColorNamesFile { get; set; }
 		/// <summary>

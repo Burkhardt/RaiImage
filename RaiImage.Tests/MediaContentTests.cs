@@ -15,17 +15,17 @@ public sealed class MediaContentTests : IDisposable
 	public async Task SameSizeDifferentContentsNeverPassByteComparison()
 	{
 		var a = new TextFile(root, "a.mov", content: "123456"); var b = new TextFile(root, "b.mp4", content: "654321");
-		Assert.NotEqual(await MediaContent.Sha256Async(a), await MediaContent.Sha256Async(b));
-		Assert.False(await MediaContent.ByteEqualsAsync(a, b));
-		Assert.True(await MediaContent.ByteEqualsAsync(a, a));
+		Assert.NotEqual(await MediaContent.Sha256Async(a, TestContext.Current.CancellationToken), await MediaContent.Sha256Async(b, TestContext.Current.CancellationToken));
+		Assert.False(await MediaContent.ByteEqualsAsync(a, b, TestContext.Current.CancellationToken));
+		Assert.True(await MediaContent.ByteEqualsAsync(a, a, TestContext.Current.CancellationToken));
 	}
 	[Fact]
 	public async Task StreamingByteComparisonHandlesLargeBuffersAndCancellation()
 	{
 		var a = new RaiFile(root, "a.mov"); var b = new RaiFile(root, "b.mp4");
 		var content = new byte[81920 * 3 + 7]; new Random(42).NextBytes(content);
-		await a.WriteFromAsync(new MemoryStream(content)); await b.WriteFromAsync(new MemoryStream(content));
-		Assert.True(await MediaContent.ByteEqualsAsync(a, b));
+		await a.WriteFromAsync(new MemoryStream(content), TestContext.Current.CancellationToken); await b.WriteFromAsync(new MemoryStream(content), TestContext.Current.CancellationToken);
+		Assert.True(await MediaContent.ByteEqualsAsync(a, b, TestContext.Current.CancellationToken));
 		using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => MediaContent.Sha256Async(a, cancellation.Token));
 	}
@@ -39,7 +39,7 @@ public sealed class MediaContentTests : IDisposable
 	public async Task CompleteVideoFramesMatchAcrossContainersAndAudioIsNotClaimed()
 	{
 		var a = Video("a.mov", "testsrc2=size=32x32:rate=5"); var b = Video("b.mp4", "testsrc2=size=32x32:rate=5");
-		var result = await new MediaVisualComparison().CompareAsync(a, b);
+		var result = await new MediaVisualComparison().CompareAsync(a, b, TestContext.Current.CancellationToken);
 		Assert.NotNull(result); Assert.False(result.AudioCompared); Assert.False(result.ByteComparisonVerified);
 		Assert.Equal("DecodedExact", result.Method); Assert.Equal(5, result.FramesCompared);
 	}
@@ -47,7 +47,7 @@ public sealed class MediaContentTests : IDisposable
 	public async Task LossyEncodeUsesFullSequenceSsim()
 	{
 		var a = Video("source.mov", "testsrc2=size=32x32:rate=5"); var b = Video("lossy.mp4", "testsrc2=size=32x32:rate=5", lossless: false);
-		var result = await new MediaVisualComparison().CompareAsync(a, b);
+		var result = await new MediaVisualComparison().CompareAsync(a, b, TestContext.Current.CancellationToken);
 		Assert.NotNull(result); Assert.Equal("Perceptual", result.Method); Assert.Equal(5, result.FramesCompared);
 		Assert.True(result.MeanSsim >= MediaVisualComparison.MeanThreshold);
 	}
@@ -56,14 +56,14 @@ public sealed class MediaContentTests : IDisposable
 	{
 		var a = Video("a.mov", "color=red:size=32x32:rate=5");
 		var b = Video("b.mp4", "color=red:size=32x32:rate=5,drawbox=color=blue:t=fill:enable='eq(n,2)'");
-		Assert.Null(await new MediaVisualComparison().CompareAsync(a, b));
+		Assert.Null(await new MediaVisualComparison().CompareAsync(a, b, TestContext.Current.CancellationToken));
 	}
 	[Fact]
 	public async Task MissingVisualToolsFailExplicitly()
 	{
 		var a = new TextFile(root, "a.mov", content: "data");
 		await Assert.ThrowsAsync<InvalidOperationException>(() => new MediaVisualComparison(new FfmpegCommand("cr075-no-such-ffmpeg"))
-			.CompareAsync(a, a));
+			.CompareAsync(a, a, TestContext.Current.CancellationToken));
 	}
 	public void Dispose() => root.rmdir(depth: 10, deleteFiles: true);
 }
