@@ -30,11 +30,19 @@ namespace RaiImage
 	{
 		public static ImageTypes Default { get; } = new([
 			"tiff", "png", "jpg", "psd", "webp", "svg",
-			"mp4", "mov", "webm", "mkv", "avi"
+			"mp4", "mov", "webm", "mkv", "avi",
+			"m4s", "mpd", "m3u8", "json", "vtt"
 		]);
 
 		public static bool IsVideo(string extension) => extension?.Trim().TrimStart('.').ToLowerInvariant()
 			is "mp4" or "mov" or "webm" or "mkv" or "avi";
+
+		public static bool IsStreamingAsset(string extension) => extension?.Trim().TrimStart('.').ToLowerInvariant()
+			is "m4s" or "mpd" or "m3u8" or "vtt";
+
+		public static bool IsCatalogOrMetadata(string extension) =>
+			string.Equals(extension?.Trim().TrimStart('.'), "json", StringComparison.OrdinalIgnoreCase);
+
 	}
 
 	public class Pane
